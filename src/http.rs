@@ -12,7 +12,7 @@ use tokio::io::AsyncWriteExt;
 use crate::Result;
 
 /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
-pub const USER_AGENT: &str = "Mozilla 5.0 (Unknown; x64) Retina/0.1.0 (KHTML, like Gecko)";
+pub const USER_AGENT: &str = "Mozilla 5.0 (Unknown; x64) Retina/0.1.0 (KHTML, like Gecko and AppleWebKit)";
 
 pub async fn download_resource(uri: &str) -> Result<Vec<u8>> {
     let mut request = Request::new(Body::default());
