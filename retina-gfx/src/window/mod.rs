@@ -2,11 +2,13 @@
 // All Rights Reserved.
 
 mod glyph_brush;
+mod keyboard;
 mod painter;
 mod render_pass;
+mod state;
 mod swap_chain;
 
-use painter::WindowPainter;
+use self::{painter::WindowPainter, state::WindowState};
 
 use std::error::Error;
 
@@ -17,6 +19,7 @@ pub struct Window {
     window: winit::window::Window,
 
     painter: WindowPainter,
+    state: WindowState,
 }
 
 //
@@ -40,6 +43,8 @@ impl Window {
             window,
 
             painter,
+
+            state: WindowState::new(),
         })
     }
 
@@ -59,6 +64,17 @@ impl Window {
                     ..
                 } => {
                     self.painter.on_resize(new_size);
+                }
+
+                winit::event::Event::DeviceEvent { event, .. } => {
+                    self.state.on_device_event(event);
+                }
+
+                winit::event::Event::WindowEvent {
+                    event: winit::event::WindowEvent::ModifiersChanged(event),
+                    ..
+                } => {
+                    self.state.on_modifiers_event(event);
                 }
 
                 winit::event::Event::RedrawRequested { .. } => {
