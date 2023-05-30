@@ -1595,6 +1595,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "retina-dom"
+version = "0.2.0"
+dependencies = [
+ "html5ever",
+]
+
+[[package]]
 name = "retina-gfx"
 version = "0.2.0"
 dependencies = [

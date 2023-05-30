@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "retina",
+    "retina-dom",
     "retina-gfx",
 ]
 
