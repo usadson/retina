@@ -4,5 +4,8 @@
 fn main() {
     env_logger::init();
 
-    retina_gfx::window::run().unwrap();
+    let window = retina_gfx::window::Window::new()
+        .expect("failed to create window");
+
+    window.run()
 }
