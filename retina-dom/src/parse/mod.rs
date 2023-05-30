@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn parse_simple() {
-        const TEXT: &str = "<!DOCTYPE html><html><head></head><body></body></html>";
+        const TEXT: &str = include_str!("../../../test/html/empty/index.html");
         _ = Parser::parse(TEXT);
     }
 
