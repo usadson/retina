@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+futures = "*"
 euclid = "*"
 winit = "0.28.3"
 wgpu = "*"

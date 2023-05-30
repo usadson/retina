@@ -3,4 +3,6 @@
 
 fn main() {
     env_logger::init();
+
+    retina_gfx::window::run().unwrap();
 }
