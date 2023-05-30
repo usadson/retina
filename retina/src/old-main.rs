@@ -16,6 +16,7 @@ use webrender::render_api::*;
 use webrender::api::units::*;
 
 pub mod http;
+mod window;
 
 pub type Result<T> = core::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
