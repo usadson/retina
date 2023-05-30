@@ -6,6 +6,7 @@ edition.workspace = true
 [dependencies]
 retina-gfx = { path = "../retina-gfx" }
 
+env_logger = "*"
 html5ever = "*"
 http = "*"
 hyper = { version = "*", features = ["full"] }

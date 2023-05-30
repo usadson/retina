@@ -2,5 +2,5 @@
 // All Rights Reserved.
 
 fn main() {
-
+    env_logger::init();
 }
