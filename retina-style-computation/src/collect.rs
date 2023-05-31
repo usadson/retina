@@ -4,13 +4,12 @@
 use retina_dom::NodeKind;
 
 use retina_style::{
-    Declaration,
     Rule,
     Stylesheet,
     StyleRule,
 };
 
-use crate::selector_match::{matches_selector, SelectorMatcher};
+use crate::SelectorMatcher;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct CollectedStyles<'stylesheets> {
@@ -22,6 +21,11 @@ impl<'stylesheets> CollectedStyles<'stylesheets> {
         Self {
             applicable_rules: Vec::new(),
         }
+    }
+
+    /// Get the rules that are applicable to this node.
+    pub fn applicable_rules(&self) -> &[&'stylesheets StyleRule] {
+        &self.applicable_rules
     }
 }
 

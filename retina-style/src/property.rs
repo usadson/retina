@@ -4,7 +4,7 @@
 use strum::{AsRefStr, EnumIter, IntoEnumIterator};
 
 /// <https://www.w3.org/TR/css-values-3/#value-examples>
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(AsRefStr, EnumIter)]
 #[strum(serialize_all = "kebab-case")]
 pub enum Property {

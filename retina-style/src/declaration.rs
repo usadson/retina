@@ -8,3 +8,13 @@ pub struct Declaration {
     pub(crate) property: Property,
     pub(crate) value: Value,
 }
+
+impl Declaration {
+    pub fn property(&self) -> Property {
+        self.property
+    }
+
+    pub fn value(&self) -> &Value {
+        &self.value
+    }
+}
