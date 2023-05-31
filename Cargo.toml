@@ -5,6 +5,7 @@ members = [
     "retina-dom",
     "retina-gfx",
     "retina-style",
+    "retina-style-computation",
 ]
 
 [workspace.package]

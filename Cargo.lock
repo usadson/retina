@@ -1703,6 +1703,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "retina-style-computation"
+version = "0.2.0"
+dependencies = [
+ "retina-common",
+ "retina-dom",
+ "retina-style",
+ "rstest",
+]
+
+[[package]]
 name = "rstest"
 version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
