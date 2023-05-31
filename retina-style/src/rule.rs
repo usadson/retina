@@ -8,6 +8,8 @@ use crate::{
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Rule {
+    /// `@rule`
+    At,
     Style(StyleRule),
 }
 
