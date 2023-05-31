@@ -1,11 +1,12 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_style::{ColorValue, Property, Value};
+use retina_style::{ColorValue, CssDisplay, Property, Value};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct PropertyMap {
     pub color: Option<ColorValue>,
+    pub display: Option<CssDisplay>,
 }
 
 impl PropertyMap {
@@ -17,14 +18,18 @@ impl PropertyMap {
         match property {
             Property::Invalid => PropertyMapDidApply::NoBecauseOfAnInvalidProperty,
 
-            Property::Color => match value {
-                Value::Color(color) => {
-                    self.color = Some(color);
-                    PropertyMapDidApply::Yes
-                }
+            Property::Color => if let Value::Color(color) = value {
+                self.color = Some(color);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
 
-                #[allow(unreachable_patterns)] // TODO
-                _ => PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            Property::Display => if let Value::Display(display) = value {
+                self.display = Some(display);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
             }
         }
     }

@@ -12,6 +12,7 @@ pub enum Property {
     Invalid,
 
     Color,
+    Display,
 }
 
 impl Property {
