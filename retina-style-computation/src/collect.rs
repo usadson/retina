@@ -57,13 +57,14 @@ impl<'stylesheets> StyleCollector<'stylesheets> {
 #[cfg(test)]
 mod tests {
     use retina_dom::Text;
+    use retina_style::CascadeOrigin;
 
     use super::*;
 
     #[test]
     fn stylesheet_single_rule_single_declaration_text_node() {
         let stylesheets = &[
-            Stylesheet::parse("* {
+            Stylesheet::parse(CascadeOrigin::UserAgent, "* {
                 color: white;
             }")
         ];

@@ -6,7 +6,7 @@ use cssparser::Parser;
 use crate::{
     Rule,
     StyleRule,
-    SelectorList,
+    SelectorList, CascadeOrigin,
 };
 
 use super::{
@@ -14,8 +14,18 @@ use super::{
     RetinaStyleParseError,
 };
 
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) struct RuleParser;
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) struct RuleParser {
+    cascade_origin: CascadeOrigin,
+}
+
+impl RuleParser {
+    pub const fn new(cascade_origin: CascadeOrigin) -> Self {
+        Self {
+            cascade_origin
+        }
+    }
+}
 
 impl<'i> cssparser::AtRuleParser<'i> for RuleParser {
     type Prelude = ();
@@ -51,6 +61,7 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for RuleParser {
         }
 
         Ok(Rule::Style(StyleRule {
+            cascade_origin: self.cascade_origin,
             selector_list,
             declarations,
         }))
@@ -91,9 +102,10 @@ mod tests {
     #[case("*{color:rEd}", helper_color(BasicColorKeyword::Red))]
     #[test]
     fn qualified_rule_single_declaration(#[case] input: &str, #[case] expected: Declaration) {
-        let stylesheet = Stylesheet::parse(input);
+        let stylesheet = Stylesheet::parse(CascadeOrigin::Author, input);
 
         let rule = Rule::Style(StyleRule {
+            cascade_origin: CascadeOrigin::Author,
             selector_list: SelectorList {
                 items: vec![
                     Selector::Simple(SimpleSelector::Universal),

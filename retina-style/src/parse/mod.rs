@@ -22,12 +22,12 @@ use cssparser::{
     RuleListParser,
 };
 
-use crate::Stylesheet;
+use crate::{CascadeOrigin, Stylesheet};
 
-pub fn parse_stylesheet(input: &str) -> Stylesheet {
+pub fn parse_stylesheet(cascade_origin: CascadeOrigin, input: &str) -> Stylesheet {
     let mut input = ParserInput::new(input);
     let mut parser = Parser::new(&mut input);
-    let mut rule_list_parser = RuleListParser::new_for_stylesheet(&mut parser, RuleParser::default());
+    let mut rule_list_parser = RuleListParser::new_for_stylesheet(&mut parser, RuleParser::new(cascade_origin));
 
     let mut stylesheet = Stylesheet::new();
 
@@ -55,9 +55,10 @@ mod tests {
             }
         ";
 
-        let stylesheet = Stylesheet::parse(input);
+        let stylesheet = Stylesheet::parse(CascadeOrigin::Author, input);
 
         let rule = Rule::Style(StyleRule {
+            cascade_origin: CascadeOrigin::Author,
             selector_list: SelectorList {
                 items: vec![
                     Selector::Simple(SimpleSelector::Universal),
