@@ -3,10 +3,10 @@
 
 use retina_style::{StyleRule, CascadeOrigin};
 
-use crate::{ComputedStyle, CollectedStyles};
+use crate::{CollectedStyles, PropertyMap};
 
 fn cascade_normal_declarations_for_origin(
-    computed_style: &mut ComputedStyle,
+    property_map: &mut PropertyMap,
     rules: &[&StyleRule],
     origin: CascadeOrigin,
 ) {
@@ -16,30 +16,30 @@ fn cascade_normal_declarations_for_origin(
         }
 
         for declaration in &rule.declarations {
-            computed_style.values.insert(declaration.property(), declaration.value().clone());
+            property_map.apply_property(declaration.property(), declaration.value().clone());
         }
     }
 }
 
 trait Cascade {
-    fn cascade(&self) -> ComputedStyle;
+    fn cascade(&self) -> PropertyMap;
 }
 
 impl<'stylesheets> Cascade for CollectedStyles<'stylesheets> {
-    fn cascade(&self) -> ComputedStyle {
-        let mut computed_style = ComputedStyle::new();
+    fn cascade(&self) -> PropertyMap {
+        let mut property_map = PropertyMap::new();
 
         // Declarations from origins earlier in this list win over declarations
         // from later origins.
 
         // 8. Normal user-agent declarations
-        cascade_normal_declarations_for_origin(&mut computed_style, self.applicable_rules(), CascadeOrigin::UserAgent);
+        cascade_normal_declarations_for_origin(&mut property_map, self.applicable_rules(), CascadeOrigin::UserAgent);
 
         // 7. Normal user declarations
-        cascade_normal_declarations_for_origin(&mut computed_style, self.applicable_rules(), CascadeOrigin::User);
+        cascade_normal_declarations_for_origin(&mut property_map, self.applicable_rules(), CascadeOrigin::User);
 
         // 6. Normal author declarations
-        cascade_normal_declarations_for_origin(&mut computed_style, self.applicable_rules(), CascadeOrigin::Author);
+        cascade_normal_declarations_for_origin(&mut property_map, self.applicable_rules(), CascadeOrigin::Author);
 
         // 5. Animation declarations [css-animations-1]
         // TODO
@@ -56,16 +56,14 @@ impl<'stylesheets> Cascade for CollectedStyles<'stylesheets> {
         // 1. Transition declarations [css-transitions-1]
         // TODO
 
-        computed_style
+        property_map
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use retina_dom::{NodeKind, Text};
-    use retina_style::{BasicColorKeyword, ColorValue, Property, Value, Stylesheet};
+    use retina_style::{BasicColorKeyword, ColorValue, Stylesheet};
 
     use crate::*;
     use super::*;
@@ -95,10 +93,13 @@ mod tests {
         let collected_styles = StyleCollector::new(&stylesheets).collect(node);
         let cascaded_style = collected_styles.cascade();
 
-        let mut expected = HashMap::new();
-        expected.insert(Property::Color, Value::Color(ColorValue::BasicColorKeyword(BasicColorKeyword::Blue)));
+        let expected = PropertyMap {
+            color: Some(ColorValue::BasicColorKeyword(BasicColorKeyword::Blue)),
 
-        assert_eq!(cascaded_style.values, expected);
+            ..Default::default()
+        };
+
+        assert_eq!(cascaded_style, expected);
     }
 
 }
