@@ -1,8 +1,10 @@
 [workspace]
 members = [
     "retina",
+    "retina-common",
     "retina-dom",
     "retina-gfx",
+    "retina-style",
 ]
 
 [workspace.package]

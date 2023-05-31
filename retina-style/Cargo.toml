@@ -1,0 +1,13 @@
+[package]
+name = "retina-style"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+retina-common = { path = "../retina-common" }
+
+cssparser = "*"
+strum = { version = "*", features = ["derive"] }
+
+[dev-dependencies]
+rstest = "*"
