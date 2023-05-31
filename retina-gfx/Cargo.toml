@@ -4,6 +4,8 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+retina-common = { path = "../retina-common" }
+
 futures = "*"
 euclid = "*"
 winit = "0.28.3"

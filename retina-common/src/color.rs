@@ -54,6 +54,15 @@ impl Color {
         Self { red, green, blue, alpha }
     }
 
+    pub fn rgb_decimal(red: u8, green: u8, blue: u8) -> Self {
+        Self {
+            red: red as f64 / 255.0,
+            green: green as f64 / 255.0,
+            blue: blue as f64 / 255.0,
+            alpha: 1.0
+        }
+    }
+
     /// Get the `red` RGB component of this color.
     pub const fn red(&self) -> f64 {
         self.red
