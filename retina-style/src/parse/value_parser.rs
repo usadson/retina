@@ -4,7 +4,7 @@
 use cssparser::{Parser, Token};
 use strum::IntoEnumIterator;
 
-use crate::{value::{BasicColorKeyword, CssDisplay}, Value, ColorValue};
+use crate::{value::{BasicColorKeyword, CssDisplay, CssWhiteSpace}, Value, ColorValue};
 use super::{ParseError, RetinaStyleParseError};
 
 pub(crate) fn parse_basic_color_keyword<'i, 't>(
@@ -15,7 +15,7 @@ pub(crate) fn parse_basic_color_keyword<'i, 't>(
         .map_err(|_| input.new_custom_error(RetinaStyleParseError::UnexpectedEofBasicColorKeyword))?;
 
     let Token::Ident(ident) = token else {
-        return Err(input.new_custom_error(RetinaStyleParseError::ExpectedIdentifierAsPropertyName));
+        return Err(input.new_custom_error(RetinaStyleParseError::ExpectedIdentifierAsPropertyValue));
     };
 
     BasicColorKeyword::iter()
@@ -31,7 +31,7 @@ pub(crate) fn parse_display<'i, 't>(
         .map_err(|_| input.new_custom_error(RetinaStyleParseError::UnexpectedEofBasicColorKeyword))?;
 
     let Token::Ident(ident) = token else {
-        return Err(input.new_custom_error(RetinaStyleParseError::ExpectedIdentifierAsPropertyName));
+        return Err(input.new_custom_error(RetinaStyleParseError::ExpectedIdentifierAsPropertyValue));
     };
 
     Ok(match ident.as_ref() {
@@ -51,7 +51,26 @@ pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<Value, P
         return Ok(Value::Display(display));
     }
 
+    if let Ok(white_space) = input.try_parse(parse_white_space) {
+        return Ok(Value::WhiteSpace(white_space));
+    }
+
     Err(input.new_custom_error(RetinaStyleParseError::UnknownValue))
+}
+pub(crate) fn parse_white_space<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssWhiteSpace, ParseError<'i>> {
+    let token = input.next()
+        .cloned()
+        .map_err(|_| input.new_custom_error(RetinaStyleParseError::UnexpectedEofBasicColorKeyword))?;
+
+    let Token::Ident(ident) = token else {
+        return Err(input.new_custom_error(RetinaStyleParseError::ExpectedIdentifierAsPropertyValue));
+    };
+
+    CssWhiteSpace::iter()
+        .find(|keyword| keyword.as_ref().eq_ignore_ascii_case(ident.as_ref()))
+        .ok_or_else(|| input.new_custom_error(RetinaStyleParseError::UnknownWhiteSpaceKeyword))
 }
 
 #[cfg(test)]
@@ -83,12 +102,28 @@ mod tests {
     #[case("none", CssDisplay::None)]
     #[case("inline", CssDisplay::InlineFlow)]
     #[case("block", CssDisplay::BlockFlow)]
-    fn value_color_display(#[case] input: &str, #[case] display: CssDisplay) {
+    fn value_display(#[case] input: &str, #[case] display: CssDisplay) {
         let mut input = cssparser::ParserInput::new(input);
         let input = &mut cssparser::Parser::new(&mut input);
 
         let result = parse_value(input);
         let expected = Ok(Value::Display(display));
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case("normal", CssWhiteSpace::Normal)]
+    #[case("nowrap", CssWhiteSpace::Nowrap)]
+    #[case("pre", CssWhiteSpace::Pre)]
+    #[case("pre-wrap", CssWhiteSpace::PreWrap)]
+    #[case("pre-line", CssWhiteSpace::PreLine)]
+    #[case("break-spaces", CssWhiteSpace::BreakSpaces)]
+    fn value_white_space(#[case] input: &str, #[case] white_space: CssWhiteSpace) {
+        let mut input = cssparser::ParserInput::new(input);
+        let input = &mut cssparser::Parser::new(&mut input);
+
+        let result = parse_value(input);
+        let expected = Ok(Value::WhiteSpace(white_space));
         assert_eq!(result, expected);
     }
 

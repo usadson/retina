@@ -3,11 +3,12 @@
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum RetinaStyleParseError {
-    ExpectedIdentifierAsPropertyName,
+    ExpectedIdentifierAsPropertyValue,
 
     UnexpectedEofBasicColorKeyword,
 
     UnknownBasicColorKeyword,
     UnknownSelector,
     UnknownValue,
+    UnknownWhiteSpaceKeyword,
 }
