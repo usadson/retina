@@ -46,4 +46,16 @@ impl NodeKind {
             Self::Text(..) => None,
         }
     }
+
+    pub fn is_document(&self) -> bool {
+        matches!(self, Self::Document(..))
+    }
+
+    pub fn is_element(&self) -> bool {
+        matches!(self, Self::HtmlElement(..))
+    }
+
+    pub fn is_text(&self) -> bool {
+        matches!(self, Self::Text(..))
+    }
 }

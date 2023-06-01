@@ -7,5 +7,6 @@ pub(crate) mod property_map;
 pub(crate) mod selector_match;
 
 pub use collect::{CollectedStyles, StyleCollector};
+pub use cascade::Cascade;
 pub use property_map::PropertyMap;
 pub use selector_match::SelectorMatcher;

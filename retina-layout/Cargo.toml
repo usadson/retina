@@ -1,0 +1,15 @@
+[package]
+name = "retina-layout"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+retina-common = { path = "../retina-common" }
+retina-dom = { path = "../retina-dom" }
+retina-style = { path = "../retina-style" }
+retina-style-computation = { path = "../retina-style-computation" }
+
+euclid = "*"
+
+[dev-dependencies]
+rstest = "*"

@@ -1693,6 +1693,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "retina-layout"
+version = "0.2.0"
+dependencies = [
+ "euclid",
+ "retina-common",
+ "retina-dom",
+ "retina-style",
+ "retina-style-computation",
+ "rstest",
+]
+
+[[package]]
 name = "retina-style"
 version = "0.2.0"
 dependencies = [

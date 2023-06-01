@@ -33,6 +33,10 @@ impl PropertyMap {
             }
         }
     }
+
+    pub fn display(&self) -> CssDisplay {
+        self.display.unwrap_or(CssDisplay::InlineFlow)
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]

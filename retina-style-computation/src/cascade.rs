@@ -21,7 +21,7 @@ fn cascade_normal_declarations_for_origin(
     }
 }
 
-trait Cascade {
+pub trait Cascade {
     fn cascade(&self) -> PropertyMap;
 }
 
