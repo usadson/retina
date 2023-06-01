@@ -116,7 +116,7 @@ impl TreeSink for Sink {
     fn append(&mut self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
         let child = match child {
             NodeOrText::AppendNode(node) => node,
-            NodeOrText::AppendText(text) => Text::new_handle(text.to_string()),
+            NodeOrText::AppendText(text) => Text::new_handle(text),
         };
 
         child.as_node().set_parent(Some(Rc::downgrade(parent)));

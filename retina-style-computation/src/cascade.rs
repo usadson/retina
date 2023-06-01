@@ -64,6 +64,7 @@ impl<'stylesheets> Cascade for CollectedStyles<'stylesheets> {
 mod tests {
     use retina_dom::{NodeKind, Text};
     use retina_style::{BasicColorKeyword, ColorValue, Stylesheet};
+    use tendril::StrTendril;
 
     use crate::*;
     use super::*;
@@ -88,7 +89,7 @@ mod tests {
             "),
         ];
 
-        let node = &NodeKind::Text(Text::new(String::new()));
+        let node = &NodeKind::Text(Text::new(StrTendril::new()));
 
         let collected_styles = StyleCollector::new(&stylesheets).collect(node);
         let cascaded_style = collected_styles.cascade();

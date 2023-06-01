@@ -6,6 +6,8 @@
 
 use std::rc::Rc;
 
+use tendril::StrTendril;
+
 use crate::{
     Node,
     NodeKind,
@@ -16,18 +18,18 @@ use crate::{
 #[derive(Debug)]
 pub struct Text {
     superclass_node: Node,
-    data: String,
+    data: StrTendril,
 }
 
 impl Text {
-    pub fn new(data: String) -> Self {
+    pub fn new(data: StrTendril) -> Self {
         Self {
             superclass_node: Node::new(),
             data,
         }
     }
 
-    pub fn new_handle(data: String) -> Rc<NodeKind> {
+    pub fn new_handle(data: StrTendril) -> Rc<NodeKind> {
         Rc::new(
             NodeKind::Text(
                 Self::new(data)
@@ -43,7 +45,11 @@ impl Text {
         &mut self.superclass_node
     }
 
-    pub fn data(&self) -> &str {
+    pub fn data(&self) -> &StrTendril {
+        &self.data
+    }
+
+    pub fn data_as_str(&self) -> &str {
         &self.data
     }
 }

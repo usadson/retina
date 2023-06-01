@@ -35,10 +35,11 @@ mod tests {
     use super::*;
 
     use retina_dom::Text;
+    use tendril::StrTendril;
 
     #[test]
     fn text_node() {
-        let node = &NodeKind::Text(Text::new(String::new()));
+        let node = &NodeKind::Text(Text::new(StrTendril::new()));
 
         let universal_selector = Selector::Simple(SimpleSelector::Universal);
         assert!(universal_selector.matches(node));

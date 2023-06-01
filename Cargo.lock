@@ -1678,6 +1678,7 @@ name = "retina-dom"
 version = "0.2.0"
 dependencies = [
  "html5ever",
+ "tendril",
 ]
 
 [[package]]
@@ -1722,6 +1723,7 @@ dependencies = [
  "retina-dom",
  "retina-style",
  "rstest",
+ "tendril",
 ]
 
 [[package]]

@@ -62,6 +62,7 @@ impl<'stylesheets> StyleCollector<'stylesheets> {
 mod tests {
     use retina_dom::Text;
     use retina_style::CascadeOrigin;
+    use tendril::StrTendril;
 
     use super::*;
 
@@ -73,7 +74,7 @@ mod tests {
             }")
         ];
 
-        let node = &NodeKind::Text(Text::new(String::new()));
+        let node = &NodeKind::Text(Text::new(StrTendril::new()));
 
         let collected = StyleCollector::new(stylesheets).collect(node);
         assert_eq!(collected, CollectedStyles{
