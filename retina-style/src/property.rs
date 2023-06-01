@@ -13,6 +13,7 @@ pub enum Property {
 
     Color,
     Display,
+    WhiteSpace,
 }
 
 impl Property {

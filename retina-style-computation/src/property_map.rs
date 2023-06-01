@@ -1,12 +1,13 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_style::{ColorValue, CssDisplay, Property, Value};
+use retina_style::{ColorValue, CssDisplay, CssWhiteSpace, Property, Value};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct PropertyMap {
     pub color: Option<ColorValue>,
     pub display: Option<CssDisplay>,
+    pub white_space: Option<CssWhiteSpace>,
 }
 
 impl PropertyMap {
@@ -27,6 +28,13 @@ impl PropertyMap {
 
             Property::Display => if let Value::Display(display) = value {
                 self.display = Some(display);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::WhiteSpace => if let Value::WhiteSpace(white_space) = value {
+                self.white_space = Some(white_space);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue
