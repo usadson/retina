@@ -25,4 +25,8 @@ impl ParentNode {
     pub fn children(&self) -> &RefCell<Vec<Rc<NodeKind>>> {
         &self.children
     }
+
+    pub fn children_mut(&mut self) -> &mut RefCell<Vec<Rc<NodeKind>>> {
+        &mut self.children
+    }
 }
