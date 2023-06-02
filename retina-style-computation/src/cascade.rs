@@ -21,12 +21,25 @@ fn cascade_normal_declarations_for_origin(
     }
 }
 
+fn inherit_property<T>(target: &mut Option<T>, source: &Option<T>)
+        where T: Clone {
+    if target.is_none() {
+        *target = source.clone();
+    }
+}
+
+fn inherit_properties(property_map: &mut PropertyMap, parent: &PropertyMap) {
+    inherit_property(&mut property_map.color, &parent.color);
+    // `display` is not inherited
+    inherit_property(&mut property_map.white_space, &parent.white_space);
+}
+
 pub trait Cascade {
-    fn cascade(&self) -> PropertyMap;
+    fn cascade(&self, parent: Option<&PropertyMap>) -> PropertyMap;
 }
 
 impl<'stylesheets> Cascade for CollectedStyles<'stylesheets> {
-    fn cascade(&self) -> PropertyMap {
+    fn cascade(&self, parent: Option<&PropertyMap>) -> PropertyMap {
         let mut property_map = PropertyMap::new();
 
         // Declarations from origins earlier in this list win over declarations
@@ -56,14 +69,20 @@ impl<'stylesheets> Cascade for CollectedStyles<'stylesheets> {
         // 1. Transition declarations [css-transitions-1]
         // TODO
 
+        if let Some(parent) = parent {
+            inherit_properties(&mut property_map, parent);
+        }
+
         property_map
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use retina_dom::{NodeKind, Text};
-    use retina_style::{BasicColorKeyword, ColorValue, Stylesheet};
+    use std::rc::Rc;
+
+    use retina_dom::{NodeKind, Text, Document};
+    use retina_style::{BasicColorKeyword, ColorValue, Stylesheet, CssDisplay};
     use tendril::StrTendril;
 
     use crate::*;
@@ -92,7 +111,7 @@ mod tests {
         let node = &NodeKind::Text(Text::new(StrTendril::new()));
 
         let collected_styles = StyleCollector::new(&stylesheets).collect(node);
-        let cascaded_style = collected_styles.cascade();
+        let cascaded_style = collected_styles.cascade(None);
 
         let expected = PropertyMap {
             color: Some(ColorValue::BasicColorKeyword(BasicColorKeyword::Blue)),
@@ -101,6 +120,59 @@ mod tests {
         };
 
         assert_eq!(cascaded_style, expected);
+    }
+
+    #[test]
+    fn inherit_test() {
+        let stylesheets = [
+            Stylesheet::parse(CascadeOrigin::User, "
+                * {
+                    color: green;
+                    display: block;
+                }
+            "),
+            Stylesheet::parse(CascadeOrigin::Author, "
+                * {
+                    color: blue;
+                }
+            "),
+            Stylesheet::parse(CascadeOrigin::UserAgent, "
+                * {
+                    color: yellow;
+                }
+            "),
+        ];
+
+        let node = Rc::new(
+            NodeKind::Text(Text::new(StrTendril::new()))
+        );
+
+        let mut parent_node = Document::new();
+        parent_node.as_parent_node_mut().children().borrow_mut().push(
+            Rc::clone(&node)
+        );
+
+        let parent_node = NodeKind::Document(parent_node);
+
+        let parent_collected_styles = StyleCollector::new(&stylesheets).collect(&parent_node);
+        let parent_cascaded_styles = parent_collected_styles.cascade(None);
+
+        assert_eq!(parent_cascaded_styles, PropertyMap {
+            color: Some(ColorValue::BasicColorKeyword(BasicColorKeyword::Blue)),
+            display: Some(CssDisplay::BlockFlow),
+
+            ..Default::default()
+        });
+
+        let node_collected_styles = CollectedStyles::new();
+        let node_cascaded_style = node_collected_styles.cascade(Some(&parent_cascaded_styles));
+
+        assert_eq!(node_cascaded_style, PropertyMap {
+            color: Some(ColorValue::BasicColorKeyword(BasicColorKeyword::Blue)),
+            display: None,
+
+            ..Default::default()
+        });
     }
 
 }
