@@ -27,18 +27,22 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             .expect("root node has no layout box generated")
     }
 
-    fn resolve_style(&self, node: &DomNode) -> PropertyMap {
+    fn resolve_style(
+        &self,
+        node: &DomNode,
+        parent: Option<&LayoutBox>,
+    ) -> PropertyMap {
         StyleCollector::new(self.stylesheets)
             .collect(node.as_ref())
-            .cascade()
+            .cascade(parent.map(|parent| parent.computed_style()))
     }
 
     fn generate_for(
-            &self,
-            node: DomNode,
-            parent: Option<&LayoutBox>,
+        &self,
+        node: DomNode,
+        parent: Option<&LayoutBox>,
     ) -> Option<LayoutBox> {
-        let computed_style = self.resolve_style(&node);
+        let computed_style = self.resolve_style(&node, parent);
 
         if node.is_text() {
             let parent_display = parent.expect("text node cannot be the root node").computed_style().display();
