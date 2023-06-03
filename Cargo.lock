@@ -1601,6 +1601,7 @@ dependencies = [
  "retina-gfx",
  "retina-page",
  "url",
+ "wgpu",
 ]
 
 [[package]]
@@ -1619,6 +1620,7 @@ dependencies = [
 name = "retina-gfx"
 version = "0.2.0"
 dependencies = [
+ "bytemuck",
  "euclid",
  "futures",
  "retina-common",
@@ -1649,6 +1651,7 @@ dependencies = [
  "retina-style",
  "tokio",
  "url",
+ "wgpu",
 ]
 
 [[package]]

@@ -7,6 +7,7 @@ use std::{
 };
 
 use retina_dom::{NodeKind, HtmlElementKind};
+use retina_gfx::{canvas::CanvasPaintingContext, Color};
 use retina_layout::{LayoutBox, LayoutGenerator};
 use retina_style::{Stylesheet, CascadeOrigin};
 use url::Url;
@@ -21,6 +22,8 @@ pub(crate) struct Page {
     pub(crate) document: Option<Rc<NodeKind>>,
     pub(crate) style_sheets: Option<Vec<Stylesheet>>,
     pub(crate) layout_root: Option<LayoutBox>,
+
+    pub(crate) canvas: CanvasPaintingContext,
 }
 
 type ErrorKind = Box<dyn std::error::Error>;
@@ -31,11 +34,30 @@ impl Page {
             progress: PageProgress::Initial,
         })?;
 
+        println!("[page] Starting page: {:?}", self.url);
+
         let page_data = self.load_page().await?;
 
         self.parse_html(page_data.as_ref()).await?;
+        println!("[page] HTML parsed...");
+
         self.parse_stylesheets().await?;
+        println!("[page] Stylesheets parsed...");
+
         self.generate_layout_tree().await?;
+        println!("[page] Layout tree generated...");
+
+        self.paint()?;
+        println!("[page] painted...");
+
+        println!("[page] Ready! Waiting on commands...");
+        self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
+
+        while let Ok(command) = self.command_receiver.recv() {
+            println!("[page] Received command: {command:#?}");
+        }
+
+        println!("[page] Command pipeline dead!");
 
         Ok(())
     }
@@ -73,6 +95,27 @@ impl Page {
             "not-found" => crate::built_in::about::NOT_FOUND.into(),
             _ => crate::built_in::about::NOT_FOUND.into(),
         })
+    }
+
+    pub(crate) fn paint(&mut self) -> Result<(), ErrorKind> {
+        let Some(layout_root) = self.layout_root.as_ref() else {
+            return Ok(());
+        };
+
+        let mut painter = self.canvas.begin(Color::RED);
+
+        _ = layout_root;
+
+        painter.clear(Color::MAGENTA);
+        painter.paint_text("Drawn from the page canvas!", Color::RED, retina_gfx::euclid::Point2D::new(40.0, 40.0));
+
+        painter.submit_and_present();
+
+        self.message_sender.send(PageMessage::PaintReceived {
+            texture_view: self.canvas.create_view()
+        })?;
+
+        Ok(())
     }
 
     pub(crate) async fn parse_stylesheets(&mut self) -> Result<(), ErrorKind> {

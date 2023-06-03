@@ -12,11 +12,12 @@ pub use handle::PageHandle;
 pub use message::{PageMessage, PageProgress};
 
 use page::Page;
+use retina_gfx::canvas::CanvasPaintingContext;
 
 use std::{sync::mpsc::channel, time::Duration};
 use url::Url;
 
-pub fn spawn(url: Url) -> PageHandle {
+pub fn spawn(url: Url, graphics_context: retina_gfx::Context) -> PageHandle {
     let (command_sender, command_receiver) = channel();
     let (message_sender, message_receiver) = channel();
 
@@ -27,6 +28,8 @@ pub fn spawn(url: Url) -> PageHandle {
         command_sender,
         message_receiver
     };
+
+    let canvas = CanvasPaintingContext::new(graphics_context, "Page Canvas", 600, 480);
 
     std::thread::spawn(move || {
         tokio::runtime::Builder::new_multi_thread()
@@ -42,6 +45,8 @@ pub fn spawn(url: Url) -> PageHandle {
                     document: None,
                     style_sheets: None,
                     layout_root: None,
+
+                    canvas,
                 };
 
                 page.start().await.unwrap()

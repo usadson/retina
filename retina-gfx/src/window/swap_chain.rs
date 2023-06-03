@@ -3,12 +3,11 @@
 
 use winit::dpi::PhysicalSize;
 
+use crate::Context;
+
 use super::GfxResult;
 
 pub(crate) struct WindowSwapChain {
-    pub(crate) device: wgpu::Device,
-    pub(crate) queue: wgpu::Queue,
-
     pub(crate) staging_belt: wgpu::util::StagingBelt,
     pub(crate) render_format: wgpu::TextureFormat,
 
@@ -17,27 +16,10 @@ pub(crate) struct WindowSwapChain {
 
 impl WindowSwapChain {
     pub(crate) fn new(
-        instance: &wgpu::Instance,
+        context: Context,
         surface: &wgpu::Surface,
         size: winit::dpi::PhysicalSize<u32>,
     ) -> GfxResult<Self> {
-        // Initialize GPU
-        let (device, queue) = futures::executor::block_on(async {
-            let adapter = instance
-                .request_adapter(&wgpu::RequestAdapterOptions {
-                    power_preference: wgpu::PowerPreference::HighPerformance,
-                    compatible_surface: Some(&surface),
-                    force_fallback_adapter: false,
-                })
-                .await
-                .expect("Request adapter");
-
-            adapter
-                .request_device(&wgpu::DeviceDescriptor::default(), None)
-                .await
-                .expect("Request device")
-        });
-
         // Create staging belt
         let staging_belt = wgpu::util::StagingBelt::new(1024);
 
@@ -45,7 +27,7 @@ impl WindowSwapChain {
         let render_format = wgpu::TextureFormat::Bgra8UnormSrgb;
 
         surface.configure(
-            &device,
+            context.device(),
             &wgpu::SurfaceConfiguration {
                 usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
                 format: render_format,
@@ -58,9 +40,6 @@ impl WindowSwapChain {
         );
 
         Ok(Self {
-            device,
-            queue,
-
             staging_belt,
             render_format,
 

@@ -9,3 +9,4 @@ retina-page = { path = "../retina-page" }
 
 env_logger = "*"
 url = "*"
+wgpu = "*"

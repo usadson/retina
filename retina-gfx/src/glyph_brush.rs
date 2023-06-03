@@ -8,11 +8,11 @@ use wgpu_glyph::{
     GlyphBrushBuilder,
 };
 
-pub(crate) struct WindowGlyphBrush {
+pub(crate) struct GlyphBrush {
     pub(crate) inner: wgpu_glyph::GlyphBrush<()>,
 }
 
-impl WindowGlyphBrush {
+impl GlyphBrush {
     pub(crate)fn new_noto_serif(
         device: &wgpu::Device,
         render_format: wgpu::TextureFormat,

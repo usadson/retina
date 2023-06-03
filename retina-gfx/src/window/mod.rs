@@ -1,18 +1,16 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-mod glyph_brush;
-mod keyboard;
-mod painter;
-mod render_pass;
-mod state;
-mod swap_chain;
+pub(crate) mod keyboard;
+pub(crate) mod interface;
+pub(crate) mod painter;
+pub(crate) mod render_pass;
+pub(crate) mod state;
+pub(crate) mod swap_chain;
 
 use self::{painter::WindowPainter, state::WindowState};
 
-use std::error::Error;
-
-pub(crate) type GfxResult<T> = Result<T, Box<dyn Error>>;
+use crate::{GfxResult, WindowApplication, Context};
 
 pub struct Window {
     event_loop: winit::event_loop::EventLoop<()>,
@@ -48,7 +46,7 @@ impl Window {
         })
     }
 
-    pub fn run(mut self) {
+    pub fn run(mut self, mut app: Box<dyn WindowApplication>) {
         // Render loop
         self.window.request_redraw();
 
@@ -78,7 +76,7 @@ impl Window {
                 }
 
                 winit::event::Event::RedrawRequested { .. } => {
-                    self.painter.paint();
+                    self.painter.paint(app.as_mut());
                 }
 
                 _ => {
@@ -86,6 +84,11 @@ impl Window {
                 }
             }
         })
+    }
+
+    /// Get the wgpu instance, which is useful for sending it to the page.
+    pub fn context(&self) -> Context {
+        self.painter.context.clone()
     }
 
 }

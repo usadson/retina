@@ -2,8 +2,12 @@
 // All Rights Reserved.
 
 /// The page sends messages to the browser to inform it of it's status.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug)]
 pub enum PageMessage {
+    PaintReceived {
+        texture_view: wgpu::TextureView,
+    },
+
     Progress {
         progress: PageProgress,
     },

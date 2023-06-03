@@ -11,3 +11,4 @@ retina-dom = { path = "../retina-dom" }
 
 tokio = { version = "*", features = ["full"] }
 url = "*"
+wgpu = "*"

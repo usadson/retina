@@ -80,6 +80,6 @@ impl Color {
 
     /// Get the `alpha` RGB component of this color.
     pub const fn alpha(&self) -> f64 {
-        self.red
+        self.alpha
     }
 }
