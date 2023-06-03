@@ -70,3 +70,6 @@ impl WindowPainter {
         self.swap_chain.staging_belt.recall();
     }
 }
+
+unsafe impl Send for WindowPainter {}
+unsafe impl Sync for WindowPainter {}

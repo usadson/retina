@@ -18,6 +18,7 @@ mod boxes;
 mod generate;
 
 pub use boxes::{LayoutBox, LayoutBoxKind};
+pub use generate::LayoutGenerator;
 
 use std::rc::Rc;
 

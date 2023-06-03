@@ -15,6 +15,8 @@ pub mod parent_node;
 pub mod parse;
 pub mod text;
 
+use std::rc::Rc;
+
 pub use document::Document;
 pub use element::Element;
 pub use html::*;
@@ -31,6 +33,14 @@ pub enum NodeKind {
 }
 
 impl NodeKind {
+    pub fn as_html_element_kind(&self) -> Option<&HtmlElementKind> {
+        if let Self::HtmlElement(element) = self {
+            Some(element)
+        } else {
+            None
+        }
+    }
+
     pub fn as_node(&self) -> &Node {
         match self {
             Self::Document(doc) => doc.as_node(),
@@ -44,6 +54,17 @@ impl NodeKind {
             Self::Document(doc) => Some(doc.as_parent_node()),
             Self::HtmlElement(element) => Some(element.as_dom_element().as_parent_node()),
             Self::Text(..) => None,
+        }
+    }
+
+    pub fn for_each_child_node_recursive(&self, callback: &mut dyn FnMut(&NodeKind, usize), depth: usize) {
+        if let Some(as_parent) = self.as_parent_node() {
+            let children = as_parent.children().borrow();
+            let children: &Vec<Rc<NodeKind>> = children.as_ref();
+            for child in children {
+                callback(child.as_ref(), depth);
+                child.for_each_child_node_recursive(callback, depth + 1);
+            }
         }
     }
 

@@ -2,28 +2,41 @@
 // All Rights Reserved.
 
 pub mod html_element;
+pub mod html_style_element;
 pub mod html_unknown_element;
 
 pub use html_element::HtmlElement;
 pub use html_unknown_element::HtmlUnknownElement;
+pub use self::html_style_element::HtmlStyleElement;
 
 use crate::{Element, Node};
 
 #[derive(Debug)]
 pub enum HtmlElementKind {
+    Style(HtmlStyleElement),
     Unknown(HtmlUnknownElement),
 }
 
 impl HtmlElementKind {
     pub fn as_dom_element(&self) -> &Element {
         match self {
+            Self::Style(element) => element.as_ref(),
             Self::Unknown(element) => element.as_ref(),
         }
     }
 
     pub fn as_dom_element_mut(&mut self) -> &mut Element {
         match self {
+            Self::Style(element) => element.as_mut(),
             Self::Unknown(element) => element.as_mut(),
+        }
+    }
+
+    pub fn as_style_element(&self) -> Option<&HtmlStyleElement> {
+        if let Self::Style(element) = self {
+            Some(element)
+        } else {
+            None
         }
     }
 

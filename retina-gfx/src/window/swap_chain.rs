@@ -72,3 +72,6 @@ impl WindowSwapChain {
         self.size = size;
     }
 }
+
+unsafe impl Send for WindowSwapChain {}
+unsafe impl Sync for WindowSwapChain {}

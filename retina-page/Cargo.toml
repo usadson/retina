@@ -1,0 +1,13 @@
+[package]
+name = "retina-page"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+retina-gfx = { path = "../retina-gfx" }
+retina-layout = { path = "../retina-layout" }
+retina-style = { path = "../retina-style" }
+retina-dom = { path = "../retina-dom" }
+
+tokio = { version = "*", features = ["full"] }
+url = "*"

@@ -5,6 +5,7 @@ members = [
     "retina-dom",
     "retina-gfx",
     "retina-layout",
+    "retina-page",
     "retina-style",
     "retina-style-computation",
 ]
