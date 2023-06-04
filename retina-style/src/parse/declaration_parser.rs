@@ -57,6 +57,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn declaration_background_color_blue() {
+        const INPUT: &str = "background-color: blue;";
+        let mut input = cssparser::ParserInput::new(INPUT);
+        let input = &mut cssparser::Parser::new(&mut input);
+
+        let result = parse_declaration_one_of_many(input);
+        let expected = Ok(Declaration{
+            property: Property::BackgroundColor,
+            value: Value::Color(ColorValue::BasicColorKeyword(BasicColorKeyword::Blue)),
+        });
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn declaration_color_red() {
         const INPUT: &str = "color: red;";
         let mut input = cssparser::ParserInput::new(INPUT);

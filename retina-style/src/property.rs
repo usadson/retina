@@ -11,6 +11,7 @@ pub enum Property {
     #[strum(disabled)]
     Invalid,
 
+    BackgroundColor,
     Color,
     Display,
     WhiteSpace,
