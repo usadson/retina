@@ -1,15 +1,11 @@
 [package]
-name = "retina-page"
+name = "retina-compositor"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
-retina-compositor = { path = "../retina-compositor" }
 retina-gfx = { path = "../retina-gfx" }
 retina-layout = { path = "../retina-layout" }
 retina-style = { path = "../retina-style" }
-retina-dom = { path = "../retina-dom" }
 
-tokio = { version = "*", features = ["full"] }
-url = "*"
 wgpu = "*"

@@ -12,6 +12,7 @@ pub use handle::PageHandle;
 pub use message::{PageMessage, PageProgress};
 
 use page::Page;
+use retina_compositor::Compositor;
 use retina_gfx::canvas::CanvasPaintingContext;
 
 use std::{sync::mpsc::channel, time::Duration};
@@ -47,6 +48,7 @@ pub fn spawn(url: Url, graphics_context: retina_gfx::Context) -> PageHandle {
                     layout_root: None,
 
                     canvas,
+                    compositor: Compositor::new(),
                 };
 
                 page.start().await.unwrap()

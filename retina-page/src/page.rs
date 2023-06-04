@@ -6,6 +6,7 @@ use std::{
     sync::mpsc::{Receiver, Sender}, borrow::Cow,
 };
 
+use retina_compositor::Compositor;
 use retina_dom::{NodeKind, HtmlElementKind};
 use retina_gfx::{canvas::CanvasPaintingContext, Color};
 use retina_layout::{LayoutBox, LayoutGenerator};
@@ -24,6 +25,7 @@ pub(crate) struct Page {
     pub(crate) layout_root: Option<LayoutBox>,
 
     pub(crate) canvas: CanvasPaintingContext,
+    pub(crate) compositor: Compositor,
 }
 
 type ErrorKind = Box<dyn std::error::Error>;
@@ -102,12 +104,9 @@ impl Page {
             return Ok(());
         };
 
-        let mut painter = self.canvas.begin(Color::RED);
+        let mut painter = self.canvas.begin(Color::TRANSPARENT);
 
-        _ = layout_root;
-
-        painter.clear(Color::MAGENTA);
-        painter.paint_text("Drawn from the page canvas!", Color::RED, retina_gfx::euclid::Point2D::new(40.0, 40.0));
+        self.compositor.paint(layout_root, &mut painter);
 
         painter.submit_and_present();
 
