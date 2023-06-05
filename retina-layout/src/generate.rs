@@ -1,6 +1,8 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use std::rc::Rc;
+
 use retina_style::{Stylesheet, CssDisplay, CssReferencePixels};
 use retina_style_computation::{PropertyMap, StyleCollector, Cascade};
 
@@ -29,26 +31,41 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             viewport_height,
         };
 
-        instance.generate_for(root, None)
-            .expect("root node has no layout box generated")
+        let html_element = Rc::clone(
+            &root.as_parent_node()
+                .expect("root DOM node not the Document")
+                .children()
+                .borrow()
+                .first()
+                .expect("DOM Document should have 1 child, the HTMLHtmlElement")
+        );
+
+        let mut initial_containing_block = LayoutBox::new(
+            LayoutBoxKind::Block,
+            root,
+            PropertyMap::new(),
+            instance.calculate_dimensions_for_initial_containing_block(),
+        );
+
+        let html_box = instance.generate_for(html_element, &initial_containing_block)
+            .expect("root node has no layout box generated");
+
+        initial_containing_block.children.push(html_box);
+        initial_containing_block
     }
-
-
 
     fn calculate_dimensions_for_block_flow(
         &self,
         computed_style: &PropertyMap,
-        parent: Option<&LayoutBox>
+        parent: &LayoutBox
     ) -> LayoutBoxDimensions {
-        // Initial containing block
-        if parent.is_none() {
-            return self.calculate_dimensions_for_initial_containing_block();
-        }
-
+        // TODO
         _ = computed_style;
-
-        // Fixme
-        return Default::default();
+        LayoutBoxDimensions {
+            width: parent.dimensions().width,
+            height: parent.dimensions().height,
+            ..Default::default()
+        }
     }
 
     /// The [initial containing block][icb-lvl4-display] is the root node of the
@@ -67,12 +84,10 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
     fn calculate_dimensions_for_inline_flow(
         &self,
         computed_style: &PropertyMap,
-        parent: Option<&LayoutBox>,
+        parent: &LayoutBox,
     ) -> LayoutBoxDimensions {
         // TODO
-        _ = computed_style;
-        _ = parent;
-        Default::default()
+        self.calculate_dimensions_for_block_flow(computed_style, parent)
     }
 
     fn resolve_style(
@@ -88,15 +103,15 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
     fn generate_for(
         &self,
         node: DomNode,
-        parent: Option<&LayoutBox>,
+        parent: &LayoutBox,
     ) -> Option<LayoutBox> {
-        let computed_style = self.resolve_style(&node, parent);
+        let computed_style = self.resolve_style(&node, Some(parent));
 
         if node.is_text() {
             // TODO
             let dimensions = Default::default();
 
-            let parent_display = parent.expect("text node cannot be the root node").computed_style().display();
+            let parent_display = parent.computed_style().display();
             return match parent_display {
                 CssDisplay::BlockFlow => Some(
                     LayoutBox::new(LayoutBoxKind::AnonymousBlock, node, computed_style, dimensions)

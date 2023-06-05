@@ -16,10 +16,11 @@ use retina_style_computation::PropertyMap;
 
 #[derive(Clone, Debug)]
 pub struct LayoutBox {
-    kind: LayoutBoxKind,
-    node: DomNode,
-    computed_style: PropertyMap,
-    dimensions: LayoutBoxDimensions,
+    pub(crate) kind: LayoutBoxKind,
+    pub(crate) node: DomNode,
+    pub(crate) computed_style: PropertyMap,
+    pub(crate) dimensions: LayoutBoxDimensions,
+    pub(crate) children: Vec<LayoutBox>,
 }
 
 impl LayoutBox {
@@ -34,11 +35,16 @@ impl LayoutBox {
             node,
             computed_style,
             dimensions,
+            children: Vec::new(),
         }
     }
 
     pub fn computed_style(&self) -> &PropertyMap {
         &self.computed_style
+    }
+
+    pub fn dimensions(&self) -> LayoutBoxDimensions {
+        self.dimensions
     }
 
     pub fn kind(&self) -> &LayoutBoxKind {
