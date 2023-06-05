@@ -40,12 +40,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
                 .expect("DOM Document should have 1 child, the HTMLHtmlElement")
         );
 
-        let mut initial_containing_block = LayoutBox::new(
-            LayoutBoxKind::Block,
-            root,
-            PropertyMap::new(),
-            instance.calculate_dimensions_for_initial_containing_block(),
-        );
+        let mut initial_containing_block = instance.generate_initial_containing_block(root);
 
         let html_box = instance.generate_for(html_element, &initial_containing_block)
             .expect("root node has no layout box generated");
@@ -133,12 +128,12 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             // `display: inline`
             CssDisplay::InlineFlow => {
                 let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent);
-                LayoutBox::new(LayoutBoxKind::AnonymousInline, node, computed_style, dimensions)
+                LayoutBox::new(LayoutBoxKind::Inline, node, computed_style, dimensions)
             }
 
             CssDisplay::BlockFlow => {
                 let dimensions = self.calculate_dimensions_for_block_flow(&computed_style, parent);
-                LayoutBox::new(LayoutBoxKind::Inline, node, computed_style, dimensions)
+                LayoutBox::new(LayoutBoxKind::Block, node, computed_style, dimensions)
             }
 
             _ => {
@@ -159,6 +154,20 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         }
 
         Some(layout_box)
+    }
+
+    fn generate_initial_containing_block(&self, root: DomNode) -> LayoutBox {
+        let computed_style = PropertyMap {
+            display: Some(CssDisplay::BlockFlow),
+            ..Default::default()
+        };
+
+        LayoutBox::new(
+            LayoutBoxKind::Block,
+            root,
+            computed_style,
+            self.calculate_dimensions_for_initial_containing_block(),
+        )
     }
 
 }
