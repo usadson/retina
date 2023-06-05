@@ -79,4 +79,13 @@ impl NodeKind {
     pub fn is_text(&self) -> bool {
         matches!(self, Self::Text(..))
     }
+
+    /// Get the name name of this Node, if it is an HTML element.
+    pub fn tag_name(&self) -> Option<&str> {
+        if let Self::HtmlElement(element) = &self {
+            Some(element.as_dom_element().qualified_name().local.as_ref())
+        } else {
+            None
+        }
+    }
 }

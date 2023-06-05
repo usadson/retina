@@ -5,6 +5,7 @@ pub mod html_element;
 pub mod html_style_element;
 pub mod html_unknown_element;
 
+use html5ever::{LocalName, Namespace, QualName};
 pub use html_element::HtmlElement;
 pub use html_unknown_element::HtmlUnknownElement;
 pub use self::html_style_element::HtmlStyleElement;
@@ -46,5 +47,13 @@ impl HtmlElementKind {
 
     pub fn as_node_mut(&mut self) -> &mut Node {
         self.as_dom_element_mut().as_node_mut()
+    }
+}
+
+pub fn qual_name(name: &str) -> QualName {
+    QualName {
+        prefix: None,
+        ns: Namespace::default(),
+        local: LocalName::from(name),
     }
 }

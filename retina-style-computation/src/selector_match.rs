@@ -8,6 +8,9 @@ use retina_style::{Selector, SimpleSelector, SelectorList};
 pub fn matches_selector(selector: &Selector, node: &NodeKind) -> bool {
     _ = node;
     match selector {
+        Selector::Simple(SimpleSelector::TypeSelector(ty)) => {
+            node.tag_name().is_some_and(|name| name.eq_ignore_ascii_case(ty))
+        }
         Selector::Simple(SimpleSelector::Universal) => true,
     }
 }
@@ -34,7 +37,8 @@ impl SelectorMatcher for SelectorList {
 mod tests {
     use super::*;
 
-    use retina_dom::Text;
+    use retina_dom::*;
+    use rstest::rstest;
     use tendril::StrTendril;
 
     #[test]
@@ -46,5 +50,18 @@ mod tests {
 
         let universal_selector_in_selector_list = SelectorList{ items: vec![universal_selector] };
         assert!(universal_selector_in_selector_list.matches(node));
+    }
+
+    #[rstest]
+    #[case(NodeKind::HtmlElement(HtmlElementKind::Style(HtmlStyleElement::new(qual_name("style")))), true)]
+    #[case(NodeKind::HtmlElement(HtmlElementKind::Unknown(HtmlUnknownElement::new(qual_name("br")))), false)]
+    #[case(NodeKind::HtmlElement(HtmlElementKind::Unknown(HtmlUnknownElement::new(qual_name("p")))), false)]
+    #[case(NodeKind::Text(Text::new(StrTendril::new())), false)]
+    fn element_with_type(#[case] node: NodeKind, #[case] should_match: bool) {
+        let universal_selector = Selector::Simple(SimpleSelector::TypeSelector("style".into()));
+        assert!(universal_selector.matches(&node) == should_match);
+
+        let universal_selector_in_selector_list = SelectorList{ items: vec![universal_selector] };
+        assert!(universal_selector_in_selector_list.matches(&node) == should_match);
     }
 }

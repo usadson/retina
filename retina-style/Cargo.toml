@@ -8,6 +8,7 @@ retina-common = { path = "../retina-common" }
 
 cssparser = "*"
 strum = { version = "*", features = ["derive"] }
+tendril = "*"
 
 [dev-dependencies]
 rstest = "*"
