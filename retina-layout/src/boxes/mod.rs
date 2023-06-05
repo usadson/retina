@@ -46,12 +46,13 @@ impl LayoutBox {
     pub fn dump_to(&self, depth: usize, writer: &mut dyn std::io::Write) -> Result<(), std::io::Error> {
         writeln!(
             writer,
-            "{pad:pad_width$} LayoutBox({kind:?}, {width}x{height})",
+            "{pad:pad_width$} LayoutBox({kind:?}, {dom:?}, {width}x{height})",
             pad = "",
             pad_width = depth * 4,
             kind = self.kind,
             width = self.dimensions.width().value(),
             height = self.dimensions.height().value(),
+            dom = self.node.to_short_dumpable()
         )?;
 
         for child in &self.children {

@@ -88,4 +88,22 @@ impl NodeKind {
             None
         }
     }
+
+    pub fn to_short_dumpable(&self) -> ShortDumpable {
+        ShortDumpable { node_kind: self }
+    }
+}
+
+pub struct ShortDumpable<'node_kind> {
+    node_kind: &'node_kind NodeKind,
+}
+
+impl<'node_kind> core::fmt::Debug for ShortDumpable<'node_kind> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.node_kind {
+            NodeKind::Document(..) => f.write_str("#document"),
+            NodeKind::HtmlElement(..) => f.write_fmt(format_args!("<{}>", self.node_kind.tag_name().unwrap_or("element?"))),
+            NodeKind::Text(..) => f.write_str("#text"),
+        }
+    }
 }
