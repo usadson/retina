@@ -7,9 +7,11 @@
 
 mod dimensions;
 mod edge;
+mod line;
 
 pub use dimensions::LayoutBoxDimensions;
 pub use edge::LayoutEdge;
+pub use line::LineBox;
 
 use super::DomNode;
 use retina_style_computation::PropertyMap;
@@ -46,13 +48,14 @@ impl LayoutBox {
     pub fn dump_to(&self, depth: usize, writer: &mut dyn std::io::Write) -> Result<(), std::io::Error> {
         writeln!(
             writer,
-            "{pad:pad_width$} LayoutBox({kind:?}, {dom:?}, {width}x{height})",
+            "{pad:pad_width$} LayoutBox({kind:?}({display:?}), {dom:?}, {width}x{height})",
             pad = "",
             pad_width = depth * 4,
             kind = self.kind,
             width = self.dimensions.width().value(),
             height = self.dimensions.height().value(),
-            dom = self.node.to_short_dumpable()
+            dom = self.node.to_short_dumpable(),
+            display = self.computed_style.display(),
         )?;
 
         for child in &self.children {
@@ -79,10 +82,12 @@ impl LayoutBox {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum LayoutBoxKind {
     AnonymousBlock,
     AnonymousInline,
     Block,
-    Inline,
+    Inline {
+        line_boxes: Vec<LineBox>,
+    }
 }

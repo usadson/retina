@@ -8,7 +8,9 @@ use retina_style_computation::{PropertyMap, StyleCollector, Cascade};
 
 use crate::{
     DomNode,
-    LayoutBox, LayoutBoxKind, boxes::LayoutBoxDimensions,
+    LayoutBox,
+    LayoutBoxDimensions,
+    LayoutBoxKind,
 };
 
 pub struct LayoutGenerator<'stylesheets> {
@@ -128,7 +130,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             // `display: inline`
             CssDisplay::InlineFlow => {
                 let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent);
-                LayoutBox::new(LayoutBoxKind::Inline, node, computed_style, dimensions)
+                LayoutBox::new(LayoutBoxKind::Inline{ line_boxes: Vec::new() }, node, computed_style, dimensions)
             }
 
             CssDisplay::BlockFlow => {
