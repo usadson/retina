@@ -29,7 +29,8 @@ fn parse_selector<'i, 't>(
 pub fn parse_selector_list<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<SelectorList, ParseError<'i>> {
-    Ok(SelectorList { items: vec![parse_selector(input)?] })
+    input.parse_comma_separated(parse_selector)
+        .map(|items| SelectorList { items})
 }
 #[cfg(test)]
 mod tests {
@@ -52,6 +53,21 @@ mod tests {
 
         let result = parse_selector(input);
         assert_eq!(result, Ok(expected));
+    }
+
+    #[rstest]
+    #[case("*", vec![Selector::Simple(SimpleSelector::Universal)])]
+    #[case("*, *", vec![Selector::Simple(SimpleSelector::Universal), Selector::Simple(SimpleSelector::Universal)])]
+    #[case("h1", vec![Selector::Simple(SimpleSelector::TypeSelector("h1".into()))])]
+    #[case("h1, h2", vec![
+        Selector::Simple(SimpleSelector::TypeSelector("h1".into())),
+        Selector::Simple(SimpleSelector::TypeSelector("h2".into())),
+    ])]
+    fn selector_list(#[case] input: &str, #[case] items: Vec<Selector>) {
+        let mut input = cssparser::ParserInput::new(input);
+        let input = &mut cssparser::Parser::new(&mut input);
+
+        assert_eq!(parse_selector_list(input), Ok(SelectorList { items }));
     }
 
 }

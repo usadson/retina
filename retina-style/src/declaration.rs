@@ -10,6 +10,10 @@ pub struct Declaration {
 }
 
 impl Declaration {
+    pub fn new(property: Property, value: Value) -> Self {
+        Self { property, value }
+    }
+
     pub fn property(&self) -> Property {
         self.property
     }

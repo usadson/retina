@@ -9,6 +9,7 @@ members = [
     "retina-page",
     "retina-style",
     "retina-style-computation",
+    "retina-user-agent",
 ]
 
 resolver = "2"

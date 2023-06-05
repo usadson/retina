@@ -1660,6 +1660,7 @@ dependencies = [
  "retina-gfx",
  "retina-layout",
  "retina-style",
+ "retina-user-agent",
  "tokio",
  "url",
  "wgpu",
@@ -1685,6 +1686,13 @@ dependencies = [
  "retina-style",
  "rstest",
  "tendril",
+]
+
+[[package]]
+name = "retina-user-agent"
+version = "0.2.0"
+dependencies = [
+ "retina-style",
 ]
 
 [[package]]

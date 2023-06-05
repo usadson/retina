@@ -120,7 +120,13 @@ impl Page {
     }
 
     pub(crate) async fn parse_stylesheets(&mut self) -> Result<(), ErrorKind> {
-        let mut stylesheets = Vec::new();
+        let mut stylesheets = vec![
+            retina_style::Stylesheet::parse(
+                CascadeOrigin::UserAgent,
+                retina_user_agent::stylesheet::USER_AGENT_STYLESHEET_CODE
+            ),
+        ];
+
         self.document.as_ref()
             .unwrap()
             .for_each_child_node_recursive(&mut |child, _depth| {

@@ -1,0 +1,7 @@
+[package]
+name = "retina-user-agent"
+version.workspace = true
+edition.workspace = true
+
+[dev-dependencies]
+retina-style = { path = "../retina-style" }
