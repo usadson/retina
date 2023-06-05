@@ -2,5 +2,7 @@
 // All Rights Reserved.
 
 mod color;
+mod transparent_wrapper;
 
 pub use color::Color;
+pub use transparent_wrapper::TransparentWrapper;

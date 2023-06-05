@@ -5,6 +5,12 @@
 //! * [CSS Box Model Module Level 3](https://www.w3.org/TR/css-box-3/)
 //! * [CSS Level 2 Revision 2 (CSS 2.2) - Box Model](https://www.w3.org/TR/CSS22/box.html)
 
+mod dimensions;
+mod edge;
+
+pub use dimensions::LayoutBoxDimensions;
+pub use edge::LayoutEdge;
+
 use super::DomNode;
 use retina_style_computation::PropertyMap;
 
@@ -13,14 +19,21 @@ pub struct LayoutBox {
     kind: LayoutBoxKind,
     node: DomNode,
     computed_style: PropertyMap,
+    dimensions: LayoutBoxDimensions,
 }
 
 impl LayoutBox {
-    pub fn new(kind: LayoutBoxKind, node: DomNode, computed_style: PropertyMap) -> Self {
+    pub fn new(
+        kind: LayoutBoxKind,
+        node: DomNode,
+        computed_style: PropertyMap,
+        dimensions: LayoutBoxDimensions,
+    ) -> Self {
         Self {
             kind,
             node,
             computed_style,
+            dimensions,
         }
     }
 

@@ -50,6 +50,15 @@ impl PropertyMap {
         }
     }
 
+    pub fn background_color(&self) -> ColorValue {
+        self.background_color.unwrap_or(ColorValue::Transparent)
+    }
+
+    pub fn color(&self) -> ColorValue {
+        // The initial value is implementation-defined.
+        self.color.unwrap_or(ColorValue::BasicColorKeyword(retina_style::BasicColorKeyword::Black))
+    }
+
     pub fn display(&self) -> CssDisplay {
         self.display.unwrap_or(CssDisplay::InlineFlow)
     }

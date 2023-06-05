@@ -10,7 +10,7 @@ use retina_compositor::Compositor;
 use retina_dom::{NodeKind, HtmlElementKind};
 use retina_gfx::{canvas::CanvasPaintingContext, Color};
 use retina_layout::{LayoutBox, LayoutGenerator};
-use retina_style::{Stylesheet, CascadeOrigin};
+use retina_style::{Stylesheet, CascadeOrigin, CssReferencePixels};
 use url::Url;
 
 use crate::{PageCommand, PageMessage, PageProgress};
@@ -68,7 +68,9 @@ impl Page {
         self.layout_root = Some(
             LayoutGenerator::generate(
                 Rc::clone(self.document.as_ref().unwrap()),
-                &self.style_sheets.as_ref().unwrap()
+                &self.style_sheets.as_ref().unwrap(),
+                CssReferencePixels::new(self.canvas.size().width as _),
+                CssReferencePixels::new(self.canvas.size().height as _),
             )
         );
 

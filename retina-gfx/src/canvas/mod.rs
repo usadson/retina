@@ -90,6 +90,10 @@ impl CanvasPaintingContext {
     pub fn create_view(&self) -> wgpu::TextureView {
         self.surface.create_view(&Default::default())
     }
+
+    pub const fn size(&self) -> euclid::Size2D<u32, u32> {
+        self.size
+    }
 }
 
 pub struct CanvasPainter<'canvas> {
