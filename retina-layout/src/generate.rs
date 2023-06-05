@@ -128,7 +128,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             }
         }
 
-        Some(match computed_style.display() {
+        let mut layout_box = match computed_style.display() {
             // `display: inline`
             CssDisplay::InlineFlow => {
                 let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent);
@@ -147,7 +147,17 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
                 );
                 return None;
             }
-        })
+        };
+
+        if let Some(node) = layout_box.node.as_parent_node() {
+            for child in node.children().borrow().iter() {
+                if let Some(child) = self.generate_for(Rc::clone(child), &layout_box) {
+                    layout_box.children.push(child);
+                }
+            }
+        }
+
+        Some(layout_box)
     }
 
 }

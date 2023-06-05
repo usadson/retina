@@ -16,4 +16,8 @@ impl CssReferencePixels {
     pub fn new(value: CssDecimal) -> Self {
         Self { value }
     }
+
+    pub fn value(&self) -> CssDecimal {
+        self.value
+    }
 }
