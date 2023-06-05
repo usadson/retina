@@ -39,6 +39,28 @@ impl LayoutBox {
         }
     }
 
+    pub fn dump(&self) {
+        _ = self.dump_to(0, &mut std::io::stdout());
+    }
+
+    pub fn dump_to(&self, depth: usize, writer: &mut dyn std::io::Write) -> Result<(), std::io::Error> {
+        writeln!(
+            writer,
+            "{pad:pad_width$} LayoutBox({kind:?}, {width}x{height})",
+            pad = "",
+            pad_width = depth * 4,
+            kind = self.kind,
+            width = self.dimensions.width().value(),
+            height = self.dimensions.height().value(),
+        )?;
+
+        for child in &self.children {
+            child.dump_to(depth + 1, writer)?;
+        }
+
+        Ok(())
+    }
+
     pub fn computed_style(&self) -> &PropertyMap {
         &self.computed_style
     }

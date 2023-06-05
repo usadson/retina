@@ -51,6 +51,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             .expect("root node has no layout box generated");
 
         initial_containing_block.children.push(html_box);
+        initial_containing_block.dump();
         initial_containing_block
     }
 
