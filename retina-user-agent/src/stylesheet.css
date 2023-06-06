@@ -1,1 +1,53 @@
-html, body { display: block; }
+/*******************************************************************************
+ *
+ * The default user-agent stylesheet. This is largely governed on the HTML
+ * Living Standard.
+ *
+ * 15. Rendering
+ * <https://html.spec.whatwg.org/multipage/rendering.html>
+ *
+ ******************************************************************************/
+
+/*
+ * 15.3.1. Hidden Elements
+ * <https://html.spec.whatwg.org/multipage/rendering.html#hidden-elements>
+ */
+area, base, basefont, datalist, head, link, meta, noembed,
+noframes, param, rp, script, style, template, title {
+    display: none;
+}
+
+/*
+ * 15.3.2. The page
+ * <https://html.spec.whatwg.org/multipage/rendering.html#the-page>
+ */
+html, body {
+    display: block;
+}
+
+/*
+ * 15.3.3. Flow content
+ * <https://html.spec.whatwg.org/multipage/rendering.html#flow-content-3>
+ */
+address, blockquote, center, dialog, div, figure, figcaption, footer, form,
+header, hr, legend, listing, main, p, plaintext, pre, search, xmp {
+    display: block;
+}
+
+blockquote, figure, listing, p, plaintext, pre, xmp {
+    margin-block-start: 1em; margin-block-end: 1em;
+}
+
+blockquote, figure {
+    margin-inline-start: 40px;
+    margin-inline-end: 40px;
+}
+
+address {
+    font-style: italic;
+}
+
+listing, plaintext, pre, xmp {
+    font-family: monospace;
+    white-space: pre;
+}

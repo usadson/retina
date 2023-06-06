@@ -5,3 +5,5 @@ edition.workspace = true
 
 [dev-dependencies]
 retina-style = { path = "../retina-style" }
+
+pretty_assertions = "*"

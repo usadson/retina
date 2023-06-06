@@ -27,13 +27,14 @@ mod tests {
     };
 
     use super::USER_AGENT_STYLESHEET_CODE;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn parse_basic() {
         let stylesheet = Stylesheet::parse(CascadeOrigin::UserAgent, USER_AGENT_STYLESHEET_CODE);
-        assert_eq!(stylesheet.rules().len(), 1);
+        assert_eq!(stylesheet.rules().len(), 7);
 
-        let style_rule = stylesheet.rules()[0].try_as_style().expect("not a style rule");
+        let style_rule = stylesheet.rules()[1].try_as_style().expect("not a style rule");
         assert_eq!(
             style_rule.selector_list,
             SelectorList{ items: vec![
