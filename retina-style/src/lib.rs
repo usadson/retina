@@ -14,6 +14,6 @@ pub use cascade_origin::CascadeOrigin;
 pub use declaration::Declaration;
 pub use property::Property;
 pub use rule::{Rule, StyleRule};
-pub use selector::{Selector, SelectorList, SimpleSelector};
+pub use selector::*;
 pub use stylesheet::Stylesheet;
 pub use value::*;
