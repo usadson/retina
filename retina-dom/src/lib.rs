@@ -6,6 +6,7 @@
 //! # References
 //! * [DOM - Living Standard - WHATWG](https://dom.spec.whatwg.org/)
 
+pub mod attribute;
 pub mod document;
 pub mod element;
 pub mod element_kind;
@@ -17,6 +18,7 @@ pub mod text;
 
 use std::rc::Rc;
 
+pub use attribute::AttributeList;
 pub use document::Document;
 pub use element::Element;
 pub use html::*;
@@ -42,6 +44,14 @@ impl NodeKind {
         }
     }
 
+    pub fn as_html_element_kind_mut(&mut self) -> Option<&mut HtmlElementKind> {
+        if let Self::HtmlElement(element) = self {
+            Some(element)
+        } else {
+            None
+        }
+    }
+
     pub fn as_node(&self) -> &Node {
         match self {
             Self::Document(doc) => doc.as_node(),
@@ -50,10 +60,26 @@ impl NodeKind {
         }
     }
 
+    pub fn as_node_mut(&mut self) -> &mut Node {
+        match self {
+            Self::Document(doc) => doc.as_node_mut(),
+            Self::HtmlElement(element) => element.as_node_mut(),
+            Self::Text(text) => text.as_node_mut(),
+        }
+    }
+
     pub fn as_parent_node(&self) -> Option<&ParentNode> {
         match self {
             Self::Document(doc) => Some(doc.as_parent_node()),
             Self::HtmlElement(element) => Some(element.as_dom_element().as_parent_node()),
+            Self::Text(..) => None,
+        }
+    }
+
+    pub fn as_parent_node_mut(&mut self) -> Option<&mut ParentNode> {
+        match self {
+            Self::Document(doc) => Some(doc.as_parent_node_mut()),
+            Self::HtmlElement(element) => Some(element.as_dom_element_mut().as_parent_node_mut()),
             Self::Text(..) => None,
         }
     }
@@ -107,9 +133,15 @@ impl DumpableNode for NodeKind {
 
         match self {
             Self::Document(..) => (),
-            Self::HtmlElement(..) => {
-                // TODO #id, .class
-                ()
+            Self::HtmlElement(element) => {
+                let id = element.as_dom_element().id();
+                if !id.is_empty() {
+                    write!(writer, "#{id}")?;
+                }
+
+                for class in element.as_dom_element().class_list() {
+                    write!(writer, ".{class}")?;
+                }
             }
             Self::Text(text) => {
                 let text = text.data_as_str().replace('\n', "\\n");

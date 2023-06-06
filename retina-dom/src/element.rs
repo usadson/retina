@@ -4,9 +4,11 @@
 //! The [Interface `Element`](https://dom.spec.whatwg.org/#interface-element)
 //! implementation.
 
-use html5ever::QualName;
+use std::str::SplitAsciiWhitespace;
 
-use crate::{Node, ParentNode};
+use html5ever::{QualName, local_name};
+
+use crate::{Node, ParentNode, AttributeList};
 
 /// The [Interface `Element`](https://dom.spec.whatwg.org/#interface-element)
 /// implementation.
@@ -15,6 +17,7 @@ pub struct Element {
     superclass_node: Node,
     mixin_parent_node: ParentNode,
     qualified_name: QualName,
+    attribute_list: AttributeList,
 }
 
 impl Element {
@@ -23,6 +26,7 @@ impl Element {
             superclass_node: Node::new(),
             mixin_parent_node: ParentNode::new(),
             qualified_name,
+            attribute_list: AttributeList::new(),
         }
     }
 
@@ -40,6 +44,26 @@ impl Element {
 
     pub fn as_parent_node_mut(&mut self) -> &mut ParentNode {
         &mut self.mixin_parent_node
+    }
+
+    pub fn attributes(&self) -> &AttributeList {
+        &self.attribute_list
+    }
+
+    pub fn attributes_mut(&mut self) -> &mut AttributeList {
+        &mut self.attribute_list
+    }
+
+    pub fn class_list(&self) -> SplitAsciiWhitespace {
+        let Some(attribute_value) = self.attribute_list.find(&local_name!("class")) else {
+            return "".split_ascii_whitespace();
+        };
+
+        attribute_value.split_ascii_whitespace()
+    }
+
+    pub fn id(&self) -> &str {
+        self.attributes().find(&local_name!("id")).unwrap_or("")
     }
 
     pub fn qualified_name(&self) -> &QualName {

@@ -77,9 +77,27 @@ impl TreeSink for Sink {
         }
     }
 
-    fn create_element(&mut self, qualified_name: QualName, _: Vec<Attribute>, _: ElementFlags) -> Self::Handle {
-        let node = create_element_for_qualified_name(qualified_name);
-        // TODO add attributes.
+    /// [Creates an element for a token][algo].
+    ///
+    /// # References
+    /// * [HTML Living Standard - 13.2.6.1 Creating and inserting nodes][algo]
+    ///
+    /// [algo]: https://html.spec.whatwg.org/multipage/parsing.html#create-an-element-for-the-token
+    fn create_element(&mut self, qualified_name: QualName, attributes: Vec<Attribute>, _: ElementFlags) -> Self::Handle {
+        // 9. Let element be the result of creating an element given document,
+        //    localName, given namespace, null, and is. If will execute script
+        //    is true, set the synchronous custom elements flag; otherwise,
+        //    leave it unset.
+        let mut node = create_element_for_qualified_name(qualified_name);
+        let element = node.as_html_element_kind_mut().unwrap();
+
+        // 10. Append each attribute in the given token to element.
+        for attribute in attributes {
+            element.as_dom_element_mut()
+                .attributes_mut()
+                .append_attribute(attribute);
+        }
+
         Rc::new(node)
     }
 
