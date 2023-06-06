@@ -7,6 +7,7 @@ edition.workspace = true
 retina-common = { path = "../retina-common" }
 
 cssparser = "*"
+log = "*"
 strum = { version = "*", features = ["derive"] }
 tendril = "*"
 

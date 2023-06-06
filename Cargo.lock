@@ -1710,6 +1710,7 @@ name = "retina-style"
 version = "0.2.0"
 dependencies = [
  "cssparser",
+ "log",
  "retina-common",
  "rstest",
  "strum",

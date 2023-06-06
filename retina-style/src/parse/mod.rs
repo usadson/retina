@@ -21,8 +21,9 @@ use cssparser::{
     ParserInput,
     RuleListParser,
 };
+use log::warn;
 
-use crate::{CascadeOrigin, Stylesheet};
+use crate::{CascadeOrigin, Stylesheet, Rule};
 
 pub fn parse_stylesheet(cascade_origin: CascadeOrigin, input: &str) -> Stylesheet {
     let mut input = ParserInput::new(input);
@@ -34,8 +35,17 @@ pub fn parse_stylesheet(cascade_origin: CascadeOrigin, input: &str) -> Styleshee
     while !rule_list_parser.input.is_exhausted() {
         let Some(rule) = rule_list_parser.next() else { continue };
         match rule {
-            Ok(rule) => stylesheet.push(rule),
-            Err(err) => println!("[style] CSS parse error: {:#?}", err.0),
+            Ok(rule) => {
+                if let Rule::Style(style_rule) = &rule {
+                    if style_rule.declarations.is_empty() {
+                        warn!("[CssParser] Declaration is empty: {:#?}", style_rule);
+                        continue;
+                    }
+                }
+
+                stylesheet.push(rule);
+            }
+            Err(err) => warn!("[CssParser] CSS parse error: {:#?}", err.0),
         }
     }
 
