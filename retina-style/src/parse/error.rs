@@ -1,14 +1,16 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum RetinaStyleParseError {
+use cssparser::Token;
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum RetinaStyleParseError<'i> {
     ExpectedIdentifierAsPropertyValue,
 
     UnexpectedEofBasicColorKeyword,
 
     UnknownBasicColorKeyword,
-    UnknownSelector,
+    UnknownSelector(Token<'i>),
     UnknownValue,
     UnknownWhiteSpaceKeyword,
 }

@@ -19,7 +19,7 @@ pub struct DeclarationParser;
 
 impl<'i> cssparser::DeclarationParser<'i> for DeclarationParser {
     type Declaration = Declaration;
-    type Error = RetinaStyleParseError;
+    type Error = RetinaStyleParseError<'i>;
 
     fn parse_value<'t>(
         &mut self,

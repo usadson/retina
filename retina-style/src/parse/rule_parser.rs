@@ -30,12 +30,12 @@ impl RuleParser {
 impl<'i> cssparser::AtRuleParser<'i> for RuleParser {
     type Prelude = ();
     type AtRule = Rule;
-    type Error = RetinaStyleParseError;
+    type Error = RetinaStyleParseError<'i>;
     // ignored / errors upon
 }
 
 impl<'i> cssparser::QualifiedRuleParser<'i> for RuleParser {
-    type Error = RetinaStyleParseError;
+    type Error = RetinaStyleParseError<'i>;
     type Prelude = SelectorList;
     type QualifiedRule = Rule;
 

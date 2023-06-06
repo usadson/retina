@@ -1711,6 +1711,7 @@ version = "0.2.0"
 dependencies = [
  "cssparser",
  "log",
+ "pretty_assertions",
  "retina-common",
  "rstest",
  "strum",

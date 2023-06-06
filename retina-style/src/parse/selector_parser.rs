@@ -18,11 +18,20 @@ fn parse_selector<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<Selector, ParseError<'i>> {
     input.skip_whitespace();
-    Ok(match input.next()? {
-        Token::Ident(ident) => Selector::Simple(SimpleSelector::TypeSelector(ident.as_ref().into())),
+    let first_token = input.next()?;
+    Ok(match first_token {
         Token::Delim('*') => Selector::Simple(SimpleSelector::Universal),
 
-        _ => return Err(input.new_custom_error(RetinaStyleParseError::UnknownSelector))
+        Token::Ident(ident) => Selector::Simple(SimpleSelector::TypeSelector(ident.as_ref().into())),
+
+        Token::IDHash(ident) if !ident.is_empty() => Selector::Simple(SimpleSelector::Id(ident.as_ref().into())),
+
+        Token::Delim('.') => Selector::Simple(SimpleSelector::Class(input.expect_ident()?.as_ref().into())),
+
+        _ => {
+            let first_token = first_token.clone();
+            return Err(input.new_custom_error(RetinaStyleParseError::UnknownSelector(first_token)))
+        }
     })
 }
 
@@ -37,6 +46,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[rstest]
     #[case("*", Selector::Simple(SimpleSelector::Universal))]
@@ -47,6 +57,8 @@ mod tests {
     #[case("p", Selector::Simple(SimpleSelector::TypeSelector("p".into())))]
     #[case("style", Selector::Simple(SimpleSelector::TypeSelector("style".into())))]
     #[case("my-custom-element", Selector::Simple(SimpleSelector::TypeSelector("my-custom-element".into())))]
+    #[case("#my-id", Selector::Simple(SimpleSelector::Id("my-id".into())))]
+    #[case(".class", Selector::Simple(SimpleSelector::Class("class".into())))]
     fn single_selector(#[case] input: &str, #[case] expected: Selector) {
         let mut input = cssparser::ParserInput::new(input);
         let input = &mut cssparser::Parser::new(&mut input);

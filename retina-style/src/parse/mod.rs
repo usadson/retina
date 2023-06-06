@@ -14,7 +14,7 @@ pub(crate) use self::rule_parser::RuleParser;
 pub(crate) use self::selector_parser::parse_selector_list;
 pub(crate) use self::value_parser::parse_value;
 
-pub(self) type ParseError<'i> = cssparser::ParseError<'i, RetinaStyleParseError>;
+pub(self) type ParseError<'i> = cssparser::ParseError<'i, RetinaStyleParseError<'i>>;
 
 use cssparser::{
     Parser,

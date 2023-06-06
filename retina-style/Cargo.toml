@@ -12,4 +12,5 @@ strum = { version = "*", features = ["derive"] }
 tendril = "*"
 
 [dev-dependencies]
+pretty_assertions = "*"
 rstest = "*"
