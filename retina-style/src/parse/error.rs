@@ -13,4 +13,13 @@ pub enum RetinaStyleParseError<'i> {
     UnknownSelector(Token<'i>),
     UnknownValue,
     UnknownWhiteSpaceKeyword,
+
+    AttributeSelectorExpectedIdentifierAsAttributeName(Token<'i>),
+    AttributeSelectorUnknownOperatorName(Token<'i>),
+}
+
+impl<'i> From<RetinaStyleParseError<'i>> for cssparser::ParseErrorKind<'i, RetinaStyleParseError<'i>> {
+    fn from(value: RetinaStyleParseError<'i>) -> Self {
+        cssparser::ParseErrorKind::Custom(value)
+    }
 }
