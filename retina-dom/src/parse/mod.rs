@@ -9,6 +9,7 @@ use html5ever::parse_document;
 use html5ever::tendril::*;
 use html5ever::tree_builder::{ElementFlags, NodeOrText, QuirksMode, TreeSink};
 use html5ever::{Attribute, ExpandedName, QualName};
+use retina_common::DumpableNode;
 
 use crate::Document;
 use crate::HtmlElementKind;
@@ -34,6 +35,7 @@ impl Parser {
             .read_from(&mut input)
             .unwrap();
 
+        sink.document.dump();
         sink.document
     }
 

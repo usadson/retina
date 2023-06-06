@@ -23,6 +23,7 @@ pub use html::*;
 pub use node::Node;
 pub use parent_node::ParentNode;
 pub use parse::Parser;
+use retina_common::DumpableNode;
 pub use text::Text;
 
 #[derive(Debug)]
@@ -91,6 +92,40 @@ impl NodeKind {
 
     pub fn to_short_dumpable(&self) -> ShortDumpable {
         ShortDumpable { node_kind: self }
+    }
+}
+
+impl DumpableNode for NodeKind {
+    fn dump_to(&self, depth: usize, writer: &mut dyn std::io::Write) -> Result<(), std::io::Error> {
+        write!(
+            writer,
+            "{pad:pad_width$}{prelude:?} ",
+            pad = "",
+            pad_width = depth * 4,
+            prelude = self.to_short_dumpable()
+        )?;
+
+        match self {
+            Self::Document(..) => (),
+            Self::HtmlElement(..) => {
+                // TODO #id, .class
+                ()
+            }
+            Self::Text(text) => {
+                let text = text.data_as_str().replace('\n', "\\n");
+                write!(writer, "\"{}\"", text)?
+            }
+        }
+
+        writeln!(writer)?;
+
+        if let Some(as_parent) = self.as_parent_node() {
+            for child in as_parent.children().borrow().iter() {
+                child.dump_to(depth + 1, writer)?;
+            }
+        }
+
+        Ok(())
     }
 }
 

@@ -4,5 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+retina-common = { path = "../retina-common" }
+
 html5ever = "*"
 tendril = "*"
