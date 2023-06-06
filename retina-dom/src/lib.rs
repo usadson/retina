@@ -36,6 +36,14 @@ pub enum NodeKind {
 }
 
 impl NodeKind {
+    pub fn as_dom_element(&self) -> Option<&Element> {
+        self.as_html_element_kind().map(|e| e.as_dom_element())
+    }
+
+    pub fn as_dom_element_mut(&mut self) -> Option<&mut Element> {
+        self.as_html_element_kind_mut().map(|e| e.as_dom_element_mut())
+    }
+
     pub fn as_html_element_kind(&self) -> Option<&HtmlElementKind> {
         if let Self::HtmlElement(element) = self {
             Some(element)

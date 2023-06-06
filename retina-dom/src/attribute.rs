@@ -35,9 +35,17 @@ impl AttributeList {
         self.map.get(name).map(|s| s.as_ref())
     }
 
+    pub fn find_by_str(&self, name: &str) -> Option<&str> {
+        self.find(&LocalName::from(name))
+    }
+
     /// <https://dom.spec.whatwg.org/#concept-element-attributes-get-value>
     pub fn get(&self, name: &LocalName) -> &str {
         self.find(name).unwrap_or("")
+    }
+
+    pub fn set(&mut self, name: &str, value: StrTendril) {
+        self.map.insert(LocalName::from(name), value);
     }
 }
 
