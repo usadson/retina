@@ -5,3 +5,4 @@
 //! necessarily governed by specifications.
 
 pub mod stylesheet;
+pub mod url_scheme;

@@ -96,8 +96,8 @@ impl Page {
 
     pub(crate) async fn load_page_about(&self, page: &str) -> Result<Cow<'static, str>, ErrorKind> {
         Ok(match page {
-            "not-found" => crate::built_in::about::NOT_FOUND.into(),
-            _ => crate::built_in::about::NOT_FOUND.into(),
+            "not-found" => retina_user_agent::url_scheme::about::NOT_FOUND.into(),
+            _ => retina_user_agent::url_scheme::about::NOT_FOUND.into(),
         })
     }
 

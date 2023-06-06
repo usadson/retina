@@ -1,7 +1,6 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-pub(crate) mod built_in;
 pub(crate) mod command;
 pub(crate) mod handle;
 pub(crate) mod message;
