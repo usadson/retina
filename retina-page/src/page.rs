@@ -45,6 +45,7 @@ impl Page {
 
         self.parse_stylesheets().await?;
         println!("[page] Stylesheets parsed...");
+        println!("Stylesheets: {:#?}", self.style_sheets.as_ref().unwrap());
 
         self.generate_layout_tree().await?;
         println!("[page] Layout tree generated...");
