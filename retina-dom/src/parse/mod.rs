@@ -5,6 +5,7 @@ use std::borrow::Cow;
 use std::default::Default;
 use std::rc::Rc;
 
+use html5ever::local_name;
 use html5ever::parse_document;
 use html5ever::tendril::*;
 use html5ever::tree_builder::{ElementFlags, NodeOrText, QuirksMode, TreeSink};
@@ -13,6 +14,7 @@ use retina_common::DumpableNode;
 
 use crate::Document;
 use crate::HtmlElementKind;
+use crate::HtmlStyleElement;
 use crate::HtmlUnknownElement;
 use crate::NodeKind;
 use crate::Text;
@@ -76,13 +78,9 @@ impl TreeSink for Sink {
     }
 
     fn create_element(&mut self, qualified_name: QualName, _: Vec<Attribute>, _: ElementFlags) -> Self::Handle {
-        Rc::new(
-            NodeKind::HtmlElement(
-                HtmlElementKind::Unknown(
-                    HtmlUnknownElement::new(qualified_name)
-                )
-            )
-        )
+        let node = create_element_for_qualified_name(qualified_name);
+        // TODO add attributes.
+        Rc::new(node)
     }
 
     fn create_comment(&mut self, _text: StrTendril) -> Self::Handle {
@@ -144,6 +142,36 @@ impl TreeSink for Sink {
 
     fn mark_script_already_started(&mut self, _node: &Self::Handle) {
         todo!()
+    }
+}
+
+/// [Creates the element][concept] for a given qualified name.
+///
+/// # References
+/// * [DOM Standard - **create an element**][concept]
+///
+/// [concept]: https://dom.spec.whatwg.org/#concept-create-element
+fn create_element_for_qualified_name(
+    qualified_name: QualName
+) -> NodeKind {
+    // In the future SVG, MathML, and custom elements can be constructed here.
+    NodeKind::HtmlElement(create_html_element_with_name(qualified_name))
+}
+
+/// This function creates the appropriate [`HtmlElementKind`] by using the HTML
+/// [Element Interfaces Index][element interfaces].
+///
+/// # References
+/// * [HTML Living Standard - Element interfaces][element interfaces]
+///
+/// [element interfaces]: https://html.spec.whatwg.org/multipage/indices.html#element-interfaces
+fn create_html_element_with_name(
+    qualified_name: QualName,
+) -> HtmlElementKind {
+    match &qualified_name.local {
+        &local_name!("style") => HtmlElementKind::Style(HtmlStyleElement::new(qualified_name)),
+
+        _ => HtmlElementKind::Unknown(HtmlUnknownElement::new(qualified_name)),
     }
 }
 
