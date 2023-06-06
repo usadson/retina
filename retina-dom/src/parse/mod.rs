@@ -10,6 +10,7 @@ use html5ever::parse_document;
 use html5ever::tendril::*;
 use html5ever::tree_builder::{ElementFlags, NodeOrText, QuirksMode, TreeSink};
 use html5ever::{Attribute, ExpandedName, QualName};
+use log::warn;
 use retina_common::DumpableNode;
 
 use crate::Document;
@@ -123,12 +124,12 @@ impl TreeSink for Sink {
         todo!()
     }
 
-    fn parse_error(&mut self, _msg: Cow<'static, str>) {
-        todo!()
+    fn parse_error(&mut self, msg: Cow<'static, str>) {
+        warn!("[Parser] Parse Error: {msg}");
     }
 
-    fn set_quirks_mode(&mut self, _mode: QuirksMode) {
-        // ignored
+    fn set_quirks_mode(&mut self, mode: QuirksMode) {
+        warn!("[Parser] Quirks mode: QuirksMode::{mode:?}");
     }
 
     fn append(&mut self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
