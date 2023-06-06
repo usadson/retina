@@ -3,6 +3,7 @@
 
 use std::rc::Rc;
 
+use retina_common::DumpableNode;
 use retina_style::{Stylesheet, CssDisplay, CssReferencePixels};
 use retina_style_computation::{PropertyMap, StyleCollector, Cascade};
 
