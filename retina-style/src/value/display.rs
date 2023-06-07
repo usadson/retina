@@ -3,54 +3,54 @@
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum CssDisplay {
-    /// `contents`
+    Normal {
+        inside: CssDisplayInside,
+        outside: CssDisplayOutside,
+        is_list_item: bool,
+    },
+
+    Internal(CssDisplayInternal),
+
+    Box(CssDisplayBox),
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum CssDisplayBox {
     Contents,
-
-    /// `flex`, `block flex`
-    BlockFlex,
-
-    /// `block`, `block flow`
-    BlockFlow,
-
-    /// `flow-root`, `block flow-root`
-    BlockFlowRoot,
-
-    /// `list-item`, `block flow list item`
-    BlockFlowListItem,
-
-    /// `grid`, `block grid`
-    BlockGrid,
-
-    /// `block ruby`
-    BlockRuby,
-
-    /// `table`, `block table`,
-    BlockTable,
-
-    /// `inline-flex`, `inline flex`
-    InlineFlex,
-
-    /// `inline`, `inline flow`
-    InlineFlow,
-
-    /// `inline list-item` `inline flow list-item`
-    InlineFlowListItem,
-
-    /// `inline-block`, `inline flow-root`
-    InlineFlowRoot,
-
-    /// `inline-grid`, `inline grid`
-    InlineGrid,
-
-    /// `ruby`, `inline ruby`
-    InlineRuby,
-
-    /// `inline-table`, `inline table`
-    InlineTable,
-
-    /// `none`
     None,
+}
 
-    /// `run-in` `run-in flow`
-    RunInFlow,
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum CssDisplayInside {
+    Flow,
+    FlowRoot,
+    Table,
+    Flex,
+    Grid,
+    Ruby,
+}
+
+/// <https://drafts.csswg.org/css-display-4/#typedef-display-internal>
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum CssDisplayInternal {
+    TableRowGroup,
+    TableHeaderGroup,
+    TableFooterGroup,
+    TableRow,
+    TableCell,
+    TableColumnGroup,
+    TableColumn,
+    TableCaption,
+    RubyBase,
+    RubyText,
+    RubyBaseContainer,
+    RubyTextContainer,
+}
+
+/// <https://drafts.csswg.org/css-display-4/#typedef-display-outside>
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum CssDisplayOutside {
+    Block,
+    Inline,
+    RunIn,
 }

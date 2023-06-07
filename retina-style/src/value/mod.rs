@@ -10,7 +10,7 @@ pub mod white_space;
 pub type CssDecimal = f64;
 
 pub use color::{BasicColorKeyword, ColorValue};
-pub use display::CssDisplay;
+pub use display::{CssDisplay, CssDisplayBox, CssDisplayInside, CssDisplayInternal, CssDisplayOutside};
 pub use length::CssLength;
 pub use reference_pixels::CssReferencePixels;
 pub use white_space::CssWhiteSpace;

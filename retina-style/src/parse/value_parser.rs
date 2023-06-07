@@ -4,7 +4,7 @@
 use cssparser::{Parser, Token};
 use strum::IntoEnumIterator;
 
-use crate::{value::{BasicColorKeyword, CssDisplay, CssWhiteSpace}, Value, ColorValue};
+use crate::{value::{BasicColorKeyword, CssDisplay, CssWhiteSpace}, Value, ColorValue, CssDisplayBox, CssDisplayInside, CssDisplayOutside};
 use super::{ParseError, RetinaStyleParseError};
 
 pub(crate) fn parse_basic_color_keyword<'i, 't>(
@@ -35,9 +35,22 @@ pub(crate) fn parse_display<'i, 't>(
     };
 
     Ok(match ident.as_ref() {
-        "block" => CssDisplay::BlockFlow,
-        "inline" => CssDisplay::InlineFlow,
-        "none" => CssDisplay::None,
+        "block" => CssDisplay::Normal {
+            inside: CssDisplayInside::Flow,
+            outside: CssDisplayOutside::Block,
+            is_list_item: false,
+        },
+        "inline" => CssDisplay::Normal {
+            inside: CssDisplayInside::Flow,
+            outside: CssDisplayOutside::Inline,
+            is_list_item: false,
+        },
+        "inline-block" => CssDisplay::Normal {
+            inside: CssDisplayInside::FlowRoot,
+            outside: CssDisplayOutside::Inline,
+            is_list_item: false,
+        },
+        "none" => CssDisplay::Box(CssDisplayBox::None),
         _ => return Err(input.new_custom_error(RetinaStyleParseError::UnknownBasicColorKeyword)),
     })
 }
@@ -99,9 +112,10 @@ mod tests {
     }
 
     #[rstest]
-    #[case("none", CssDisplay::None)]
-    #[case("inline", CssDisplay::InlineFlow)]
-    #[case("block", CssDisplay::BlockFlow)]
+    #[case("none", CssDisplay::Box(CssDisplayBox::None))]
+    #[case("inline", CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, is_list_item: false })]
+    #[case("block", CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, is_list_item: false })]
+    #[case("inline-block", CssDisplay::Normal { inside: CssDisplayInside::FlowRoot, outside: CssDisplayOutside::Inline, is_list_item: false })]
     fn value_display(#[case] input: &str, #[case] display: CssDisplay) {
         let mut input = cssparser::ParserInput::new(input);
         let input = &mut cssparser::Parser::new(&mut input);
