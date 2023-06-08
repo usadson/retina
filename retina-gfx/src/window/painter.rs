@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use winit::dpi::PhysicalSize;
+use winit::dpi::LogicalSize;
 
 use crate::{GlyphBrush, WindowApplication, Context};
 
@@ -47,7 +47,7 @@ impl WindowPainter {
 
         let context = Context::new(instance, device, queue);
 
-        let swap_chain = WindowSwapChain::new(context.clone(), &surface, window.inner_size())?;
+        let swap_chain = WindowSwapChain::new(context.clone(), &surface, window.inner_size().to_logical(1.0))?;
         let glyph_brush = GlyphBrush::new_noto_serif(context.device(), swap_chain.render_format)?;
 
         Ok(Self {
@@ -60,7 +60,7 @@ impl WindowPainter {
         })
     }
 
-    pub(crate) fn on_resize(&mut self, size: PhysicalSize<u32>) {
+    pub(crate) fn on_resize(&mut self, size: LogicalSize<u32>) {
         self.surface.configure(
             &self.context.device(),
             &wgpu::SurfaceConfiguration {

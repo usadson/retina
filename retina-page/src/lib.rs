@@ -12,12 +12,16 @@ pub use message::{PageMessage, PageProgress};
 
 use page::Page;
 use retina_compositor::Compositor;
-use retina_gfx::canvas::CanvasPaintingContext;
+use retina_gfx::{canvas::CanvasPaintingContext, euclid::Size2D};
 
 use std::{sync::mpsc::channel, time::Duration};
 use url::Url;
 
-pub fn spawn(url: Url, graphics_context: retina_gfx::Context) -> PageHandle {
+pub fn spawn(
+    url: Url,
+    graphics_context: retina_gfx::Context,
+    canvas_size: Size2D<u32, u32>,
+) -> PageHandle {
     let (command_sender, command_receiver) = channel();
     let (message_sender, message_receiver) = channel();
 
@@ -29,7 +33,7 @@ pub fn spawn(url: Url, graphics_context: retina_gfx::Context) -> PageHandle {
         message_receiver
     };
 
-    let canvas = CanvasPaintingContext::new(graphics_context, "Page Canvas", 600, 480);
+    let canvas = CanvasPaintingContext::new(graphics_context, "Page Canvas", canvas_size);
 
     std::thread::spawn(move || {
         tokio::runtime::Builder::new_multi_thread()

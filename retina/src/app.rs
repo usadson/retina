@@ -8,7 +8,7 @@ use retina_gfx::{
     WindowApplication,
     WindowRenderPass, window::Window,
 };
-use retina_page::{PageHandle, PageMessage};
+use retina_page::{PageCommand, PageHandle, PageMessage};
 use url::Url;
 
 pub struct Application {
@@ -19,9 +19,9 @@ pub struct Application {
 impl Application {
     pub fn new(window: &Window) -> Self {
         let url = Url::parse("about:not-found")
-        .expect("failed to parse URL");
+            .expect("failed to parse URL");
 
-        let page_handle = retina_page::spawn(url, window.context());
+        let page_handle = retina_page::spawn(url, window.context(), window.size());
 
         Self {
             page_handle,
@@ -35,7 +35,7 @@ impl WindowApplication for Application {
         self.page_handle.receive_timeout = Duration::from_millis(20);
         while let Ok(message) = self.page_handle.receive_message() {
             println!("[main] Received message from page: {message:#?}");
-            if let PageMessage::PaintReceived { texture_view } = message {
+            if let PageMessage::PaintReceived { texture_view, .. } = message {
                 self.texture_view = Some(texture_view);
                 break;
             }
@@ -50,5 +50,9 @@ impl WindowApplication for Application {
                 ),
             );
         }
+    }
+
+    fn on_resize(&mut self, size: Size2D<u32, u32>) {
+        self.page_handle.send_command(PageCommand::ResizeCanvas { size }).unwrap();
     }
 }

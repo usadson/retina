@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use winit::dpi::PhysicalSize;
+use winit::dpi::LogicalSize;
 
 use crate::Context;
 
@@ -11,14 +11,14 @@ pub(crate) struct WindowSwapChain {
     pub(crate) staging_belt: wgpu::util::StagingBelt,
     pub(crate) render_format: wgpu::TextureFormat,
 
-    pub(crate) size: winit::dpi::PhysicalSize<u32>,
+    pub(crate) size: winit::dpi::LogicalSize<u32>,
 }
 
 impl WindowSwapChain {
     pub(crate) fn new(
         context: Context,
         surface: &wgpu::Surface,
-        size: winit::dpi::PhysicalSize<u32>,
+        size: winit::dpi::LogicalSize<u32>,
     ) -> GfxResult<Self> {
         // Create staging belt
         let staging_belt = wgpu::util::StagingBelt::new(1024);
@@ -47,7 +47,7 @@ impl WindowSwapChain {
         })
     }
 
-    pub fn on_resize(&mut self, size: PhysicalSize<u32>) {
+    pub fn on_resize(&mut self, size: LogicalSize<u32>) {
         self.size = size;
     }
 }

@@ -2,8 +2,9 @@
 // All Rights Reserved.
 
 use std::{
+    borrow::Cow,
     rc::Rc,
-    sync::mpsc::{Receiver, Sender}, borrow::Cow,
+    sync::mpsc::{Receiver, Sender},
 };
 
 use retina_compositor::Compositor;
@@ -57,7 +58,15 @@ impl Page {
         self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
 
         while let Ok(command) = self.command_receiver.recv() {
-            println!("[page] Received command: {command:#?}");
+            self.handle_command(command).await?;
+
+            // If there are commands sent consecutively, handle them before sending
+            // `PageProgress::Ready`.
+            while let Ok(command) = self.command_receiver.try_recv() {
+                self.handle_command(command).await?;
+            }
+
+            self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
         }
 
         println!("[page] Command pipeline dead!");
@@ -78,6 +87,19 @@ impl Page {
         self.message_sender.send(PageMessage::Progress {
             progress: PageProgress::LayoutGenerated,
         })?;
+
+        Ok(())
+    }
+
+    pub(crate) async fn handle_command(&mut self, command: PageCommand) -> Result<(), ErrorKind> {
+        println!("[page] Received command: {command:#?}");
+
+        match command {
+            PageCommand::ResizeCanvas { size } => {
+                self.canvas.resize(size);
+                self.paint()?;
+            }
+        }
 
         Ok(())
     }
@@ -114,7 +136,8 @@ impl Page {
         painter.submit_and_present();
 
         self.message_sender.send(PageMessage::PaintReceived {
-            texture_view: self.canvas.create_view()
+            texture_view: self.canvas.create_view(),
+            texture_size: self.canvas.size(),
         })?;
 
         Ok(())
