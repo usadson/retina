@@ -164,7 +164,6 @@ impl<'canvas> CanvasPainter<'canvas> {
         let glyph_brush = self.canvas.fonts.iter_mut().next().unwrap().1;
 
         let color = [0.0, color.green() as f32, color.red() as f32, color.alpha() as f32];
-        println!("[canvas painter] Color: {color:#?}");
 
         glyph_brush.inner.queue(wgpu_glyph::Section {
             screen_position: (position.x, position.y),
