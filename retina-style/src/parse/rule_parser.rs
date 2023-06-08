@@ -2,6 +2,7 @@
 // All Rights Reserved.
 
 use cssparser::Parser;
+use log::warn;
 
 use crate::{
     Rule,
@@ -48,8 +49,9 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for RuleParser {
         let mut declarations = Vec::new();
 
         while !input.is_exhausted() {
-            if let Ok(declaration) = parse_declaration_one_of_many(input) {
-                declarations.push(declaration);
+            match parse_declaration_one_of_many(input) {
+                Ok(declaration) => declarations.push(declaration),
+                Err(e) => warn!("Failed to parse declaration: {e:#?}"),
             }
 
             // consume everything up to and including the semicolon.

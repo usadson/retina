@@ -14,6 +14,8 @@ pub enum Property {
     BackgroundColor,
     Color,
     Display,
+    Height,
+    Width,
     WhiteSpace,
 }
 

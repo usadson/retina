@@ -1,10 +1,23 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use cssparser::{Parser, Token};
+use cssparser::{
+    Parser,
+    ParseErrorKind,
+    Token,
+};
+
 use strum::IntoEnumIterator;
 
-use crate::{value::{BasicColorKeyword, CssDisplay, CssWhiteSpace}, Value, ColorValue};
+use crate::{
+    BasicColorKeyword,
+    ColorValue,
+    CssDisplay,
+    CssWhiteSpace,
+    CssLength,
+    Value,
+};
+
 use super::{ParseError, RetinaStyleParseError};
 
 pub(crate) fn parse_basic_color_keyword<'i, 't>(
@@ -42,6 +55,47 @@ pub(crate) fn parse_display<'i, 't>(
     })
 }
 
+pub(crate) fn parse_length<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssLength, ParseError<'i>> {
+    let token_location = input.current_source_location();
+    let token = input.next()
+        .cloned()
+        .map_err(|_| input.new_custom_error(RetinaStyleParseError::UnexpectedEofBasicColorKeyword))?;
+
+    match token {
+        Token::Ident(ident) => {
+            if ident == "auto" {
+                Ok(CssLength::Auto)
+            } else {
+                Err(ParseError {
+                    kind: ParseErrorKind::Custom(RetinaStyleParseError::LengthUnknownIdentifier(ident)),
+                    location: token_location,
+                })
+            }
+        }
+
+        Token::Dimension { value, unit, .. } => {
+            match unit.as_ref() {
+                "px" => Ok(CssLength::Pixels(value as _)),
+                _ => Err(ParseError {
+                    kind: ParseErrorKind::Custom(RetinaStyleParseError::LengthUnknownUnit(unit)),
+                    location: token_location,
+                }),
+            }
+        }
+
+        Token::Number { int_value, .. } if int_value == Some(0) => {
+            Ok(CssLength::Pixels(0.0))
+        }
+
+        _ => Err(ParseError {
+            kind: ParseErrorKind::Custom(RetinaStyleParseError::LengthUnexpectedToken(token)),
+            location: token_location,
+        })
+    }
+}
+
 pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<Value, ParseError<'i>> {
     if let Ok(basic_color_keyword) = input.try_parse(parse_basic_color_keyword) {
         return Ok(Value::Color(ColorValue::BasicColorKeyword(basic_color_keyword)));
@@ -51,11 +105,16 @@ pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<Value, P
         return Ok(Value::Display(display));
     }
 
+    if let Ok(length) = input.try_parse(parse_length) {
+        return Ok(Value::Length(length));
+    }
+
     if let Ok(white_space) = input.try_parse(parse_white_space) {
         return Ok(Value::WhiteSpace(white_space));
     }
 
-    Err(input.new_custom_error(RetinaStyleParseError::UnknownValue))
+    let token = input.next().ok().cloned();
+    Err(input.new_custom_error(RetinaStyleParseError::UnknownValue(token)))
 }
 pub(crate) fn parse_white_space<'i, 't>(
     input: &mut Parser<'i, 't>
@@ -108,6 +167,20 @@ mod tests {
 
         let result = parse_value(input);
         let expected = Ok(Value::Display(display));
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case("auto", CssLength::Auto)]
+    #[case("0", CssLength::Pixels(0.0))]
+    #[case("0px", CssLength::Pixels(0.0))]
+    #[case("616px", CssLength::Pixels(616.0))]
+    fn value_length(#[case] input: &str, #[case] display: CssLength) {
+        let mut input = cssparser::ParserInput::new(input);
+        let input = &mut cssparser::Parser::new(&mut input);
+
+        let result = parse_value(input);
+        let expected = Ok(Value::Length(display));
         assert_eq!(result, expected);
     }
 

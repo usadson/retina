@@ -2,11 +2,12 @@
 // All Rights Reserved.
 
 use crate::{
+    cascade_origin::CascadeOrigin,
     Declaration,
-    SelectorList, cascade_origin::CascadeOrigin,
+    SelectorList,
 };
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Rule {
     /// `@rule`
     At,
@@ -24,7 +25,7 @@ impl Rule {
 
 /// # References
 /// * [CSS - Syntax Level 3 - 9.1](https://www.w3.org/TR/css-syntax-3/#style-rules)
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct StyleRule {
     pub cascade_origin: CascadeOrigin,
     pub selector_list: SelectorList,
