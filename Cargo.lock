@@ -1673,6 +1673,7 @@ dependencies = [
  "bytemuck",
  "euclid",
  "futures",
+ "log",
  "retina-common",
  "wgpu",
  "wgpu_glyph",

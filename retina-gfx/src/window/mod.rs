@@ -9,6 +9,7 @@ pub(crate) mod state;
 pub(crate) mod swap_chain;
 
 use euclid::Size2D;
+use log::info;
 
 use self::{painter::WindowPainter, state::WindowState};
 
@@ -96,7 +97,7 @@ impl Window {
                 }
 
                 winit::event::Event::RedrawRequested { .. } => {
-                    println!("[window] Redraw requested!");
+                    info!("Redraw requested!");
                     self.painter.paint(app.as_mut());
                 }
 

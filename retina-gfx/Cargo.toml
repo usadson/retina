@@ -9,6 +9,7 @@ retina-common = { path = "../retina-common" }
 futures = "*"
 bytemuck = "*"
 euclid = "*"
+log = "*"
 winit = "0.28.3"
 wgpu = "*"
 wgpu_glyph = "*"
