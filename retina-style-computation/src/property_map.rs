@@ -1,13 +1,22 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_style::{ColorValue, CssDisplay, CssWhiteSpace, Property, Value};
+use retina_style::{
+    ColorValue,
+    CssDisplay,
+    CssLength,
+    CssWhiteSpace,
+    Property,
+    Value,
+};
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Default, PartialEq, PartialOrd)]
 pub struct PropertyMap {
     pub background_color: Option<ColorValue>,
     pub color: Option<ColorValue>,
     pub display: Option<CssDisplay>,
+    pub height: Option<CssLength>,
+    pub width: Option<CssLength>,
     pub white_space: Option<CssWhiteSpace>,
 }
 
