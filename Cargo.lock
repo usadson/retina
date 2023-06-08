@@ -1684,6 +1684,7 @@ name = "retina-layout"
 version = "0.2.0"
 dependencies = [
  "euclid",
+ "log",
  "retina-common",
  "retina-dom",
  "retina-style",
