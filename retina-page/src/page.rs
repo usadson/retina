@@ -7,6 +7,7 @@ use std::{
     sync::mpsc::{Receiver, Sender},
 };
 
+use log::{error, info};
 use retina_compositor::Compositor;
 use retina_dom::{NodeKind, HtmlElementKind};
 use retina_gfx::{canvas::CanvasPaintingContext, Color};
@@ -37,24 +38,19 @@ impl Page {
             progress: PageProgress::Initial,
         })?;
 
-        println!("[page] Starting page: {:?}", self.url);
+        info!("Loading page: {:?}", self.url);
 
         let page_data = self.load_page().await?;
 
         self.parse_html(page_data.as_ref()).await?;
-        println!("[page] HTML parsed...");
 
         self.parse_stylesheets().await?;
-        println!("[page] Stylesheets parsed...");
-        println!("Stylesheets: {:#?}", self.style_sheets.as_ref().unwrap());
+        info!("Stylesheets: {:#?}", self.style_sheets.as_ref().unwrap());
 
         self.generate_layout_tree().await?;
-        println!("[page] Layout tree generated...");
 
         self.paint()?;
-        println!("[page] painted...");
 
-        println!("[page] Ready! Waiting on commands...");
         self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
 
         while let Ok(command) = self.command_receiver.recv() {
@@ -69,7 +65,7 @@ impl Page {
             self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
         }
 
-        println!("[page] Command pipeline dead!");
+        error!("Command pipeline dead!");
 
         Ok(())
     }
@@ -92,7 +88,7 @@ impl Page {
     }
 
     pub(crate) async fn handle_command(&mut self, command: PageCommand) -> Result<(), ErrorKind> {
-        println!("[page] Received command: {command:#?}");
+        info!("Received command: {command:#?}");
 
         match command {
             PageCommand::ResizeCanvas { size } => {

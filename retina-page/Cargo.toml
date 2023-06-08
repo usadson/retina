@@ -11,6 +11,7 @@ retina-layout = { path = "../retina-layout" }
 retina-style = { path = "../retina-style" }
 retina-user-agent = { path = "../retina-user-agent" }
 
+log = "*"
 tokio = { version = "*", features = ["full"] }
 url = "*"
 wgpu = "*"

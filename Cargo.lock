@@ -1635,6 +1635,7 @@ name = "retina"
 version = "0.2.0"
 dependencies = [
  "env_logger",
+ "log",
  "retina-gfx",
  "retina-page",
  "url",
@@ -1694,6 +1695,7 @@ dependencies = [
 name = "retina-page"
 version = "0.2.0"
 dependencies = [
+ "log",
  "retina-compositor",
  "retina-dom",
  "retina-gfx",

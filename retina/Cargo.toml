@@ -8,5 +8,6 @@ retina-gfx = { path = "../retina-gfx" }
 retina-page = { path = "../retina-page" }
 
 env_logger = "*"
+log = "*"
 url = "*"
 wgpu = "*"
