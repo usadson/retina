@@ -86,7 +86,5 @@ pub enum LayoutBoxKind {
     AnonymousBlock,
     AnonymousInline,
     Block,
-    Inline {
-        line_boxes: Vec<LineBox>,
-    }
+    Inline,
 }

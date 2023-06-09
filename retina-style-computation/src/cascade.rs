@@ -82,7 +82,7 @@ mod tests {
     use std::rc::Rc;
 
     use retina_dom::{NodeKind, Text, Document};
-    use retina_style::{BasicColorKeyword, ColorValue, Stylesheet, CssDisplay};
+    use retina_style::{BasicColorKeyword, ColorValue, Stylesheet, CssDisplay, CssDisplayInside, CssDisplayOutside};
     use tendril::StrTendril;
 
     use crate::*;
@@ -159,7 +159,7 @@ mod tests {
 
         assert_eq!(parent_cascaded_styles, PropertyMap {
             color: Some(ColorValue::BasicColorKeyword(BasicColorKeyword::Blue)),
-            display: Some(CssDisplay::BlockFlow),
+            display: Some(CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, is_list_item: false }),
 
             ..Default::default()
         });

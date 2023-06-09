@@ -1,14 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_style::{
-    ColorValue,
-    CssDisplay,
-    CssLength,
-    CssWhiteSpace,
-    Property,
-    Value,
-};
+use retina_style::*;
 
 #[derive(Clone, Debug, Default, PartialEq, PartialOrd)]
 pub struct PropertyMap {
@@ -91,7 +84,11 @@ impl PropertyMap {
     }
 
     pub fn display(&self) -> CssDisplay {
-        self.display.unwrap_or(CssDisplay::InlineFlow)
+        self.display.unwrap_or(CssDisplay::Normal {
+            inside: CssDisplayInside::Flow,
+            outside: CssDisplayOutside::Block,
+            is_list_item: false
+        })
     }
 }
 

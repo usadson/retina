@@ -17,6 +17,8 @@ mod tests {
     use retina_style::{
         CascadeOrigin,
         CssDisplay,
+        CssDisplayInside,
+        CssDisplayOutside,
         Declaration,
         Property,
         Selector,
@@ -44,7 +46,11 @@ mod tests {
         );
 
         assert_eq!(style_rule.declarations, vec![
-            Declaration::new(Property::Display, Value::Display(CssDisplay::BlockFlow))
+            Declaration::new(Property::Display, Value::Display(CssDisplay::Normal {
+                inside: CssDisplayInside::Flow,
+                outside: CssDisplayOutside::Block,
+                is_list_item: false
+            }))
         ])
     }
 
