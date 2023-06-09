@@ -39,6 +39,7 @@ impl Context {
         &self.data.as_ref().device
     }
 
+    #[allow(dead_code)]
     pub(crate) fn instance(&self) -> &wgpu::Instance {
         &self.data.as_ref().instance
     }
@@ -52,6 +53,7 @@ impl Context {
 /// in an [`Arc`] to allow syncing across threads.
 #[derive(Debug)]
 pub(crate) struct ContextData {
+    #[allow(dead_code)]
     instance: wgpu::Instance,
     device: wgpu::Device,
     queue: wgpu::Queue,

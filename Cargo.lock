@@ -1635,6 +1635,7 @@ name = "retina"
 version = "0.2.0"
 dependencies = [
  "env_logger",
+ "log",
  "retina-gfx",
  "retina-page",
  "url",
@@ -1672,6 +1673,7 @@ dependencies = [
  "bytemuck",
  "euclid",
  "futures",
+ "log",
  "retina-common",
  "wgpu",
  "wgpu_glyph",
@@ -1683,6 +1685,7 @@ name = "retina-layout"
 version = "0.2.0"
 dependencies = [
  "euclid",
+ "log",
  "retina-common",
  "retina-dom",
  "retina-style",
@@ -1694,6 +1697,7 @@ dependencies = [
 name = "retina-page"
 version = "0.2.0"
 dependencies = [
+ "log",
  "retina-compositor",
  "retina-dom",
  "retina-gfx",

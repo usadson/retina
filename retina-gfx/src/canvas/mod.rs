@@ -28,10 +28,7 @@ pub struct CanvasPaintingContext {
 }
 
 impl CanvasPaintingContext {
-    pub fn new(context: Context, name: &str, width: u32, height: u32) -> Self {
-        let size = euclid::Size2D::new(width, height);
-
-        // Prepare swap chain
+    pub fn new(context: Context, name: &str, size: euclid::Size2D<u32, u32>) -> Self {
         let render_format = wgpu::TextureFormat::Bgra8UnormSrgb;
 
         let render_texture_usage = wgpu::TextureUsages::RENDER_ATTACHMENT
@@ -91,6 +88,34 @@ impl CanvasPaintingContext {
         self.surface.create_view(&Default::default())
     }
 
+    pub fn resize(&mut self, size: euclid::Size2D<u32, u32>) {
+        self.size = size;
+
+        let render_texture_usage = wgpu::TextureUsages::RENDER_ATTACHMENT
+            | wgpu::TextureUsages::TEXTURE_BINDING;
+
+        self.surface = self.context.device().create_texture(&wgpu::TextureDescriptor {
+            label: None,
+            dimension: wgpu::TextureDimension::D2,
+            size: Extent3d {
+                width: size.width,
+                height: size.height,
+                ..Default::default()
+            },
+            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            mip_level_count: 1,
+            sample_count: 1,
+            usage: render_texture_usage,
+            view_formats: &[
+                self.render_format,
+            ],
+        });
+
+        self.surface_texture_view = self.surface.create_view(&wgpu::TextureViewDescriptor {
+            ..Default::default()
+        });
+    }
+
     pub const fn size(&self) -> euclid::Size2D<u32, u32> {
         self.size
     }
@@ -138,8 +163,7 @@ impl<'canvas> CanvasPainter<'canvas> {
     pub fn paint_text(&mut self, text: &str, color: Color, position: euclid::Point2D<f32, f32>) {
         let glyph_brush = self.canvas.fonts.iter_mut().next().unwrap().1;
 
-        let color = [color.blue() as f32, color.green() as f32, color.red() as f32, color.alpha() as f32];
-        println!("[canvas painter] Color: {color:#?}");
+        let color = [0.0, color.green() as f32, color.red() as f32, color.alpha() as f32];
 
         glyph_brush.inner.queue(wgpu_glyph::Section {
             screen_position: (position.x, position.y),

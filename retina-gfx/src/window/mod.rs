@@ -8,6 +8,9 @@ pub(crate) mod render_pass;
 pub(crate) mod state;
 pub(crate) mod swap_chain;
 
+use euclid::Size2D;
+use log::info;
+
 use self::{painter::WindowPainter, state::WindowState};
 
 use crate::{GfxResult, WindowApplication, Context};
@@ -18,12 +21,19 @@ pub struct Window {
 
     painter: WindowPainter,
     state: WindowState,
+
+    window_size: Size2D<u32, u32>,
 }
 
 //
 // Public Window APIs
 //
 impl Window {
+    /// Get the wgpu instance, which is useful for sending it to the page.
+    pub fn context(&self) -> Context {
+        self.painter.context.clone()
+    }
+
     /// Create a new [`Window`] instance.
     pub fn new() -> GfxResult<Self> {
         // Open window and create a surface
@@ -34,6 +44,9 @@ impl Window {
             .build(&event_loop)
             .unwrap();
 
+        let window_size = window.inner_size();
+        let window_size = Size2D::new(window_size.width, window_size.height);
+
         let painter = WindowPainter::new(&window)?;
 
         Ok(Self {
@@ -43,6 +56,7 @@ impl Window {
             painter,
 
             state: WindowState::new(),
+            window_size,
         })
     }
 
@@ -61,7 +75,14 @@ impl Window {
                     event: winit::event::WindowEvent::Resized(new_size),
                     ..
                 } => {
-                    self.painter.on_resize(new_size);
+                    let logical_size = new_size.to_logical(1.0);
+                    let euclid_size = Size2D::new(logical_size.width, logical_size.height);
+
+                    if !euclid_size.is_empty_or_negative() && self.window_size != euclid_size {
+                        self.window_size = euclid_size;
+                        self.painter.on_resize(logical_size);
+                        app.on_resize(euclid_size);
+                    }
                 }
 
                 winit::event::Event::DeviceEvent { event, .. } => {
@@ -76,6 +97,7 @@ impl Window {
                 }
 
                 winit::event::Event::RedrawRequested { .. } => {
+                    info!("Redraw requested!");
                     self.painter.paint(app.as_mut());
                 }
 
@@ -86,9 +108,8 @@ impl Window {
         })
     }
 
-    /// Get the wgpu instance, which is useful for sending it to the page.
-    pub fn context(&self) -> Context {
-        self.painter.context.clone()
+    pub fn size(&self) -> Size2D<u32, u32> {
+        let size = self.window.inner_size();
+        Size2D::new(size.width, size.height)
     }
-
 }

@@ -10,6 +10,7 @@ retina-style = { path = "../retina-style" }
 retina-style-computation = { path = "../retina-style-computation" }
 
 euclid = "*"
+log = "*"
 
 [dev-dependencies]
 rstest = "*"

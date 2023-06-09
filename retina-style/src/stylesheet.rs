@@ -3,7 +3,7 @@
 
 use crate::{Rule, CascadeOrigin};
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Stylesheet {
     rules: Vec<Rule>,
 }

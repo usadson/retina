@@ -127,13 +127,13 @@ impl<'painter> WindowRenderPass<'painter> {
 
     /// A debug method for painting stuff.
     pub(crate) fn paint_debug(&mut self) {
-        let size: winit::dpi::PhysicalSize<u32> = self.painter.swap_chain.size;
+        let size: winit::dpi::LogicalSize<u32> = self.painter.swap_chain.size;
 
         self.painter.glyph_brush.inner.queue(Section {
             screen_position: (30.0, 30.0),
             bounds: (size.width as f32, size.height as f32),
             text: vec![Text::new("Hello wgpu_glyph!")
-                .with_color([0.0, 0.0, 0.0, 1.0])
+                .with_color([1.0, 0.0, 0.0, 1.0])
                 .with_scale(40.0)],
             ..Section::default()
         });

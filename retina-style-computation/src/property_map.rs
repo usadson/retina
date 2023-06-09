@@ -1,13 +1,22 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_style::{ColorValue, CssDisplay, CssWhiteSpace, Property, Value};
+use retina_style::{
+    ColorValue,
+    CssDisplay,
+    CssLength,
+    CssWhiteSpace,
+    Property,
+    Value,
+};
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Default, PartialEq, PartialOrd)]
 pub struct PropertyMap {
     pub background_color: Option<ColorValue>,
     pub color: Option<ColorValue>,
     pub display: Option<CssDisplay>,
+    pub height: Option<CssLength>,
+    pub width: Option<CssLength>,
     pub white_space: Option<CssWhiteSpace>,
 }
 
@@ -41,6 +50,20 @@ impl PropertyMap {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue
             }
 
+            Property::Height => if let Value::Length(length) = value {
+                self.height = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::Width => if let Value::Length(length) = value {
+                self.width = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
             Property::WhiteSpace => if let Value::WhiteSpace(white_space) = value {
                 self.white_space = Some(white_space);
                 PropertyMapDidApply::Yes
@@ -57,6 +80,14 @@ impl PropertyMap {
     pub fn color(&self) -> ColorValue {
         // The initial value is implementation-defined.
         self.color.unwrap_or(ColorValue::BasicColorKeyword(retina_style::BasicColorKeyword::Black))
+    }
+
+    pub fn height(&self) -> CssLength {
+        self.height.unwrap_or(CssLength::Auto)
+    }
+
+    pub fn width(&self) -> CssLength {
+        self.width.unwrap_or(CssLength::Auto)
     }
 
     pub fn display(&self) -> CssDisplay {

@@ -3,6 +3,7 @@
 
 use std::rc::Rc;
 
+use log::warn;
 use retina_common::DumpableNode;
 use retina_style::{Stylesheet, CssDisplay, CssReferencePixels};
 use retina_style_computation::{PropertyMap, StyleCollector, Cascade};
@@ -121,7 +122,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
                 ),
 
                 _ => {
-                    println!("[layout] Warning: text node was omitted because of an unknown parent box `display` value: {parent_display:?}");
+                    warn!("[layout] Warning: text node was omitted because of an unknown parent box `display` value: {parent_display:?}");
                     None
                 }
             }
@@ -140,8 +141,8 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             }
 
             _ => {
-                println!(
-                    "[layout] Warning: element was omitted because of an unknown `display` value: {:?}",
+                warn!(
+                    "Element was omitted because of an unknown `display` value: {:?}",
                     computed_style.display()
                 );
                 return None;

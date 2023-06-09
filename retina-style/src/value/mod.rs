@@ -15,9 +15,10 @@ pub use length::CssLength;
 pub use reference_pixels::CssReferencePixels;
 pub use white_space::CssWhiteSpace;
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Value {
     Color(ColorValue),
     Display(CssDisplay),
+    Length(CssLength),
     WhiteSpace(CssWhiteSpace),
 }
