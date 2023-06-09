@@ -1,0 +1,21 @@
+[package]
+name = "retina-fetch"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio = { version = "*", features = [
+    "full" # TODO
+] }
+
+hyper = { version = "*", features = [
+    "client",
+    "http1",
+    "http2",
+] }
+
+hyper-tls = "*"
+url = "*"
+
+[dev-dependencies]
+rstest = "*"
