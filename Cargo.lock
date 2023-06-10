@@ -382,12 +382,12 @@ dependencies = [
 
 [[package]]
 name = "cssparser-macros"
-version = "0.6.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dfae75de57f2b2e85e8768c3ea840fd159c8f33e2b6522c7835b7abac81be16e"
+checksum = "13b588ba4ac1a99f7f2964d24b3d896ddc6bf847ee3855dbd4366f058cfcd331"
 dependencies = [
  "quote",
- "syn 1.0.109",
+ "syn 2.0.18",
 ]
 
 [[package]]
@@ -440,15 +440,15 @@ checksum = "9ea835d29036a4087793836fa931b08837ad5e957da9e23886b29586fb9b6650"
 
 [[package]]
 name = "dtoa"
-version = "0.4.8"
+version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56899898ce76aaf4a0f24d914c97ea6ed976d42fec6ad33fcbb0a1103e07b2b0"
+checksum = "65d09067bfacaa79114679b279d7f5885b53295b1e2cfb4e79c8e4bd3d633169"
 
 [[package]]
 name = "dtoa-short"
-version = "0.3.3"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bde03329ae10e79ede66c9ce4dc930aa8599043b0743008548680f25b91502d6"
+checksum = "dbaceec3c6e4211c79e7b1800fb9680527106beb2f9c51904a3210c03a448c74"
 dependencies = [
  "dtoa",
 ]
@@ -1881,6 +1881,7 @@ dependencies = [
  "retina-gfx",
  "retina-layout",
  "retina-style",
+ "retina-style-parser",
  "retina-user-agent",
  "tokio",
  "url",
@@ -1891,8 +1892,6 @@ dependencies = [
 name = "retina-style"
 version = "0.2.0"
 dependencies = [
- "cssparser",
- "log",
  "pretty_assertions",
  "retina-common",
  "rstest",
@@ -1907,7 +1906,22 @@ dependencies = [
  "retina-common",
  "retina-dom",
  "retina-style",
+ "retina-style-parser",
  "rstest",
+ "tendril",
+]
+
+[[package]]
+name = "retina-style-parser"
+version = "0.2.0"
+dependencies = [
+ "cssparser",
+ "log",
+ "pretty_assertions",
+ "retina-common",
+ "retina-style",
+ "rstest",
+ "strum",
  "tendril",
 ]
 
@@ -1917,6 +1931,7 @@ version = "0.2.0"
 dependencies = [
  "pretty_assertions",
  "retina-style",
+ "retina-style-parser",
 ]
 
 [[package]]

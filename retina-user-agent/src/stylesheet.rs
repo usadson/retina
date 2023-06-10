@@ -28,6 +28,8 @@ mod tests {
         Value,
     };
 
+    use retina_style_parser::CssParsable;
+
     use super::USER_AGENT_STYLESHEET_CODE;
     use pretty_assertions::assert_eq;
 

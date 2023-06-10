@@ -1,11 +1,14 @@
 [package]
-name = "retina-style"
+name = "retina-style-parser"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
 retina-common = { path = "../retina-common" }
+retina-style = { path = "../retina-style" }
 
+cssparser = "0.31.0"
+log = "*"
 strum = { version = "*", features = ["derive"] }
 tendril = "*"
 

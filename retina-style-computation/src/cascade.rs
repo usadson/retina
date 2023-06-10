@@ -83,6 +83,7 @@ mod tests {
 
     use retina_dom::{NodeKind, Text, Document};
     use retina_style::*;
+    use retina_style_parser::CssParsable;
     use tendril::StrTendril;
 
     use crate::*;

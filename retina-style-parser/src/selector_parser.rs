@@ -9,7 +9,7 @@ use cssparser::{
 
 use tendril::StrTendril;
 
-use crate::{
+use retina_style::{
     AttributeSelector,
     AttributeSelectorCaseSensitivity,
     AttributeSelectorKind,
@@ -18,7 +18,7 @@ use crate::{
     SimpleSelector,
 };
 
-use super::{
+use crate::{
     ParseError,
     RetinaStyleParseError,
 };
@@ -67,11 +67,7 @@ fn parse_attribute_selector<'i, 't>(
         })
     };
 
-    Ok(Selector::Simple(SimpleSelector::Attribute(AttributeSelector {
-        attribute,
-        case_sensitivity,
-        kind,
-    })))
+    Ok(Selector::Simple(SimpleSelector::Attribute(AttributeSelector::new(attribute, case_sensitivity, kind))))
 }
 
 fn parse_attribute_selector_name<'i, 't>(

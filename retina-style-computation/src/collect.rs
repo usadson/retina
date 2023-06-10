@@ -65,6 +65,7 @@ mod tests {
     use tendril::StrTendril;
 
     use super::*;
+    use retina_style_parser::CssParsable;
 
     #[test]
     fn stylesheet_single_rule_single_declaration_text_node() {

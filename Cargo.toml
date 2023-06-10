@@ -10,6 +10,7 @@ members = [
     "retina-page",
     "retina-style",
     "retina-style-computation",
+    "retina-style-parser",
     "retina-user-agent",
 ]
 

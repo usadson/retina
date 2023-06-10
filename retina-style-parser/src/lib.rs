@@ -6,9 +6,11 @@ mod declaration_parser;
 mod error;
 mod rule_parser;
 mod selector_parser;
+mod util;
 mod value_parser;
 
 pub use self::error::RetinaStyleParseError;
+pub use self::util::CssParsable;
 
 pub(crate) use self::rule_parser::RuleParser;
 pub(crate) use self::selector_parser::parse_selector_list;
@@ -23,7 +25,7 @@ use cssparser::{
 };
 use log::warn;
 
-use crate::{CascadeOrigin, Stylesheet, Rule};
+use retina_style::{CascadeOrigin, Rule, Stylesheet};
 
 pub fn parse_stylesheet(cascade_origin: CascadeOrigin, input: &str) -> Stylesheet {
     let mut input = ParserInput::new(input);
@@ -57,6 +59,7 @@ pub fn parse_stylesheet(cascade_origin: CascadeOrigin, input: &str) -> Styleshee
 
 #[cfg(test)]
 mod tests {
+    use retina_style::*;
     use crate::*;
 
     #[test]
@@ -78,14 +81,8 @@ mod tests {
                 ],
             },
             declarations: vec![
-                Declaration {
-                    property: Property::Color,
-                    value: CssNamedColor::GREEN.into(),
-                },
-                Declaration {
-                    property: Property::Color,
-                    value: CssNamedColor::RED.into(),
-                },
+                Declaration::new(Property::Color, CssNamedColor::GREEN.into()),
+                Declaration::new(Property::Color, CssNamedColor::RED.into()),
             ]
         });
 

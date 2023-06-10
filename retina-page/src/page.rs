@@ -13,6 +13,7 @@ use retina_dom::{NodeKind, HtmlElementKind};
 use retina_gfx::{canvas::CanvasPaintingContext, Color};
 use retina_layout::{LayoutBox, LayoutGenerator};
 use retina_style::{Stylesheet, CascadeOrigin, CssReferencePixels};
+use retina_style_parser::CssParsable;
 use url::Url;
 
 use crate::{PageCommand, PageMessage, PageProgress};

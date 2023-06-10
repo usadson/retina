@@ -9,9 +9,9 @@ use cssparser::{
 
 use strum::IntoEnumIterator;
 
-use crate::*;
+use retina_style::*;
 
-use super::{ParseError, RetinaStyleParseError};
+use crate::{ParseError, RetinaStyleParseError, util::convert_color};
 
 pub(crate) fn parse_display<'i, 't>(
     input: &mut Parser<'i, 't>
@@ -88,7 +88,7 @@ pub(crate) fn parse_length<'i, 't>(
 
 pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<Value, ParseError<'i>> {
     if let Ok(color) = input.try_parse(Color::parse) {
-        return Ok(Value::Color(color.try_into().unwrap()));
+        return Ok(Value::Color(convert_color(color).unwrap()));
     }
 
     if let Ok(display) = input.try_parse(parse_display) {
@@ -125,7 +125,7 @@ pub(crate) fn parse_white_space<'i, 't>(
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
-    use crate::{CssColor, CssNamedColor};
+    use retina_style::{CssColor, CssNamedColor};
 
     use super::*;
 

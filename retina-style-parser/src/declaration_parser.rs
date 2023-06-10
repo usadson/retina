@@ -3,7 +3,7 @@
 
 use cssparser::Parser;
 
-use crate::{
+use retina_style::{
     Declaration,
     Property,
 };
@@ -27,10 +27,7 @@ impl<'i> cssparser::DeclarationParser<'i> for DeclarationParser {
     ) -> Result<Self::Declaration, cssparser::ParseError<'i, Self::Error>> {
         let property = Property::parse(name.as_ref()).unwrap_or(Property::Invalid);
 
-        parse_value(input).map(|value| Declaration{
-            property,
-            value,
-        })
+        parse_value(input).map(|value| Declaration::new(property, value))
     }
 
     fn enable_nesting(&self) -> bool {

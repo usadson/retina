@@ -3,7 +3,6 @@
 
 mod cascade_origin;
 mod declaration;
-mod parse;
 mod property;
 mod rule;
 mod selector;

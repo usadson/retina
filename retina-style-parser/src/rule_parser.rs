@@ -7,7 +7,7 @@ use cssparser::{
 };
 use log::warn;
 
-use crate::{
+use retina_style::{
     CascadeOrigin,
     Rule,
     StyleRule,
@@ -79,7 +79,8 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for RuleParser {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
-    use crate::*;
+    use crate::CssParsable;
+    use retina_style::*;
 
     #[rstest]
     /// Normal
@@ -106,10 +107,7 @@ mod tests {
                 ],
             },
             declarations: vec![
-                Declaration {
-                    property: Property::Color,
-                    value: expected.into()
-                }
+                Declaration::new(Property::Color, expected.into()),
             ]
         });
 

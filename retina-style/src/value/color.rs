@@ -28,33 +28,6 @@ impl From<retina_common::Color> for CssColor {
     }
 }
 
-impl TryFrom<cssparser::Color> for CssColor {
-    type Error = String;
-
-    fn try_from(value: cssparser::Color) -> Result<Self, Self::Error> {
-        match value {
-            cssparser::Color::Rgba(rgba) => Ok(rgba.into()),
-            _ => Err(format!("failed to convert value: {value:?}")),
-        }
-    }
-}
-
-impl From<cssparser::RGBA> for CssColor {
-    fn from(value: cssparser::RGBA) -> Self {
-        let mut color = retina_common::Color::rgb_bytes(
-            value.red.unwrap_or(0),
-            value.green.unwrap_or(0),
-            value.blue.unwrap_or(0),
-        );
-
-        if let Some(alpha) = value.alpha {
-            color = color.with_alpha(alpha as _);
-        }
-
-        Self::Color(color)
-    }
-}
-
 impl From<CssColor> for Value {
     fn from(value: CssColor) -> Self {
         Value::Color(value)

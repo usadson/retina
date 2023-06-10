@@ -11,4 +11,6 @@ retina-style = { path = "../retina-style" }
 tendril = "*"
 
 [dev-dependencies]
+retina-style-parser = { path = "../retina-style-parser" }
+
 rstest = "*"
