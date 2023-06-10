@@ -133,14 +133,36 @@ impl TreeSink for Sink {
     }
 
     fn append(&mut self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
+        let mut replace_previous = false;
+
         let child = match child {
             NodeOrText::AppendNode(node) => node,
-            NodeOrText::AppendText(text) => Text::new_handle(text),
+            NodeOrText::AppendText(text) => {
+                if let Some(mut previous_text) = parent.as_parent_node()
+                    .unwrap()
+                    .children()
+                    .borrow()
+                    .last()
+                    .and_then(|child| child.as_text())
+                    .map(|s| StrTendril::clone(s.data())) {
+                    previous_text.push_tendril(&text);
+                    replace_previous = true;
+                    Text::new_handle(previous_text)
+                } else {
+                    Text::new_handle(text)
+                }
+            }
         };
 
         child.as_node().set_parent(Some(Rc::downgrade(parent)));
 
-        parent.as_parent_node().unwrap().children().borrow_mut().push(child);
+        let mut children = parent.as_parent_node().unwrap().children().borrow_mut();
+        if replace_previous {
+            let idx = children.len() - 1;
+            children.insert(idx, child);
+        } else {
+            children.push(child);
+        }
     }
 
     fn append_doctype_to_document(&mut self, _: StrTendril, _: StrTendril, _: StrTendril) {
