@@ -82,7 +82,7 @@ mod tests {
     use std::rc::Rc;
 
     use retina_dom::{NodeKind, Text, Document};
-    use retina_style::{BasicColorKeyword, ColorValue, Stylesheet, CssDisplay, CssDisplayInside, CssDisplayOutside};
+    use retina_style::*;
     use tendril::StrTendril;
 
     use crate::*;
@@ -114,7 +114,7 @@ mod tests {
         let cascaded_style = collected_styles.cascade(None);
 
         let expected = PropertyMap {
-            color: Some(ColorValue::BasicColorKeyword(BasicColorKeyword::Blue)),
+            color: Some(CssNamedColor::BLUE),
 
             ..Default::default()
         };
@@ -158,9 +158,8 @@ mod tests {
         let parent_cascaded_styles = parent_collected_styles.cascade(None);
 
         assert_eq!(parent_cascaded_styles, PropertyMap {
-            color: Some(ColorValue::BasicColorKeyword(BasicColorKeyword::Blue)),
+            color: Some(CssNamedColor::BLUE),
             display: Some(CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, is_list_item: false }),
-
             ..Default::default()
         });
 
@@ -168,7 +167,7 @@ mod tests {
         let node_cascaded_style = node_collected_styles.cascade(Some(&parent_cascaded_styles));
 
         assert_eq!(node_cascaded_style, PropertyMap {
-            color: Some(ColorValue::BasicColorKeyword(BasicColorKeyword::Blue)),
+            color: Some(CssNamedColor::BLUE),
             display: None,
 
             ..Default::default()

@@ -11,7 +11,7 @@ use retina_style::{
 
 use crate::SelectorMatcher;
 
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct CollectedStyles<'stylesheets> {
     applicable_rules: Vec<&'stylesheets StyleRule>,
 }

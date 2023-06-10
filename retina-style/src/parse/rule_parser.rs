@@ -79,32 +79,26 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for RuleParser {
 
 #[cfg(test)]
 mod tests {
+    use cssparser::QualifiedRuleParser;
     use rstest::rstest;
     use crate::*;
 
-    fn helper_color(value: BasicColorKeyword) -> Declaration {
-        Declaration {
-            property: Property::Color,
-            value: Value::Color(ColorValue::BasicColorKeyword(value))
-        }
-    }
-
     #[rstest]
     /// Normal
-    #[case("* { color: red; }", helper_color(BasicColorKeyword::Red))]
+    #[case("* { color: red; }", CssNamedColor::RED)]
     /// Without trailing semicolon
-    #[case("* { color: red }", helper_color(BasicColorKeyword::Red))]
+    #[case("* { color: red }", CssNamedColor::RED)]
     /// Without whitespace
-    #[case("*{color:red}", helper_color(BasicColorKeyword::Red))]
+    #[case("*{color:red}", CssNamedColor::RED)]
     /// [Basic color keywords are ASCII-case insensitive](https://drafts.csswg.org/css-color-3/#html4)
-    #[case("*{color:RED}", helper_color(BasicColorKeyword::Red))]
+    #[case("*{color:RED}", CssNamedColor::RED)]
     /// [Basic color keywords are ASCII-case insensitive](https://drafts.csswg.org/css-color-3/#html4)
-    #[case("*{color:Red}", helper_color(BasicColorKeyword::Red))]
+    #[case("*{color:Red}", CssNamedColor::RED)]
     /// [Basic color keywords are ASCII-case insensitive](https://drafts.csswg.org/css-color-3/#html4)
-    #[case("*{color:rEd}", helper_color(BasicColorKeyword::Red))]
+    #[case("*{color:rEd}", CssNamedColor::RED)]
     #[test]
-    fn qualified_rule_single_declaration(#[case] input: &str, #[case] expected: Declaration) {
-        let stylesheet = Stylesheet::parse(CascadeOrigin::Author, input);
+    fn qualified_rule_single_declaration(#[case] input: &str, #[case] expected: CssColor) {
+        let stylesheet: Stylesheet = Stylesheet::parse(CascadeOrigin::Author, input);
 
         let rule = Rule::Style(StyleRule {
             cascade_origin: CascadeOrigin::Author,
@@ -114,7 +108,10 @@ mod tests {
                 ],
             },
             declarations: vec![
-                expected
+                Declaration {
+                    property: Property::Color,
+                    value: expected.into()
+                }
             ]
         });
 

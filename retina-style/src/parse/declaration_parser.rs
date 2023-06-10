@@ -65,7 +65,7 @@ mod tests {
         let result = parse_declaration_one_of_many(input);
         let expected = Ok(Declaration{
             property: Property::BackgroundColor,
-            value: Value::Color(ColorValue::BasicColorKeyword(BasicColorKeyword::Blue)),
+            value: CssNamedColor::BLUE.into(),
         });
         assert_eq!(result, expected);
     }
@@ -77,9 +77,9 @@ mod tests {
         let input = &mut cssparser::Parser::new(&mut input);
 
         let result = parse_declaration_one_of_many(input);
-        let expected = Ok(Declaration{
+        let expected = Ok(Declaration {
             property: Property::Color,
-            value: Value::Color(ColorValue::BasicColorKeyword(BasicColorKeyword::Red)),
+            value: CssNamedColor::RED.into(),
         });
         assert_eq!(result, expected);
     }

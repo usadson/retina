@@ -3,7 +3,7 @@
 
 use crate::{Property, Value};
 
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Declaration {
     pub(crate) property: Property,
     pub(crate) value: Value,

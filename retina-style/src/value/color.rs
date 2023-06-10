@@ -1,63 +1,62 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use strum::{EnumIter, AsRefStr};
+use crate::Value;
 
-/// # References
-/// * [CSS - Color Module Level 3 - 4.1](https://drafts.csswg.org/css-color-3/#html4)
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, EnumIter, AsRefStr)]
-#[strum(serialize_all = "lowercase")]
-pub enum BasicColorKeyword {
-    Black,
-    Silver,
-    Gray,
-    White,
-    Maroon,
-    Red,
-    Purple,
-    Fuchsia,
-    Green,
-    Lime,
-    Olive,
-    Yellow,
-    Navy,
-    Blue,
-    Teal,
-    Aqua,
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
+pub enum CssColor {
+    Color(retina_common::Color),
 }
 
-impl From<BasicColorKeyword> for retina_common::Color {
-    fn from(value: BasicColorKeyword) -> Self {
+pub struct CssNamedColor {
+    _marker: (),
+}
+
+impl CssNamedColor {
+    pub const WHITE: CssColor = CssColor::Color(retina_common::Color::rgb(1.0, 1.0, 1.0));
+    pub const BLACK: CssColor = CssColor::Color(retina_common::Color::rgb(0.0, 0.0, 0.0));
+    pub const TRANSPARENT: CssColor = CssColor::Color(retina_common::Color::TRANSPARENT);
+
+    pub const BLUE: CssColor = CssColor::Color(retina_common::Color::rgb(0.0, 0.0, 1.0));
+    pub const GREEN: CssColor = CssColor::Color(retina_common::Color::rgb(0.0, 128.0 / 255.0, 0.0));
+    pub const RED: CssColor = CssColor::Color(retina_common::Color::rgb(1.0, 0.0, 0.0));
+}
+
+impl From<retina_common::Color> for CssColor {
+    fn from(value: retina_common::Color) -> Self {
+        CssColor::Color(value)
+    }
+}
+
+impl TryFrom<cssparser::Color> for CssColor {
+    type Error = String;
+
+    fn try_from(value: cssparser::Color) -> Result<Self, Self::Error> {
         match value {
-            BasicColorKeyword::Black => Self::rgb_decimal(0, 0, 0),
-            BasicColorKeyword::Silver => Self::rgb_decimal(192, 192, 192),
-            BasicColorKeyword::Gray => Self::rgb_decimal(128, 128, 128),
-            BasicColorKeyword::White => Self::rgb_decimal(255, 255, 255),
-            BasicColorKeyword::Maroon => Self::rgb_decimal(128, 0, 0),
-            BasicColorKeyword::Red => Self::rgb_decimal(255, 0, 0),
-            BasicColorKeyword::Purple => Self::rgb_decimal(80, 0, 80),
-            BasicColorKeyword::Fuchsia => Self::rgb_decimal(255, 0, 255),
-            BasicColorKeyword::Green => Self::rgb_decimal(0, 128, 0),
-            BasicColorKeyword::Lime => Self::rgb_decimal(0, 255, 0),
-            BasicColorKeyword::Olive => Self::rgb_decimal(128, 128, 0),
-            BasicColorKeyword::Yellow => Self::rgb_decimal(255, 255, 0),
-            BasicColorKeyword::Navy => Self::rgb_decimal(0, 0, 128),
-            BasicColorKeyword::Blue => Self::rgb_decimal(0, 0, 255),
-            BasicColorKeyword::Teal => Self::rgb_decimal(0, 128, 128),
-            BasicColorKeyword::Aqua => Self::rgb_decimal(0, 255, 255),
+            cssparser::Color::Rgba(rgba) => Ok(rgba.into()),
+            _ => Err(format!("failed to convert value: {value:?}")),
         }
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum ColorValue {
-    BasicColorKeyword(BasicColorKeyword),
+impl From<cssparser::RGBA> for CssColor {
+    fn from(value: cssparser::RGBA) -> Self {
+        let mut color = retina_common::Color::rgb_bytes(
+            value.red.unwrap_or(0),
+            value.green.unwrap_or(0),
+            value.blue.unwrap_or(0),
+        );
 
-    /// ***transparent***
-    /// > Fully transparent. This keyword can be considered a shorthand for
-    /// > transparent black, rgba(0,0,0,0), which is its computed value.
-    ///
-    /// # References
-    /// * [CSS - Color Module Level 3 - 4.2.3](https://drafts.csswg.org/css-color-3/#transparent)
-    Transparent,
+        if let Some(alpha) = value.alpha {
+            color = color.with_alpha(alpha as _);
+        }
+
+        Self::Color(color)
+    }
+}
+
+impl From<CssColor> for Value {
+    fn from(value: CssColor) -> Self {
+        Value::Color(value)
+    }
 }

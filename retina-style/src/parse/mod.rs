@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+mod color_parser;
 mod declaration_parser;
 mod error;
 mod rule_parser;
@@ -38,8 +39,11 @@ pub fn parse_stylesheet(cascade_origin: CascadeOrigin, input: &str) -> Styleshee
             Ok(rule) => {
                 if let Rule::Style(style_rule) = &rule {
                     if style_rule.declarations.is_empty() {
+                        if cfg!(test) && cascade_origin == CascadeOrigin::UserAgent {
+                            panic!("[CssParser] Declaration is empty: {:#?}", style_rule);
+                        }
+
                         warn!("[CssParser] Declaration is empty: {:#?}", style_rule);
-                        continue;
                     }
                 }
 
@@ -77,12 +81,12 @@ mod tests {
             declarations: vec![
                 Declaration {
                     property: Property::Color,
-                    value: Value::Color(ColorValue::BasicColorKeyword(BasicColorKeyword::Green))
+                    value: CssNamedColor::GREEN.into(),
                 },
                 Declaration {
                     property: Property::Color,
-                    value: Value::Color(ColorValue::BasicColorKeyword(BasicColorKeyword::Red))
-                }
+                    value: CssNamedColor::RED.into(),
+                },
             ]
         });
 

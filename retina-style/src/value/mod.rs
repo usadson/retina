@@ -9,15 +9,15 @@ pub mod white_space;
 
 pub type CssDecimal = f64;
 
-pub use color::{BasicColorKeyword, ColorValue};
+pub use color::{CssColor, CssNamedColor};
 pub use display::{CssDisplay, CssDisplayBox, CssDisplayInside, CssDisplayInternal, CssDisplayOutside};
 pub use length::CssLength;
 pub use reference_pixels::CssReferencePixels;
 pub use white_space::CssWhiteSpace;
 
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Value {
-    Color(ColorValue),
+    Color(CssColor),
     Display(CssDisplay),
     Length(CssLength),
     WhiteSpace(CssWhiteSpace),

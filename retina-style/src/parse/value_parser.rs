@@ -4,7 +4,7 @@
 use cssparser::{
     Parser,
     ParseErrorKind,
-    Token,
+    Token, Color,
 };
 
 use strum::IntoEnumIterator;
@@ -12,22 +12,6 @@ use strum::IntoEnumIterator;
 use crate::*;
 
 use super::{ParseError, RetinaStyleParseError};
-
-pub(crate) fn parse_basic_color_keyword<'i, 't>(
-    input: &mut Parser<'i, 't>
-) -> Result<BasicColorKeyword, ParseError<'i>> {
-    let token = input.next()
-        .cloned()
-        .map_err(|_| input.new_custom_error(RetinaStyleParseError::UnexpectedEofBasicColorKeyword))?;
-
-    let Token::Ident(ident) = token else {
-        return Err(input.new_custom_error(RetinaStyleParseError::ExpectedIdentifierAsPropertyValue));
-    };
-
-    BasicColorKeyword::iter()
-        .find(|keyword| keyword.as_ref().eq_ignore_ascii_case(ident.as_ref()))
-        .ok_or_else(|| input.new_custom_error(RetinaStyleParseError::UnknownBasicColorKeyword))
-}
 
 pub(crate) fn parse_display<'i, 't>(
     input: &mut Parser<'i, 't>
@@ -103,8 +87,8 @@ pub(crate) fn parse_length<'i, 't>(
 }
 
 pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<Value, ParseError<'i>> {
-    if let Ok(basic_color_keyword) = input.try_parse(parse_basic_color_keyword) {
-        return Ok(Value::Color(ColorValue::BasicColorKeyword(basic_color_keyword)));
+    if let Ok(color) = input.try_parse(Color::parse) {
+        return Ok(Value::Color(color.try_into().unwrap()));
     }
 
     if let Ok(display) = input.try_parse(parse_display) {
@@ -141,25 +125,24 @@ pub(crate) fn parse_white_space<'i, 't>(
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
+    use crate::{CssColor, CssNamedColor};
 
     use super::*;
 
     #[rstest]
-    #[case("red", BasicColorKeyword::Red)]
-    #[case("RED", BasicColorKeyword::Red)]
-    #[case("rEd", BasicColorKeyword::Red)]
-    #[case("Red", BasicColorKeyword::Red)]
-    #[case("green", BasicColorKeyword::Green)]
-    #[case("greeN", BasicColorKeyword::Green)]
-    #[case("blue", BasicColorKeyword::Blue)]
-    fn value_color_basic_color_keyword(#[case] input: &str, #[case] keyword: BasicColorKeyword) {
+    #[case("red", CssNamedColor::RED)]
+    #[case("RED", CssNamedColor::RED)]
+    #[case("rEd", CssNamedColor::RED)]
+    #[case("Red", CssNamedColor::RED)]
+    #[case("green", CssNamedColor::GREEN)]
+    #[case("greeN", CssNamedColor::GREEN)]
+    #[case("blue", CssNamedColor::BLUE)]
+    fn value_color(#[case] input: &str, #[case] color: CssColor) {
         let mut input = cssparser::ParserInput::new(input);
         let input = &mut cssparser::Parser::new(&mut input);
 
         let result = parse_value(input);
-        let expected = Ok(Value::Color(
-            ColorValue::BasicColorKeyword(keyword)
-        ));
+        let expected = Ok(color.into());
         assert_eq!(result, expected);
     }
 

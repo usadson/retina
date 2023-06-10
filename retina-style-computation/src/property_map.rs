@@ -3,10 +3,10 @@
 
 use retina_style::*;
 
-#[derive(Clone, Debug, Default, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct PropertyMap {
-    pub background_color: Option<ColorValue>,
-    pub color: Option<ColorValue>,
+    pub background_color: Option<CssColor>,
+    pub color: Option<CssColor>,
     pub display: Option<CssDisplay>,
     pub height: Option<CssLength>,
     pub width: Option<CssLength>,
@@ -66,13 +66,13 @@ impl PropertyMap {
         }
     }
 
-    pub fn background_color(&self) -> ColorValue {
-        self.background_color.unwrap_or(ColorValue::Transparent)
+    pub fn background_color(&self) -> CssColor {
+        self.background_color.unwrap_or(CssNamedColor::TRANSPARENT)
     }
 
-    pub fn color(&self) -> ColorValue {
+    pub fn color(&self) -> CssColor {
         // The initial value is implementation-defined.
-        self.color.unwrap_or(ColorValue::BasicColorKeyword(retina_style::BasicColorKeyword::Black))
+        self.color.unwrap_or(CssNamedColor::BLACK)
     }
 
     pub fn height(&self) -> CssLength {
