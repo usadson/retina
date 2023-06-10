@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use retina_common::Color;
 use wgpu::Extent3d;
 
-use crate::{glyph_brush::GlyphBrush, Context};
+use crate::{glyph_brush::GlyphBrush, Context, paint::color_paint::ColorPaint};
 
 pub struct CanvasPaintingContext {
     pub(crate) context: Context,
@@ -124,13 +124,17 @@ impl CanvasPaintingContext {
 pub struct CanvasPainter<'canvas> {
     canvas: &'canvas mut CanvasPaintingContext,
     encoder: wgpu::CommandEncoder,
+    color_paint: ColorPaint,
 }
 
 impl<'canvas> CanvasPainter<'canvas> {
     pub(self) fn new(canvas: &'canvas mut CanvasPaintingContext, encoder: wgpu::CommandEncoder) -> Self {
+        let color_paint = ColorPaint::new(canvas.context.device());
+
         Self {
             canvas,
             encoder,
+            color_paint,
         }
     }
 
@@ -158,6 +162,47 @@ impl<'canvas> CanvasPainter<'canvas> {
                 depth_stencil_attachment: None,
             },
         );
+    }
+
+    pub fn paint_rect_colored(&mut self, rect: euclid::Rect<f64, f64>, color: Color) {
+        _ = rect; // TODO
+
+        let color = [
+            color.red() as f32,
+            color.green() as f32,
+            color.blue() as f32,
+            color.alpha() as f32,
+        ];
+
+        // CHECK: is this queue'ing happening before the render pass is queued?
+        self.canvas.context.queue().write_buffer(
+            &self.color_paint.color_buffer,
+            0,
+            bytemuck::cast_slice(&color)
+        );
+
+        let mut render_pass = self.encoder.begin_render_pass(
+            &wgpu::RenderPassDescriptor {
+                label: Some("Render pass"),
+                color_attachments: &[Some(
+                    wgpu::RenderPassColorAttachment {
+                        view: &self.canvas.surface_texture_view,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Load,
+                            store: true,
+                        },
+                    },
+                )],
+                depth_stencil_attachment: None,
+            },
+        );
+
+        render_pass.set_pipeline(&self.color_paint.render_pipeline);
+        render_pass.set_bind_group(0, &self.color_paint.color_bind_group, &[]);
+        render_pass.set_vertex_buffer(0, self.color_paint.vertex_buffer.slice(..));
+        render_pass.set_index_buffer(self.color_paint.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+        render_pass.draw_indexed(0..self.color_paint.num_indices, 0, 0..1);
     }
 
     pub fn paint_text(&mut self, text: &str, color: Color, position: euclid::Point2D<f32, f32>) {

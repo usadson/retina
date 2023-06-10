@@ -23,7 +23,7 @@ impl PropertyMap {
             Property::Invalid => PropertyMapDidApply::NoBecauseOfAnInvalidProperty,
 
             Property::BackgroundColor => if let Value::Color(color) = value {
-                self.color = Some(color);
+                self.background_color = Some(color);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue

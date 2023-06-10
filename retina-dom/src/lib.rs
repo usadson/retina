@@ -92,6 +92,13 @@ impl NodeKind {
         }
     }
 
+    pub fn as_text(&self) -> Option<&Text> {
+        match self {
+            Self::Text(text) => Some(text),
+            _ => None,
+        }
+    }
+
     pub fn for_each_child_node_recursive(&self, callback: &mut dyn FnMut(&NodeKind, usize), depth: usize) {
         if let Some(as_parent) = self.as_parent_node() {
             let children = as_parent.children().borrow();

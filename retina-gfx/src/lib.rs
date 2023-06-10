@@ -4,6 +4,7 @@
 pub mod canvas;
 pub mod context;
 pub mod glyph_brush;
+pub mod paint;
 pub mod vertex;
 pub mod window;
 

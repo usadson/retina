@@ -148,6 +148,8 @@ impl Page {
             ),
         ];
 
+        println!("document: {:#?}", self.document);
+
         self.document.as_ref()
             .unwrap()
             .for_each_child_node_recursive(&mut |child, _depth| {

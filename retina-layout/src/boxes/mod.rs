@@ -42,6 +42,10 @@ impl LayoutBox {
         }
     }
 
+    pub fn children(&self) -> &[LayoutBox] {
+        &self.children
+    }
+
     pub fn computed_style(&self) -> &PropertyMap {
         &self.computed_style
     }
