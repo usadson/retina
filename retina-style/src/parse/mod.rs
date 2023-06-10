@@ -10,7 +10,6 @@ mod value_parser;
 
 pub use self::error::RetinaStyleParseError;
 
-pub(crate) use self::declaration_parser::parse_declaration_one_of_many;
 pub(crate) use self::rule_parser::RuleParser;
 pub(crate) use self::selector_parser::parse_selector_list;
 pub(crate) use self::value_parser::parse_value;

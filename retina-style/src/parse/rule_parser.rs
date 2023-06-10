@@ -1,18 +1,22 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use cssparser::Parser;
+use cssparser::{
+    DeclarationListParser,
+    Parser,
+};
 use log::warn;
 
 use crate::{
+    CascadeOrigin,
     Rule,
     StyleRule,
-    SelectorList, CascadeOrigin,
+    SelectorList,
 };
 
 use super::{
-    parse_declaration_one_of_many,
     RetinaStyleParseError,
+    declaration_parser::DeclarationParser,
 };
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -48,17 +52,12 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for RuleParser {
     ) -> Result<Self::QualifiedRule, cssparser::ParseError<'i, Self::Error>> {
         let mut declarations = Vec::new();
 
-        while !input.is_exhausted() {
-            match parse_declaration_one_of_many(input) {
+        let mut declaration_parser = DeclarationListParser::new(input, DeclarationParser{});
+
+        while let Some(result) = declaration_parser.next() {
+            match result {
                 Ok(declaration) => declarations.push(declaration),
                 Err(e) => warn!("Failed to parse declaration: {e:#?}"),
-            }
-
-            // consume everything up to and including the semicolon.
-            while !input.is_exhausted() {
-                if input.expect_semicolon().is_ok() {
-                    break;
-                }
             }
         }
 
@@ -79,7 +78,6 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for RuleParser {
 
 #[cfg(test)]
 mod tests {
-    use cssparser::QualifiedRuleParser;
     use rstest::rstest;
     use crate::*;
 

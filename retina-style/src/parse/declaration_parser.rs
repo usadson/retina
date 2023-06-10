@@ -10,7 +10,6 @@ use crate::{
 
 use super::{
     parse_value,
-    ParseError,
     RetinaStyleParseError,
 };
 
@@ -39,48 +38,16 @@ impl<'i> cssparser::DeclarationParser<'i> for DeclarationParser {
     }
 }
 
-/// Different from [parse_one_declaration], this function parses a declaration
-/// whether or not it should be the only one in the given `input`.
-///
-/// [parser_one_declaration]: cssparser::parse_one_declaration
-pub(crate) fn parse_declaration_one_of_many<'i, 't>(
-    input: &mut Parser<'i, 't>,
-) -> Result<Declaration, ParseError<'i>> {
-    let name = input.expect_ident()?.clone();
-    input.expect_colon()?;
-    cssparser::DeclarationParser::parse_value(&mut DeclarationParser::default(), name, input)
+impl<'i> cssparser::AtRuleParser<'i> for DeclarationParser {
+    type Prelude = ();
+    type AtRule = Declaration;
+    type Error = RetinaStyleParseError<'i>;
+    // ignored / errors upon
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::*;
-    use super::*;
-
-    #[test]
-    fn declaration_background_color_blue() {
-        const INPUT: &str = "background-color: blue;";
-        let mut input = cssparser::ParserInput::new(INPUT);
-        let input = &mut cssparser::Parser::new(&mut input);
-
-        let result = parse_declaration_one_of_many(input);
-        let expected = Ok(Declaration{
-            property: Property::BackgroundColor,
-            value: CssNamedColor::BLUE.into(),
-        });
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn declaration_color_red() {
-        const INPUT: &str = "color: red;";
-        let mut input = cssparser::ParserInput::new(INPUT);
-        let input = &mut cssparser::Parser::new(&mut input);
-
-        let result = parse_declaration_one_of_many(input);
-        let expected = Ok(Declaration {
-            property: Property::Color,
-            value: CssNamedColor::RED.into(),
-        });
-        assert_eq!(result, expected);
-    }
+impl<'i> cssparser::QualifiedRuleParser<'i> for DeclarationParser {
+    type Prelude = ();
+    type QualifiedRule = Declaration;
+    type Error = RetinaStyleParseError<'i>;
+    // ignored / errors upon
 }
