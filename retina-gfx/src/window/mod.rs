@@ -41,6 +41,7 @@ impl Window {
 
         let window = winit::window::WindowBuilder::new()
             .with_resizable(false)
+            .with_title("Retina")
             .build(&event_loop)
             .unwrap();
 
@@ -106,6 +107,10 @@ impl Window {
                 }
             }
         })
+    }
+
+    pub fn set_title(&self, title: &str) {
+        self.window.set_title(title);
     }
 
     pub fn size(&self) -> Size2D<u32, u32> {

@@ -14,10 +14,10 @@ fn main() {
         env_logger::init();
     }
 
-    let window = retina_gfx::window::Window::new()
+    let mut window = retina_gfx::window::Window::new()
         .expect("failed to create window");
 
-    let app = Box::new(Application::new(&window));
+    let app = Box::new(Application::new(&mut window));
 
     window.run(app)
 }

@@ -18,9 +18,14 @@ pub struct Application {
 }
 
 impl Application {
-    pub fn new(window: &Window) -> Self {
-        let url = Url::parse("about:not-found")
+    pub fn new(window: &mut Window) -> Self {
+        let url = std::env::var("RETINA_URL")
+            .unwrap_or("about:not-found".into());
+
+        let url = Url::parse(&url)
             .expect("failed to parse URL");
+
+        window.set_title(&format!("{} — Retina", url.as_str()));
 
         let page_handle = retina_page::spawn(url, window.context(), window.size());
 
