@@ -5,7 +5,7 @@ use std::rc::Rc;
 
 use log::warn;
 use retina_common::DumpableNode;
-use retina_style::{Stylesheet, CssDisplay, CssReferencePixels};
+use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside};
 use retina_style_computation::{PropertyMap, StyleCollector, Cascade};
 
 use crate::{
@@ -113,11 +113,11 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
 
             let parent_display = parent.computed_style().display();
             return match parent_display {
-                CssDisplay::BlockFlow => Some(
+                CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => Some(
                     LayoutBox::new(LayoutBoxKind::AnonymousBlock, node, computed_style, dimensions)
                 ),
 
-                CssDisplay::InlineFlow => Some(
+                CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => Some(
                     LayoutBox::new(LayoutBoxKind::AnonymousInline, node, computed_style, dimensions)
                 ),
 
@@ -130,12 +130,12 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
 
         let mut layout_box = match computed_style.display() {
             // `display: inline`
-            CssDisplay::InlineFlow => {
+            CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => {
                 let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent);
-                LayoutBox::new(LayoutBoxKind::Inline{ line_boxes: Vec::new() }, node, computed_style, dimensions)
+                LayoutBox::new(LayoutBoxKind::Inline, node, computed_style, dimensions)
             }
 
-            CssDisplay::BlockFlow => {
+            CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => {
                 let dimensions = self.calculate_dimensions_for_block_flow(&computed_style, parent);
                 LayoutBox::new(LayoutBoxKind::Block, node, computed_style, dimensions)
             }
@@ -162,7 +162,11 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
 
     fn generate_initial_containing_block(&self, root: DomNode) -> LayoutBox {
         let computed_style = PropertyMap {
-            display: Some(CssDisplay::BlockFlow),
+            display: Some(CssDisplay::Normal {
+                inside: CssDisplayInside::Flow,
+                outside: CssDisplayOutside::Block,
+                is_list_item: false,
+            }),
             ..Default::default()
         };
 
