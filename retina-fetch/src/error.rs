@@ -1,11 +1,19 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use std::fmt::Display;
+
 use crate::FetchResponse;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum InternalError {
     SynchronizationFault,
+}
+
+impl Display for InternalError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        core::fmt::Debug::fmt(&self, f)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -14,9 +22,24 @@ pub enum Error {
     InternalError(InternalError),
 }
 
+impl Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        core::fmt::Debug::fmt(&self, f)
+    }
+}
+
+impl std::error::Error for Error {
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum NetworkError {
     Generic,
+}
+
+impl Display for NetworkError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        core::fmt::Debug::fmt(&self, f)
+    }
 }
 
 impl From<InternalError> for FetchResponse {

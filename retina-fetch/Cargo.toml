@@ -4,6 +4,8 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+retina-user-agent = { path = "../retina-user-agent" }
+
 tokio = { version = "*", features = [
     "full" # TODO
 ] }

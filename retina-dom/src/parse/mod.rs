@@ -27,21 +27,24 @@ pub struct Parser {
 impl Parser {
     #[must_use]
     pub fn parse(input: &str) -> Rc<NodeKind> {
+        let mut input = std::io::Cursor::new(input);
+        Self::parse_with_reader(&mut input)
+    }
+
+    #[must_use]
+    pub fn parse_with_reader<R: std::io::Read>(reader: &mut R) -> Rc<NodeKind> {
         let sink = Sink {
             document: Document::new_handle(),
         };
 
-        let mut input = std::io::Cursor::new(input);
-
         let sink = parse_document(sink, Default::default())
             .from_utf8()
-            .read_from(&mut input)
+            .read_from(reader)
             .unwrap();
 
         sink.document.dump();
         sink.document
     }
-
 }
 
 struct Sink {

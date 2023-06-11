@@ -1,8 +1,9 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::sync::Arc;
+use std::{sync::Arc, io::BufRead};
 
+use hyper::body::Buf;
 use url::Url;
 
 use crate::{Request, StatusCode};
@@ -16,6 +17,17 @@ pub struct Response {
 }
 
 impl Response {
+    pub(crate) fn new_about(request: Arc<Request>, body: &'static str) -> Self {
+        Self {
+            request,
+            inner: Inner::new(body.into()),
+        }
+    }
+
+    pub async fn body(&mut self) -> Box<dyn BufRead + '_> {
+        Box::new(hyper::body::aggregate(self.inner.body_mut()).await.unwrap().reader())
+    }
+
     /// Get the [`Request`] that created this [`Response`].
     pub fn request(&self) -> &Request {
         &self.request

@@ -52,6 +52,7 @@ pub fn spawn(
 
                     canvas,
                     compositor: Compositor::new(),
+                    fetch: retina_fetch::Fetch::new(),
                 };
 
                 page.start().await.unwrap()

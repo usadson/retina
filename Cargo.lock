@@ -1839,6 +1839,7 @@ version = "0.2.0"
 dependencies = [
  "hyper",
  "hyper-tls",
+ "retina-user-agent",
  "rstest",
  "tokio",
  "url",
@@ -1878,6 +1879,7 @@ dependencies = [
  "log",
  "retina-compositor",
  "retina-dom",
+ "retina-fetch",
  "retina-gfx",
  "retina-layout",
  "retina-style",

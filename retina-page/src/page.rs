@@ -2,7 +2,6 @@
 // All Rights Reserved.
 
 use std::{
-    borrow::Cow,
     rc::Rc,
     sync::mpsc::{Receiver, Sender},
 };
@@ -10,6 +9,7 @@ use std::{
 use log::{error, info};
 use retina_compositor::Compositor;
 use retina_dom::{NodeKind, HtmlElementKind};
+use retina_fetch::Fetch;
 use retina_gfx::{canvas::CanvasPaintingContext, Color};
 use retina_layout::{LayoutBox, LayoutGenerator};
 use retina_style::{Stylesheet, CascadeOrigin, CssReferencePixels};
@@ -29,6 +29,7 @@ pub(crate) struct Page {
 
     pub(crate) canvas: CanvasPaintingContext,
     pub(crate) compositor: Compositor,
+    pub(crate) fetch: Fetch,
 }
 
 type ErrorKind = Box<dyn std::error::Error>;
@@ -41,9 +42,7 @@ impl Page {
 
         info!("Loading page: {:?}", self.url);
 
-        let page_data = self.load_page().await?;
-
-        self.parse_html(page_data.as_ref()).await?;
+        self.load_page().await?;
 
         self.parse_stylesheets().await?;
         info!("Stylesheets: {:#?}", self.style_sheets.as_ref().unwrap());
@@ -101,24 +100,24 @@ impl Page {
         Ok(())
     }
 
-    pub(crate) async fn load_page(&mut self) -> Result<Cow<'static, str>, ErrorKind> {
-        let data = match self.url.scheme() {
-            "about:" => self.load_page_about(self.url.path()).await?,
-            _ => self.load_page_about("not-found").await?,
-        };
+    pub(crate) async fn load_page(&mut self) -> Result<(), ErrorKind> {
+        let mut document = self.fetch.fetch_document(self.url.clone()).await?;
 
         self.message_sender.send(PageMessage::Progress {
             progress: PageProgress::Fetched,
         })?;
 
-        Ok(data)
-    }
+        let mut reader = document.body().await;
 
-    pub(crate) async fn load_page_about(&self, page: &str) -> Result<Cow<'static, str>, ErrorKind> {
-        Ok(match page {
-            "not-found" => retina_user_agent::url_scheme::about::NOT_FOUND.into(),
-            _ => retina_user_agent::url_scheme::about::NOT_FOUND.into(),
-        })
+        self.document = Some(
+            retina_dom::Parser::parse_with_reader(&mut reader)
+        );
+
+        self.message_sender.send(PageMessage::Progress {
+            progress: PageProgress::ParsedHtml,
+        })?;
+
+        Ok(())
     }
 
     pub(crate) fn paint(&mut self) -> Result<(), ErrorKind> {
@@ -166,21 +165,6 @@ impl Page {
 
         self.message_sender.send(PageMessage::Progress {
             progress: PageProgress::ParsedCss,
-        })?;
-
-        Ok(())
-    }
-
-    pub(crate) async fn parse_html(&mut self, page: &str) -> Result<(), ErrorKind> {
-        // TODO It would be better to perform this on a thread that may block,
-        //      but since the DOM is currently represented as `Rc` and not
-        //      `Arc`, this is currently impossible.
-        self.document = Some(
-            retina_dom::Parser::parse(page)
-        );
-
-        self.message_sender.send(PageMessage::Progress {
-            progress: PageProgress::ParsedHtml,
         })?;
 
         Ok(())
