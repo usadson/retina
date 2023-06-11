@@ -6,8 +6,9 @@
 //! definition of a CSS canvas, where the canvas is just the area where there
 //! can be painted to, for example the viewport of a page.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, num::NonZeroU64};
 
+use euclid::default::{Transform3D, Vector3D};
 use retina_common::Color;
 use wgpu::Extent3d;
 
@@ -125,16 +126,22 @@ pub struct CanvasPainter<'canvas> {
     canvas: &'canvas mut CanvasPaintingContext,
     encoder: wgpu::CommandEncoder,
     color_paint: ColorPaint,
+    canvas_width: f32,
+    canvas_height: f32,
 }
 
 impl<'canvas> CanvasPainter<'canvas> {
     pub(self) fn new(canvas: &'canvas mut CanvasPaintingContext, encoder: wgpu::CommandEncoder) -> Self {
         let color_paint = ColorPaint::new(canvas.context.device());
+        let canvas_width = canvas.size.width as f32;
+        let canvas_height = canvas.size.height as f32;
 
         Self {
             canvas,
             encoder,
             color_paint,
+            canvas_width,
+            canvas_height,
         }
     }
 
@@ -165,21 +172,41 @@ impl<'canvas> CanvasPainter<'canvas> {
     }
 
     pub fn paint_rect_colored(&mut self, rect: euclid::Rect<f64, f64>, color: Color) {
-        _ = rect; // TODO
+        let model = euclid::default::Transform3D::identity()
+            .then_scale(rect.width() as _, rect.height() as _, 1.0)
+            .then_translate(rect.origin.to_3d().to_vector().cast_unit().cast());
 
-        let color = [
-            color.red() as f32,
-            color.green() as f32,
-            color.blue() as f32,
-            color.alpha() as f32,
+        let view = Transform3D::identity()
+            .then_translate(Vector3D::new(-self.canvas_width / 2.0, self.canvas_height / 2.0, 0.0));
+
+        let projective = euclid::default::Transform3D::identity()
+            .then_scale(2.0 / self.canvas_width, 2.0 / self.canvas_height, 1.0);
+
+        let transformation = model.then(&view.then(&projective)).to_arrays();
+
+        let uniform: [[f32; 4]; 5] = [
+            [
+                color.red() as f32,
+                color.green() as f32,
+                color.blue() as f32,
+                color.alpha() as f32,
+            ],
+            transformation[0],
+            transformation[1],
+            transformation[2],
+            transformation[3],
         ];
 
-        // CHECK: is this queue'ing happening before the render pass is queued?
-        self.canvas.context.queue().write_buffer(
+        let uniform: &[u8] = bytemuck::cast_slice(&uniform);
+
+        let mut uniform_buffer_view = self.canvas.staging_belt.write_buffer(
+            &mut self.encoder,
             &self.color_paint.color_buffer,
             0,
-            bytemuck::cast_slice(&color)
+            NonZeroU64::new(uniform.len() as _).unwrap(),
+            self.canvas.context.device(),
         );
+        uniform_buffer_view.copy_from_slice(uniform);
 
         let mut render_pass = self.encoder.begin_render_pass(
             &wgpu::RenderPassDescriptor {

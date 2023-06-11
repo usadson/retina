@@ -1,5 +1,6 @@
 struct ColorUniform {
     color: vec4<f32>,
+    transform: mat4x4<f32>,
 };
 
 @group(0) @binding(0) // 1.
@@ -20,7 +21,7 @@ fn vs_main(
 ) -> VertexOutput {
     var out: VertexOutput;
     out.color = color.color;
-    out.clip_position = vec4<f32>(model.position, 1.0);
+    out.clip_position = color.transform * vec4<f32>(model.position, 1.0);
     return out;
 }
 

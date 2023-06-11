@@ -33,12 +33,9 @@ impl Compositor {
 
         let size = Size2D::new(width, height);
 
-        if size.is_empty_or_negative() {
+        if size.is_empty() {
             return;
         }
-
-        println!("background color: {:?}", layout_box.computed_style().background_color());
-
 
         let CssColor::Color(background_color) = layout_box.computed_style().background_color() else {
             return;

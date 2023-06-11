@@ -79,7 +79,7 @@ impl Window {
                     let logical_size = new_size.to_logical(1.0);
                     let euclid_size = Size2D::new(logical_size.width, logical_size.height);
 
-                    if !euclid_size.is_empty_or_negative() && self.window_size != euclid_size {
+                    if !euclid_size.is_empty() && self.window_size != euclid_size {
                         self.window_size = euclid_size;
                         self.painter.on_resize(logical_size);
                         app.on_resize(euclid_size);

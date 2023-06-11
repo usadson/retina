@@ -5,7 +5,7 @@ use std::rc::Rc;
 
 use log::warn;
 use retina_common::DumpableNode;
-use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside};
+use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength};
 use retina_style_computation::{PropertyMap, StyleCollector, Cascade};
 
 use crate::{
@@ -59,11 +59,22 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         computed_style: &PropertyMap,
         parent: &LayoutBox
     ) -> LayoutBoxDimensions {
+        let mut width = parent.dimensions().width;
+        let mut height = parent.dimensions().height;
+
+        if let Some(CssLength::Pixels(pixels)) = computed_style.width {
+            width = CssReferencePixels::new(pixels);
+        }
+
+        if let Some(CssLength::Pixels(pixels)) = computed_style.height {
+            height = CssReferencePixels::new(pixels);
+        }
+
         // TODO
         _ = computed_style;
         LayoutBoxDimensions {
-            width: parent.dimensions().width,
-            height: parent.dimensions().height,
+            width,
+            height,
             ..Default::default()
         }
     }

@@ -104,7 +104,16 @@ impl ColorPaint {
         let color_buffer = device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
                 label: Some("Color Buffer"),
-                contents: bytemuck::cast_slice(&[1.0, 0.0, 1.0, 1.0]),
+                contents: bytemuck::cast_slice(&[
+                    // color
+                    1.0, 0.0, 1.0, 1.0,
+
+                    // transform
+                    1.0, 0.0, 0.0, 0.0,
+                    0.0, 1.0, 0.0, 0.0,
+                    0.0, 0.0, 1.0, 0.0,
+                    0.0, 0.0, 0.0, 1.0,
+                ]),
                 usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             }
         );
