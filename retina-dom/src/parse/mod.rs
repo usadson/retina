@@ -138,11 +138,14 @@ impl TreeSink for Sink {
     fn append(&mut self, parent: &Self::Handle, child: NodeOrText<Self::Handle>) {
         let mut replace_previous = false;
 
+        let Some(parent_node) = parent.as_parent_node() else {
+            panic!("append() called with a non-parent parent: {parent:#?}");
+        };
+
         let child = match child {
             NodeOrText::AppendNode(node) => node,
             NodeOrText::AppendText(text) => {
-                if let Some(mut previous_text) = parent.as_parent_node()
-                    .unwrap()
+                if let Some(mut previous_text) = parent_node
                     .children()
                     .borrow()
                     .last()
@@ -162,7 +165,8 @@ impl TreeSink for Sink {
         let mut children = parent.as_parent_node().unwrap().children().borrow_mut();
         if replace_previous {
             let idx = children.len() - 1;
-            children.insert(idx, child);
+            children[idx] = child;
+            // children.insert(idx, child);
         } else {
             children.push(child);
         }

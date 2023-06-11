@@ -24,6 +24,7 @@ impl HtmlStyleElement {
     pub fn style_content(&self) -> StrTendril {
         let children = self.superclass_html_element.as_ref().as_parent_node().children().borrow();
         if let NodeKind::Text(text) = &children[0].as_ref() {
+            debug_assert_eq!(children.len(), 1, "The HTML parser should've concatenated adjacent text nodes!");
             text.data().clone()
         } else {
             StrTendril::new()
