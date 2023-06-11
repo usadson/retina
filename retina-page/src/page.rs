@@ -126,7 +126,11 @@ impl Page {
             return Ok(());
         };
 
-        let mut painter = self.canvas.begin(Color::TRANSPARENT);
+        // <https://html.spec.whatwg.org/multipage/rendering.html#phrasing-content-3:'background-color'>
+        // > The initial value for the 'color' property is expected to be black.
+        // > The initial value for the 'background-color' property is expected
+        // > to be 'transparent'. The canvas's background is expected to be white.
+        let mut painter = self.canvas.begin(Color::WHITE);
 
         self.compositor.paint(layout_root, &mut painter);
 
