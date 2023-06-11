@@ -34,6 +34,9 @@ impl std::error::Error for Error {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum NetworkError {
     Generic,
+
+    /// A `file://` URL was not found.
+    LocalFileNotFound,
 }
 
 impl Display for NetworkError {

@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::sync::Arc;
+use std::{sync::Arc, path::Path};
 
 use tokio::{runtime::Runtime, sync::mpsc::channel};
 use url::Url;
@@ -10,7 +10,7 @@ use crate::{
     FetchPromise,
     FetchResponse,
     Request,
-    Response,
+    Response, Error, error::NetworkError,
 };
 
 type HyperConnector = hyper_tls::HttpsConnector<hyper::client::HttpConnector>;
@@ -91,6 +91,10 @@ impl Fetch {
             return self.fetch_document_about(url);
         }
 
+        if url.scheme() == "file" {
+            return self.fetch_document_file(url);
+        }
+
         self.fetch(Request::get_document(url))
     }
 
@@ -98,6 +102,8 @@ impl Fetch {
         use retina_user_agent::url_scheme::about;
 
         let body = match url.path() {
+            // https://fetch.spec.whatwg.org/#scheme-fetch
+            "blank" => "",
             "not-found" => about::NOT_FOUND,
             _ => about::NOT_FOUND,
         };
@@ -108,6 +114,39 @@ impl Fetch {
             Arc::clone(&request),
             Ok(Response::new_about(request, body)),
         )
+    }
+
+    fn fetch_document_file(&self, url: Url) -> FetchPromise {
+        let request = Arc::new(Request::get_document(url));
+        let task_request = Arc::clone(&request);
+
+        let (sender, receiver) = channel(1);
+
+        self.runtime.spawn(async move {
+            let request = task_request;
+            let mut path = request.url.path();
+
+            if cfg!(windows) && path.starts_with('/') {
+                path = &path[1..];
+            }
+
+            let path = Path::new(path);
+            if !path.exists() {
+                sender.send(Err(Error::NetworkError(NetworkError::LocalFileNotFound))).await.unwrap();
+                return;
+            }
+
+            let file = tokio::fs::File::open(path).await.unwrap();
+            let decoder = tokio_util::codec::BytesCodec::new();
+
+            let file = tokio_util::codec::FramedRead::new(file, decoder);
+            sender.send(Ok(Response::new_file(request, file))).await.unwrap();
+        });
+
+        FetchPromise {
+            request,
+            receiver,
+        }
     }
 }
 

@@ -3,7 +3,8 @@
 
 use std::{sync::Arc, io::BufRead};
 
-use hyper::body::Buf;
+use futures_core::Stream;
+use hyper::body::{Buf, Bytes};
 use url::Url;
 
 use crate::{Request, StatusCode};
@@ -21,6 +22,20 @@ impl Response {
         Self {
             request,
             inner: Inner::new(body.into()),
+        }
+    }
+
+    pub(crate) fn new_file<S, O, E>(
+        request: Arc<Request>,
+        stream: S,
+    ) -> Self
+        where S: Stream<Item = Result<O, E>> + Send + 'static,
+            O: Into<Bytes> + 'static,
+            E: Into<Box<dyn std::error::Error + Send + Sync>> + 'static,
+        {
+        Self {
+            request,
+            inner: Inner::new(hyper::Body::wrap_stream(stream))
         }
     }
 

@@ -6,14 +6,21 @@ edition.workspace = true
 [dependencies]
 retina-user-agent = { path = "../retina-user-agent" }
 
+futures-core = "*"
+
 tokio = { version = "*", features = [
     "full" # TODO
+] }
+
+tokio-util = { version = "*", features = [
+    "codec",
 ] }
 
 hyper = { version = "*", features = [
     "client",
     "http1",
     "http2",
+    "stream",
 ] }
 
 hyper-tls = "*"

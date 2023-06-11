@@ -1837,11 +1837,13 @@ dependencies = [
 name = "retina-fetch"
 version = "0.2.0"
 dependencies = [
+ "futures-core",
  "hyper",
  "hyper-tls",
  "retina-user-agent",
  "rstest",
  "tokio",
+ "tokio-util",
  "url",
 ]
 
