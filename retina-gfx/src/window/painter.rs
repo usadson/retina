@@ -77,7 +77,8 @@ impl WindowPainter {
         self.swap_chain.on_resize(size);
     }
 
-    pub(crate) fn paint(&mut self, app: &mut dyn WindowApplication) {
+    pub(crate) fn paint<EventType>(&mut self, app: &mut dyn WindowApplication<EventType>)
+            where EventType: 'static {
         let surface_texture = self.surface.get_current_texture().expect("Get next frame");
         let surface_texture_view = surface_texture
             .texture

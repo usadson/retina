@@ -16,6 +16,7 @@ pub use retina_common::Color;
 pub use self::{
     context::Context,
     window::{
+        event_proxy::WindowEventProxy,
         render_pass::WindowRenderPass,
         interface::WindowApplication,
     },

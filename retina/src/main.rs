@@ -2,8 +2,10 @@
 // All Rights Reserved.
 
 mod app;
+mod event;
 
 use app::Application;
+pub(crate) use event::RetinaEvent;
 
 fn main() {
     if cfg!(debug_assertions) {
@@ -14,7 +16,7 @@ fn main() {
         env_logger::init();
     }
 
-    let mut window = retina_gfx::window::Window::new()
+    let mut window = retina_gfx::window::Window::<RetinaEvent>::new()
         .expect("failed to create window");
 
     let app = Box::new(Application::new(&mut window));

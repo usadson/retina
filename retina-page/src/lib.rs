@@ -7,7 +7,7 @@ pub(crate) mod message;
 pub(crate) mod page;
 
 pub use command::PageCommand;
-pub use handle::PageHandle;
+pub use handle::{PageHandle, PageHandleCommunicationError, PageHandleReceiveHalf, PageHandleSendHalf};
 pub use message::{PageMessage, PageProgress};
 
 use page::Page;
@@ -26,11 +26,15 @@ pub fn spawn(
     let (message_sender, message_receiver) = channel();
 
     let handle = PageHandle {
-        is_page_still_connected: true,
-        receive_timeout: Duration::from_secs(10),
-
-        command_sender,
-        message_receiver
+        receive: PageHandleReceiveHalf {
+            is_page_still_connected: true,
+            receive_timeout: Duration::from_secs(10),
+            message_receiver
+        },
+        send: PageHandleSendHalf {
+            is_page_still_connected: true,
+            command_sender,
+        },
     };
 
     let canvas = CanvasPaintingContext::new(graphics_context, "Page Canvas", canvas_size);

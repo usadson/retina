@@ -43,6 +43,7 @@ impl Page {
         info!("Loading page: {:?}", self.url);
 
         self.load_page().await?;
+        self.find_title();
 
         self.parse_stylesheets().await?;
         info!("Stylesheets: {:#?}", self.style_sheets.as_ref().unwrap());
@@ -68,6 +69,28 @@ impl Page {
         error!("Command pipeline dead!");
 
         Ok(())
+    }
+
+    pub(crate) fn find_title(&self) {
+        let mut has_found = false;
+        self.document.as_ref().unwrap().for_each_child_node_recursive(&mut |node, _| {
+            if has_found {
+                return;
+            }
+
+            if let Some(element) = node.as_dom_element() {
+                if element.qualified_name().local.as_ref().eq_ignore_ascii_case("title") {
+                    if let Some(node) = element.as_parent_node().children().borrow().first() {
+                        if let Some(text) = node.as_text() {
+                            _ = self.message_sender.send(PageMessage::Title {
+                                title: text.data_as_str().to_string(),
+                            });
+                            has_found = true;
+                        }
+                    }
+                }
+            }
+        }, 0);
     }
 
     pub(crate) async fn generate_layout_tree(&mut self) -> Result<(), ErrorKind> {
@@ -150,8 +173,6 @@ impl Page {
                 retina_user_agent::stylesheet::USER_AGENT_STYLESHEET_CODE
             ),
         ];
-
-        println!("document: {:#?}", self.document);
 
         self.document.as_ref()
             .unwrap()

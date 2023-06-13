@@ -14,6 +14,11 @@ pub enum PageMessage {
     Progress {
         progress: PageProgress,
     },
+
+    /// The title of the page.
+    Title {
+        title: String,
+    },
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]

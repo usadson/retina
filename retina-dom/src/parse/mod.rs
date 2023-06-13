@@ -42,7 +42,7 @@ impl Parser {
             .read_from(reader)
             .unwrap();
 
-        sink.document.dump();
+        // sink.document.dump();
         sink.document
     }
 }
@@ -106,7 +106,8 @@ impl TreeSink for Sink {
     }
 
     fn create_comment(&mut self, _text: StrTendril) -> Self::Handle {
-        todo!()
+        // todo!()
+        Text::new_handle(_text)
     }
 
     #[allow(unused_variables)]
@@ -115,7 +116,7 @@ impl TreeSink for Sink {
     }
 
     fn append_before_sibling(&mut self, _sibling: &Self::Handle, _new_node: NodeOrText<Self::Handle>) {
-        todo!()
+        // todo!()
     }
 
     fn append_based_on_parent_node(

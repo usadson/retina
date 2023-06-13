@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+pub(crate) mod event_proxy;
 pub(crate) mod keyboard;
 pub(crate) mod interface;
 pub(crate) mod painter;
@@ -11,12 +12,18 @@ pub(crate) mod swap_chain;
 use euclid::Size2D;
 use log::info;
 
-use self::{painter::WindowPainter, state::WindowState};
+use self::{
+    event_proxy::WindowEventProxy,
+    painter::WindowPainter,
+    state::WindowState,
+};
 
 use crate::{GfxResult, WindowApplication, Context};
 
-pub struct Window {
-    event_loop: winit::event_loop::EventLoop<()>,
+pub struct Window<EventType = ()>
+        where EventType: 'static {
+    event_loop: Option<winit::event_loop::EventLoop<EventType>>,
+    event_proxy: WindowEventProxy<EventType>,
     window: winit::window::Window,
 
     painter: WindowPainter,
@@ -28,16 +35,22 @@ pub struct Window {
 //
 // Public Window APIs
 //
-impl Window {
+impl<EventType> Window<EventType>
+        where EventType: 'static {
     /// Get the wgpu instance, which is useful for sending it to the page.
     pub fn context(&self) -> Context {
         self.painter.context.clone()
     }
 
+    pub fn create_proxy(&self) -> WindowEventProxy<EventType> {
+        self.event_proxy.clone()
+    }
+
     /// Create a new [`Window`] instance.
     pub fn new() -> GfxResult<Self> {
         // Open window and create a surface
-        let event_loop = winit::event_loop::EventLoop::new();
+        let event_loop = winit::event_loop::EventLoopBuilder::with_user_event().build();
+        let event_proxy = WindowEventProxy { proxy: event_loop.create_proxy() };
 
         let window = winit::window::WindowBuilder::new()
             .with_resizable(false)
@@ -51,7 +64,8 @@ impl Window {
         let painter = WindowPainter::new(&window)?;
 
         Ok(Self {
-            event_loop,
+            event_loop: Some(event_loop),
+            event_proxy,
             window,
 
             painter,
@@ -61,12 +75,18 @@ impl Window {
         })
     }
 
-    pub fn run(mut self, mut app: Box<dyn WindowApplication>) {
+    pub fn request_repaint(&self) {
+        self.window.request_redraw();
+    }
+
+    pub fn run(mut self, mut app: Box<dyn WindowApplication<EventType>>) {
         // Render loop
         self.window.request_redraw();
 
-        self.event_loop.run(move |event, _, control_flow| {
+        self.event_loop.take().unwrap().run(move |event, _, control_flow| {
             match event {
+                winit::event::Event::UserEvent(event) => app.on_event(event, &mut self),
+
                 winit::event::Event::WindowEvent {
                     event: winit::event::WindowEvent::CloseRequested,
                     ..
