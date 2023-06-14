@@ -14,9 +14,9 @@ pub struct DomTreeViewDescriptor {
 }
 
 pub fn open_dom_tree_view(descriptor: DomTreeViewDescriptor) {
-    if cfg!(windows) {
-        win::open_dom_tree_view(descriptor);
-    } else {
-        _ = descriptor;
-    }
+    #[cfg(windows)]
+    win::open_dom_tree_view(descriptor);
+
+    #[cfg(not(windows))]
+    { _ = descriptor }
 }
