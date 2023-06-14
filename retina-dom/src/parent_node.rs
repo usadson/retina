@@ -4,15 +4,15 @@
 //! The [Mixin `ParentNode`](https://dom.spec.whatwg.org/#interface-parentnode)
 //! implementation.
 
-use std::{rc::Rc, cell::RefCell};
+use std::cell::RefCell;
 
-use crate::NodeKind;
+use crate::Node;
 
 /// The [Mixin `ParentNode`](https://dom.spec.whatwg.org/#interface-parentnode)
 /// implementation.
 #[derive(Debug)]
 pub struct ParentNode {
-    children: RefCell<Vec<Rc<NodeKind>>>,
+    children: RefCell<Vec<Node>>,
 }
 
 impl ParentNode {
@@ -22,11 +22,11 @@ impl ParentNode {
         }
     }
 
-    pub fn children(&self) -> &RefCell<Vec<Rc<NodeKind>>> {
+    pub fn children(&self) -> &RefCell<Vec<Node>> {
         &self.children
     }
 
-    pub fn children_mut(&mut self) -> &mut RefCell<Vec<Rc<NodeKind>>> {
+    pub fn children_mut(&mut self) -> &mut RefCell<Vec<Node>> {
         &mut self.children
     }
 }

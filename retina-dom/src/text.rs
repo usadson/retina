@@ -4,11 +4,11 @@
 //! The [Interface `Tex`](https://dom.spec.whatwg.org/#interface-text)
 //! implementation.
 
-use std::{ops::{Deref, DerefMut}, rc::Rc};
+use std::ops::{Deref, DerefMut};
 
 use tendril::StrTendril;
 
-use crate::{CharacterData, NodeKind};
+use crate::{CharacterData, Node, NodeKind};
 
 /// The [Interface `Text`](https://dom.spec.whatwg.org/#interface-text)
 /// implementation.
@@ -24,8 +24,8 @@ impl Text {
         }
     }
 
-    pub fn new_handle(data: StrTendril) -> Rc<NodeKind> {
-        Rc::new(
+    pub fn new_handle(data: StrTendril) -> Node {
+        Node::new(
             NodeKind::Text(
                 Self::new(data)
             )

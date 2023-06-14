@@ -79,9 +79,9 @@ impl<'stylesheets> Cascade for CollectedStyles<'stylesheets> {
 
 #[cfg(test)]
 mod tests {
-    use std::rc::Rc;
 
-    use retina_dom::{NodeKind, Text, Document};
+
+    use retina_dom::{NodeKind, Text, Document, Node};
     use retina_style::*;
     use retina_style_parser::CssParsable;
     use tendril::StrTendril;
@@ -144,13 +144,13 @@ mod tests {
             "),
         ];
 
-        let node = Rc::new(
+        let node = Node::new(
             NodeKind::Text(Text::new(StrTendril::new()))
         );
 
         let mut parent_node = Document::new();
         parent_node.as_parent_node_mut().children().borrow_mut().push(
-            Rc::clone(&node)
+            Node::clone(&node)
         );
 
         let parent_node = NodeKind::Document(parent_node);

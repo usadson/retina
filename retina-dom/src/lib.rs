@@ -18,7 +18,7 @@ pub mod parent_node;
 pub mod parse;
 pub mod text;
 
-use std::rc::Rc;
+use std::{ops::Deref, rc::{Rc, Weak}};
 
 pub use attribute::AttributeList;
 pub use character_data::CharacterData;
@@ -31,6 +31,40 @@ pub use parent_node::ParentNode;
 pub use parse::Parser;
 use retina_common::DumpableNode;
 pub use text::Text;
+
+#[derive(Clone, Debug)]
+pub struct Node {
+    inner: Rc<NodeKind>,
+}
+
+impl Node {
+    pub fn new(kind: NodeKind) -> Self {
+        Self {
+            inner: Rc::new(kind),
+        }
+    }
+
+    pub fn ptr_eq(this: &Node, other: &Node) -> bool {
+        Rc::<NodeKind>::ptr_eq(&this.inner, &other.inner)
+    }
+
+    fn downgrade(this: &Node) -> Weak<NodeKind> {
+        Rc::downgrade(&this.inner)
+    }
+}
+
+impl AsRef<NodeKind> for Node {
+    fn as_ref(&self) -> &NodeKind {
+        &self.inner
+    }
+}
+
+impl Deref for Node {
+    type Target = NodeKind;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
 
 #[derive(Debug)]
 pub enum NodeKind {
@@ -127,7 +161,7 @@ impl NodeKind {
     pub fn for_each_child_node_recursive(&self, callback: &mut dyn FnMut(&NodeKind, usize), depth: usize) {
         if let Some(as_parent) = self.as_parent_node() {
             let children = as_parent.children().borrow();
-            let children: &Vec<Rc<NodeKind>> = children.as_ref();
+            let children: &Vec<Node> = children.as_ref();
             for child in children {
                 callback(child.as_ref(), depth);
                 child.for_each_child_node_recursive(callback, depth + 1);

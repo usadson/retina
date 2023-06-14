@@ -1,14 +1,11 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::{
-    rc::Rc,
-    sync::mpsc::{Receiver, Sender},
-};
+use std::sync::mpsc::{Receiver, Sender};
 
 use log::{error, info};
 use retina_compositor::Compositor;
-use retina_dom::{NodeKind, HtmlElementKind};
+use retina_dom::{HtmlElementKind, Node};
 use retina_fetch::Fetch;
 use retina_gfx::{canvas::CanvasPaintingContext, Color};
 use retina_layout::{LayoutBox, LayoutGenerator};
@@ -24,7 +21,7 @@ pub(crate) struct Page {
 
     pub(crate) url: Url,
     pub(crate) title: String,
-    pub(crate) document: Option<Rc<NodeKind>>,
+    pub(crate) document: Option<Node>,
     pub(crate) style_sheets: Option<Vec<Stylesheet>>,
     pub(crate) layout_root: Option<LayoutBox>,
 
@@ -99,7 +96,7 @@ impl Page {
     pub(crate) async fn generate_layout_tree(&mut self) -> Result<(), ErrorKind> {
         self.layout_root = Some(
             LayoutGenerator::generate(
-                Rc::clone(self.document.as_ref().unwrap()),
+                Node::clone(self.document.as_ref().unwrap()),
                 &self.style_sheets.as_ref().unwrap(),
                 CssReferencePixels::new(self.canvas.size().width as _),
                 CssReferencePixels::new(self.canvas.size().height as _),
@@ -125,7 +122,7 @@ impl Page {
             PageCommand::OpenDomTreeView => {
                 retina_debug::open_dom_tree_view(retina_debug::DomTreeViewDescriptor {
                     page_title: self.title.clone(),
-                    root: Rc::clone(self.document.as_ref().unwrap()),
+                    root: Node::clone(self.document.as_ref().unwrap()),
                 });
             }
         }

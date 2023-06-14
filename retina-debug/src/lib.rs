@@ -1,16 +1,14 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::rc::Rc;
-
-use retina_dom::NodeKind;
+use retina_dom::Node;
 
 #[cfg(windows)]
 mod win;
 
 pub struct DomTreeViewDescriptor {
     pub page_title: String,
-    pub root: Rc<NodeKind>,
+    pub root: Node,
 }
 
 pub fn open_dom_tree_view(descriptor: DomTreeViewDescriptor) {

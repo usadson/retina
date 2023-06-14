@@ -1,10 +1,9 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::rc::Rc;
-
 use log::warn;
 use retina_common::DumpableNode;
+use retina_dom::Node;
 use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength};
 use retina_style_computation::{PropertyMap, StyleCollector, Cascade};
 
@@ -35,7 +34,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             viewport_height,
         };
 
-        let html_element = Rc::clone(
+        let html_element = Node::clone(
             &root.as_parent_node()
                 .expect("root DOM node not the Document")
                 .children()
@@ -162,7 +161,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
 
         if let Some(node) = layout_box.node.as_parent_node() {
             for child in node.children().borrow().iter() {
-                if let Some(child) = self.generate_for(Rc::clone(child), &layout_box) {
+                if let Some(child) = self.generate_for(Node::clone(child), &layout_box) {
                     layout_box.children.push(child);
                 }
             }

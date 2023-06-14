@@ -26,6 +26,4 @@ pub use boxes::{
 
 pub use generate::LayoutGenerator;
 
-use std::rc::Rc;
-
-pub(crate) type DomNode = Rc<retina_dom::NodeKind>;
+pub(crate) type DomNode = retina_dom::Node;

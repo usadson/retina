@@ -1,9 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::rc::Rc;
-
-use retina_dom::NodeKind;
+use retina_dom::{Node, NodeKind};
 use winsafe::{
     prelude::*,
     co,
@@ -16,7 +14,7 @@ use crate::DomTreeViewDescriptor;
 struct DomTreeView {
     window: WindowMain,
     tree_view: TreeView,
-    dom_root: Rc<NodeKind>,
+    dom_root: Node,
 }
 
 impl DomTreeView {
@@ -75,7 +73,7 @@ pub(crate) fn open_dom_tree_view(descriptor: DomTreeViewDescriptor) {
     });
 }
 
-fn tree_add_node(parent: &TreeViewItem, node: &Rc<NodeKind>) {
+fn tree_add_node(parent: &TreeViewItem, node: &Node) {
     if node.is_text_with_only_whitespace() {
         return;
     }
@@ -92,7 +90,7 @@ fn tree_add_node(parent: &TreeViewItem, node: &Rc<NodeKind>) {
     }
 }
 
-fn tree_add_children(parent: &TreeViewItem, children: &[Rc<NodeKind>]) {
+fn tree_add_children(parent: &TreeViewItem, children: &[Node]) {
     for child in children {
         tree_add_node(parent, child);
     }

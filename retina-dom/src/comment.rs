@@ -5,11 +5,11 @@
 //!
 //! [spec]: https://dom.spec.whatwg.org/#interface-comment
 
-use std::{ops::{Deref, DerefMut}, rc::Rc};
+use std::ops::{Deref, DerefMut};
 
 use tendril::StrTendril;
 
-use crate::{CharacterData, NodeKind};
+use crate::{CharacterData, Node, NodeKind};
 
 /// The [Interface `Tex`][spec] implementation.
 ///
@@ -26,8 +26,8 @@ impl Comment {
         }
     }
 
-    pub fn new_handle(data: StrTendril) -> Rc<NodeKind> {
-        Rc::new(
+    pub fn new_handle(data: StrTendril) -> Node {
+        Node::new(
             NodeKind::Comment(
                 Self::new(data)
             )

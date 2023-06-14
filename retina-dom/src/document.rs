@@ -4,11 +4,10 @@
 //! The [Interface `Document`](https://dom.spec.whatwg.org/#interface-document)
 //! implementation.
 
-use std::rc::Rc;
-
 use crate::{
-    NodeInterface,
+    Node,
     NodeKind,
+    NodeInterface,
     ParentNode,
 };
 
@@ -29,8 +28,8 @@ impl Document {
     }
 
     #[must_use]
-    pub fn new_handle() -> Rc<NodeKind> {
-        Rc::new(NodeKind::Document(Self::new()))
+    pub fn new_handle() -> Node {
+        Node::new(NodeKind::Document(Self::new()))
     }
 
     pub fn as_node(&self) -> &NodeInterface {

@@ -3,7 +3,6 @@
 
 use std::borrow::Cow;
 use std::default::Default;
-use std::rc::Rc;
 
 use html5ever::local_name;
 use html5ever::parse_document;
@@ -17,6 +16,7 @@ use crate::Document;
 use crate::HtmlElementKind;
 use crate::HtmlStyleElement;
 use crate::HtmlUnknownElement;
+use crate::Node;
 use crate::NodeKind;
 use crate::Text;
 
@@ -26,13 +26,13 @@ pub struct Parser {
 
 impl Parser {
     #[must_use]
-    pub fn parse(input: &str) -> Rc<NodeKind> {
+    pub fn parse(input: &str) -> Node {
         let mut input = std::io::Cursor::new(input);
         Self::parse_with_reader(&mut input)
     }
 
     #[must_use]
-    pub fn parse_with_reader<R: std::io::Read>(reader: &mut R) -> Rc<NodeKind> {
+    pub fn parse_with_reader<R: std::io::Read>(reader: &mut R) -> Node {
         let sink = Sink {
             document: Document::new_handle(),
         };
@@ -48,18 +48,18 @@ impl Parser {
 }
 
 struct Sink {
-    document: Rc<NodeKind>,
+    document: Node,
 }
 
 impl TreeSink for Sink {
-    type Handle = Rc<NodeKind>;
+    type Handle = Node;
     type Output = Self;
     fn finish(self) -> Self {
         self
     }
 
     fn get_document(&mut self) -> Self::Handle {
-        Rc::clone(&self.document)
+        Node::clone(&self.document)
     }
 
     fn get_template_contents(&mut self, _target: &Self::Handle) -> Self::Handle {
@@ -67,7 +67,7 @@ impl TreeSink for Sink {
     }
 
     fn same_node(&self, x: &Self::Handle, y: &Self::Handle) -> bool {
-        Rc::<NodeKind>::ptr_eq(x, y)
+        Node::ptr_eq(x, y)
     }
 
     fn elem_name<'handle>(&self, target: &'handle Self::Handle) -> ExpandedName<'handle> {
@@ -103,7 +103,7 @@ impl TreeSink for Sink {
                 .append_attribute(attribute);
         }
 
-        Rc::new(node)
+        Node::new(node)
     }
 
     fn create_comment(&mut self, _text: StrTendril) -> Self::Handle {
@@ -161,7 +161,7 @@ impl TreeSink for Sink {
             }
         };
 
-        child.as_node().set_parent(Some(Rc::downgrade(parent)));
+        child.as_node().set_parent(Some(Node::downgrade(parent)));
 
         let mut children = parent.as_parent_node().unwrap().children().borrow_mut();
         if replace_previous {
