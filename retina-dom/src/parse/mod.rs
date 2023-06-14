@@ -12,6 +12,7 @@ use html5ever::tree_builder::{ElementFlags, NodeOrText, QuirksMode, TreeSink};
 use html5ever::{Attribute, ExpandedName, QualName};
 use log::warn;
 
+use crate::Comment;
 use crate::Document;
 use crate::HtmlElementKind;
 use crate::HtmlStyleElement;
@@ -71,6 +72,7 @@ impl TreeSink for Sink {
 
     fn elem_name<'handle>(&self, target: &'handle Self::Handle) -> ExpandedName<'handle> {
         match target.as_ref() {
+            NodeKind::Comment(..) => unimplemented!(),
             NodeKind::Document(..) => unimplemented!(),
             NodeKind::Text(..) => unimplemented!(),
 
@@ -105,8 +107,7 @@ impl TreeSink for Sink {
     }
 
     fn create_comment(&mut self, _text: StrTendril) -> Self::Handle {
-        // todo!()
-        Text::new_handle(_text)
+        Comment::new_handle(_text)
     }
 
     #[allow(unused_variables)]

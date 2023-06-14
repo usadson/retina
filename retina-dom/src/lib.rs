@@ -8,6 +8,7 @@
 
 pub mod attribute;
 pub mod character_data;
+pub mod comment;
 pub mod document;
 pub mod element;
 pub mod element_kind;
@@ -21,6 +22,7 @@ use std::rc::Rc;
 
 pub use attribute::AttributeList;
 pub use character_data::CharacterData;
+pub use comment::Comment;
 pub use document::Document;
 pub use element::Element;
 pub use html::*;
@@ -32,12 +34,29 @@ pub use text::Text;
 
 #[derive(Debug)]
 pub enum NodeKind {
+    Comment(Comment),
     Document(Document),
-    Text(Text),
     HtmlElement(HtmlElementKind),
+    Text(Text),
 }
 
 impl NodeKind {
+    pub fn as_comment(&self) -> Option<&Comment> {
+        if let Self::Comment(comment) = self {
+            Some(comment)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_comment_mut(&mut self) -> Option<&mut Comment> {
+        if let Self::Comment(comment) = self {
+            Some(comment)
+        } else {
+            None
+        }
+    }
+
     pub fn as_dom_element(&self) -> Option<&Element> {
         self.as_html_element_kind().map(|e| e.as_dom_element())
     }
@@ -64,6 +83,7 @@ impl NodeKind {
 
     pub fn as_node(&self) -> &Node {
         match self {
+            Self::Comment(comment) => comment.as_node(),
             Self::Document(doc) => doc.as_node(),
             Self::HtmlElement(element) => element.as_node(),
             Self::Text(text) => text.as_node(),
@@ -72,6 +92,7 @@ impl NodeKind {
 
     pub fn as_node_mut(&mut self) -> &mut Node {
         match self {
+            Self::Comment(comment) => comment.as_node_mut(),
             Self::Document(doc) => doc.as_node_mut(),
             Self::HtmlElement(element) => element.as_node_mut(),
             Self::Text(text) => text.as_node_mut(),
@@ -80,6 +101,7 @@ impl NodeKind {
 
     pub fn as_parent_node(&self) -> Option<&ParentNode> {
         match self {
+            Self::Comment(..) => None,
             Self::Document(doc) => Some(doc.as_parent_node()),
             Self::HtmlElement(element) => Some(element.as_dom_element().as_parent_node()),
             Self::Text(..) => None,
@@ -88,6 +110,7 @@ impl NodeKind {
 
     pub fn as_parent_node_mut(&mut self) -> Option<&mut ParentNode> {
         match self {
+            Self::Comment(..) => None,
             Self::Document(doc) => Some(doc.as_parent_node_mut()),
             Self::HtmlElement(element) => Some(element.as_dom_element_mut().as_parent_node_mut()),
             Self::Text(..) => None,
@@ -110,6 +133,10 @@ impl NodeKind {
                 child.for_each_child_node_recursive(callback, depth + 1);
             }
         }
+    }
+
+    pub const fn is_comment(&self) -> bool {
+        matches!(self, Self::Comment(..))
     }
 
     pub fn is_document(&self) -> bool {
@@ -157,6 +184,9 @@ impl DumpableNode for NodeKind {
         )?;
 
         match self {
+            Self::Comment(comment) => {
+                write!(writer, "<!--{}-->", comment.data_as_str())?;
+            }
             Self::Document(..) => (),
             Self::HtmlElement(element) => {
                 let id = element.as_dom_element().id();
@@ -193,6 +223,7 @@ pub struct ShortDumpable<'node_kind> {
 impl<'node_kind> core::fmt::Debug for ShortDumpable<'node_kind> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.node_kind {
+            NodeKind::Comment(..) => f.write_str("#comment"),
             NodeKind::Document(..) => f.write_str("#document"),
             NodeKind::HtmlElement(..) => f.write_fmt(format_args!("<{}>", self.node_kind.tag_name().unwrap_or("element?"))),
             NodeKind::Text(..) => f.write_str("#text"),

@@ -103,6 +103,10 @@ fn tree_format_node<T>(node: &NodeKind, callback: impl FnOnce(&str) -> T) -> T {
         return callback(text.data_as_str().trim());
     }
 
+    if let Some(comment) = node.as_comment() {
+        return callback(&format!("<!--{}-->", comment.data_as_str()));
+    }
+
     if let Some(dom) = node.as_dom_element() {
         if dom.as_parent_node().children().borrow().len() == 1 {
             if let Some(text) = dom.as_parent_node().children().borrow().first().unwrap().as_text() {
