@@ -4,7 +4,7 @@
 use log::warn;
 use retina_common::DumpableNode;
 use retina_dom::Node;
-use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength};
+use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength, CssDisplayBox};
 use retina_style_computation::{PropertyMap, StyleCollector, Cascade};
 
 use crate::{
@@ -139,6 +139,8 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         }
 
         let mut layout_box = match computed_style.display() {
+            CssDisplay::Box(CssDisplayBox::None) => return None,
+
             // `display: inline`
             CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => {
                 let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent);
