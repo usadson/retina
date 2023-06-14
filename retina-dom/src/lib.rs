@@ -7,6 +7,7 @@
 //! * [DOM - Living Standard - WHATWG](https://dom.spec.whatwg.org/)
 
 pub mod attribute;
+pub mod character_data;
 pub mod document;
 pub mod element;
 pub mod element_kind;
@@ -19,6 +20,7 @@ pub mod text;
 use std::rc::Rc;
 
 pub use attribute::AttributeList;
+pub use character_data::CharacterData;
 pub use document::Document;
 pub use element::Element;
 pub use html::*;

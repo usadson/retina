@@ -4,28 +4,23 @@
 //! The [Interface `Tex`](https://dom.spec.whatwg.org/#interface-text)
 //! implementation.
 
-use std::rc::Rc;
+use std::{ops::{Deref, DerefMut}, rc::Rc};
 
 use tendril::StrTendril;
 
-use crate::{
-    Node,
-    NodeKind,
-};
+use crate::{CharacterData, NodeKind};
 
 /// The [Interface `Text`](https://dom.spec.whatwg.org/#interface-text)
 /// implementation.
 #[derive(Debug)]
 pub struct Text {
-    superclass_node: Node,
-    data: StrTendril,
+    superclass_character_data: CharacterData,
 }
 
 impl Text {
     pub fn new(data: StrTendril) -> Self {
         Self {
-            superclass_node: Node::new(),
-            data,
+            superclass_character_data: CharacterData::new(data),
         }
     }
 
@@ -36,20 +31,18 @@ impl Text {
             )
         )
     }
+}
 
-    pub fn as_node(&self) -> &Node {
-        &self.superclass_node
+impl Deref for Text {
+    type Target = CharacterData;
+
+    fn deref(&self) -> &Self::Target {
+        &self.superclass_character_data
     }
+}
 
-    pub fn as_node_mut(&mut self) -> &mut Node {
-        &mut self.superclass_node
-    }
-
-    pub fn data(&self) -> &StrTendril {
-        &self.data
-    }
-
-    pub fn data_as_str(&self) -> &str {
-        &self.data
+impl DerefMut for Text {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.superclass_character_data
     }
 }
