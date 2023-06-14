@@ -11,11 +11,11 @@ use crate::NodeKind;
 
 /// The [Interface `Node`](https://dom.spec.whatwg.org/#interface-node)
 /// implementation.
-pub struct Node {
+pub struct NodeInterface {
     parent: RefCell<Option<Weak<NodeKind>>>,
 }
 
-impl Node {
+impl NodeInterface {
     pub fn new() -> Self {
         Self {
             parent: None.into()
@@ -31,7 +31,7 @@ impl Node {
     }
 }
 
-impl fmt::Debug for Node {
+impl fmt::Debug for NodeInterface {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("Node")
             // .field("data", &self.parent)

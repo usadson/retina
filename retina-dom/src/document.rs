@@ -7,7 +7,7 @@
 use std::rc::Rc;
 
 use crate::{
-    Node,
+    NodeInterface,
     NodeKind,
     ParentNode,
 };
@@ -16,14 +16,14 @@ use crate::{
 /// implementation.
 #[derive(Debug)]
 pub struct Document {
-    superclass_node: Node,
+    superclass_node: NodeInterface,
     mixin_parent_node: ParentNode,
 }
 
 impl Document {
     pub fn new() -> Self {
         Self {
-            superclass_node: Node::new(),
+            superclass_node: NodeInterface::new(),
             mixin_parent_node: ParentNode::new(),
         }
     }
@@ -33,11 +33,11 @@ impl Document {
         Rc::new(NodeKind::Document(Self::new()))
     }
 
-    pub fn as_node(&self) -> &Node {
+    pub fn as_node(&self) -> &NodeInterface {
         &self.superclass_node
     }
 
-    pub fn as_node_mut(&mut self) -> &mut Node {
+    pub fn as_node_mut(&mut self) -> &mut NodeInterface {
         &mut self.superclass_node
     }
 

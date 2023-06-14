@@ -10,7 +10,7 @@ pub use html_element::HtmlElement;
 pub use html_unknown_element::HtmlUnknownElement;
 pub use self::html_style_element::HtmlStyleElement;
 
-use crate::{Element, Node};
+use crate::{Element, NodeInterface};
 
 #[derive(Debug)]
 pub enum HtmlElementKind {
@@ -41,11 +41,11 @@ impl HtmlElementKind {
         }
     }
 
-    pub fn as_node(&self) -> &Node {
+    pub fn as_node(&self) -> &NodeInterface {
         self.as_dom_element().as_node()
     }
 
-    pub fn as_node_mut(&mut self) -> &mut Node {
+    pub fn as_node_mut(&mut self) -> &mut NodeInterface {
         self.as_dom_element_mut().as_node_mut()
     }
 }

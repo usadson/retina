@@ -8,13 +8,13 @@ use std::str::SplitAsciiWhitespace;
 
 use html5ever::{QualName, local_name};
 
-use crate::{Node, ParentNode, AttributeList};
+use crate::{NodeInterface, ParentNode, AttributeList};
 
 /// The [Interface `Element`](https://dom.spec.whatwg.org/#interface-element)
 /// implementation.
 #[derive(Debug)]
 pub struct Element {
-    superclass_node: Node,
+    superclass_node: NodeInterface,
     mixin_parent_node: ParentNode,
     qualified_name: QualName,
     attribute_list: AttributeList,
@@ -23,18 +23,18 @@ pub struct Element {
 impl Element {
     pub fn new(qualified_name: QualName) -> Self {
         Self {
-            superclass_node: Node::new(),
+            superclass_node: NodeInterface::new(),
             mixin_parent_node: ParentNode::new(),
             qualified_name,
             attribute_list: AttributeList::new(),
         }
     }
 
-    pub fn as_node(&self) -> &Node {
+    pub fn as_node(&self) -> &NodeInterface {
         &self.superclass_node
     }
 
-    pub fn as_node_mut(&mut self) -> &mut Node {
+    pub fn as_node_mut(&mut self) -> &mut NodeInterface {
         &mut self.superclass_node
     }
 

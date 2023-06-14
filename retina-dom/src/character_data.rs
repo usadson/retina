@@ -6,7 +6,7 @@
 
 use tendril::StrTendril;
 
-use crate::Node;
+use crate::NodeInterface;
 
 /// The [Interface `CharacterData`][spec] implementation. This
 /// **`CharacterData`** interface is the overarching interface for both the
@@ -15,23 +15,23 @@ use crate::Node;
 /// [spec]: https://dom.spec.whatwg.org/#interface-characterdata
 #[derive(Debug)]
 pub struct CharacterData {
-    superclass_node: Node,
+    superclass_node: NodeInterface,
     data: StrTendril,
 }
 
 impl CharacterData {
     pub fn new(data: StrTendril) -> Self {
         Self {
-            superclass_node: Node::new(),
+            superclass_node: NodeInterface::new(),
             data,
         }
     }
 
-    pub fn as_node(&self) -> &Node {
+    pub fn as_node(&self) -> &NodeInterface {
         &self.superclass_node
     }
 
-    pub fn as_node_mut(&mut self) -> &mut Node {
+    pub fn as_node_mut(&mut self) -> &mut NodeInterface {
         &mut self.superclass_node
     }
 

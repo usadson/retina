@@ -26,7 +26,7 @@ pub use comment::Comment;
 pub use document::Document;
 pub use element::Element;
 pub use html::*;
-pub use node::Node;
+pub use node::NodeInterface;
 pub use parent_node::ParentNode;
 pub use parse::Parser;
 use retina_common::DumpableNode;
@@ -81,7 +81,7 @@ impl NodeKind {
         }
     }
 
-    pub fn as_node(&self) -> &Node {
+    pub fn as_node(&self) -> &NodeInterface {
         match self {
             Self::Comment(comment) => comment.as_node(),
             Self::Document(doc) => doc.as_node(),
@@ -90,7 +90,7 @@ impl NodeKind {
         }
     }
 
-    pub fn as_node_mut(&mut self) -> &mut Node {
+    pub fn as_node_mut(&mut self) -> &mut NodeInterface {
         match self {
             Self::Comment(comment) => comment.as_node_mut(),
             Self::Document(doc) => doc.as_node_mut(),
