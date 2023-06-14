@@ -1,0 +1,124 @@
+// Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
+// All Rights Reserved.
+
+use std::rc::Rc;
+
+use retina_dom::NodeKind;
+use winsafe::{
+    prelude::*,
+    co,
+    gui::{WindowMain, WindowMainOpts, TreeView, TreeViewOpts, spec::TreeViewItem, Horz, Vert}
+};
+
+use crate::DomTreeViewDescriptor;
+
+#[derive(Clone)]
+struct DomTreeView {
+    window: WindowMain,
+    tree_view: TreeView,
+    dom_root: Rc<NodeKind>,
+}
+
+impl DomTreeView {
+    fn setup(&self) {
+        self.setup_on_window_create();
+    }
+
+    fn setup_on_window_create(&self) {
+        let dom_tree_view2 = self.clone();
+        self.window.on().wm_create(move |_| {
+
+            // dom_tree_view2.tree_view.on()
+            let root = dom_tree_view2.tree_view.items().add_root("#document", None);
+            tree_add_children(&root, dom_tree_view2.dom_root.as_parent_node().unwrap().children().borrow().as_slice());
+            Ok(0)
+        });
+    }
+}
+
+pub(crate) fn open_dom_tree_view(descriptor: DomTreeViewDescriptor) {
+    let window = WindowMain::new(WindowMainOpts {
+        title: format!("{} — Document Tree — Retina", descriptor.page_title),
+        size: (800, 600),
+        style: co::WS::CAPTION
+            | co::WS::SYSMENU
+            | co::WS::CLIPCHILDREN
+            | co::WS::VISIBLE
+            | co::WS::SIZEBOX
+            | co::WS::MINIMIZEBOX
+            | co::WS::MAXIMIZEBOX,
+        ..Default::default()
+    });
+
+    let tree_view = TreeView::new(&window, TreeViewOpts {
+        position: (0, 0),
+        size: (800, 600),
+        horz_resize: Horz::Resize,
+        vert_resize: Vert::Resize,
+        tree_view_ex_style: co::TVS_EX::DOUBLEBUFFER,
+
+        ..Default::default()
+    });
+
+    let dom_tree_view = DomTreeView {
+        dom_root: descriptor.root,
+        window,
+        tree_view,
+    };
+
+    dom_tree_view.setup();
+
+    let window = dom_tree_view.window.clone();
+    std::thread::spawn(move || {
+        let result = window.run_main(None);
+        println!("[dom tree view] Result: {result:#?}");
+    });
+}
+
+fn tree_add_node(parent: &TreeViewItem, node: &Rc<NodeKind>) {
+    if node.is_text_with_only_whitespace() {
+        return;
+    }
+
+    let item = tree_format_node(node.as_ref(), |text| parent.add_child(text, None));
+
+    // Open the <body> tag and all of its parents (typically <html> and #document)
+    if node.as_dom_element().is_some_and(|e| e.qualified_name().local.eq_str_ignore_ascii_case("body")) {
+        item.ensure_visible();
+    }
+
+    if let Some(as_parent) = node.as_parent_node() {
+        tree_add_children(&item, as_parent.children().borrow().as_slice());
+    }
+}
+
+fn tree_add_children(parent: &TreeViewItem, children: &[Rc<NodeKind>]) {
+    for child in children {
+        tree_add_node(parent, child);
+    }
+}
+
+fn tree_format_node<T>(node: &NodeKind, callback: impl FnOnce(&str) -> T) -> T {
+    if let Some(text) = node.as_text() {
+        return callback(text.data_as_str().trim());
+    }
+
+    if let Some(dom) = node.as_dom_element() {
+        if dom.as_parent_node().children().borrow().len() == 1 {
+            if let Some(text) = dom.as_parent_node().children().borrow().first().unwrap().as_text() {
+                let trim = text.data_as_str().trim();
+                if !trim.is_empty() {
+                    let text_storage = format!(
+                        "{:?}{}</{}>",
+                        node.to_short_dumpable(),
+                        trim,
+                        node.as_dom_element().unwrap().qualified_name().local,
+                    );
+                    return callback(&text_storage);
+                }
+            }
+        }
+    }
+
+    callback(&format!("{:?}", node.to_short_dumpable()))
+}

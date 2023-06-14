@@ -18,8 +18,10 @@ pub use self::{
     window::{
         event_proxy::WindowEventProxy,
         render_pass::WindowRenderPass,
-        interface::WindowApplication,
+        interface::{WindowApplication, WindowKeyPressEvent},
     },
 };
+
+pub use winit::event::VirtualKeyCode;
 
 pub use euclid;

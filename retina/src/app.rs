@@ -5,7 +5,7 @@ use log::info;
 use retina_gfx::{
     euclid::{Point2D, Rect, Size2D},
     WindowApplication,
-    WindowRenderPass, window::Window, WindowEventProxy,
+    WindowRenderPass, window::Window, WindowEventProxy, WindowKeyPressEvent, VirtualKeyCode,
 };
 use retina_page::*;
 use url::Url;
@@ -68,6 +68,12 @@ impl WindowApplication<RetinaEvent> for Application {
     fn on_event(&mut self, event: RetinaEvent, window: &mut Window<RetinaEvent>) {
         match event {
             RetinaEvent::PageEvent { message } => self.on_page_message(message, window),
+        }
+    }
+
+    fn on_key_press(&mut self, event: WindowKeyPressEvent) {
+        if event.key() == VirtualKeyCode::F12 {
+            self.page_send_half.send_command(PageCommand::OpenDomTreeView).unwrap();
         }
     }
 

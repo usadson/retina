@@ -122,6 +122,14 @@ impl NodeKind {
         matches!(self, Self::Text(..))
     }
 
+    pub fn is_text_with_only_whitespace(&self) -> bool {
+        if let Self::Text(text) = self {
+            text.data_as_str().trim().is_empty()
+        } else {
+            false
+        }
+    }
+
     /// Get the name name of this Node, if it is an HTML element.
     pub fn tag_name(&self) -> Option<&str> {
         if let Self::HtmlElement(element) = &self {

@@ -9,4 +9,6 @@ pub enum PageCommand {
     ResizeCanvas {
         size: Size2D<u32, u32>,
     },
+
+    OpenDomTreeView,
 }

@@ -11,7 +11,6 @@ use html5ever::tendril::*;
 use html5ever::tree_builder::{ElementFlags, NodeOrText, QuirksMode, TreeSink};
 use html5ever::{Attribute, ExpandedName, QualName};
 use log::warn;
-use retina_common::DumpableNode;
 
 use crate::Document;
 use crate::HtmlElementKind;

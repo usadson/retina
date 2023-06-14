@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 retina-compositor = { path = "../retina-compositor" }
+retina-debug = { path = "../retina-debug" }
 retina-dom = { path = "../retina-dom" }
 retina-fetch = { path = "../retina-fetch" }
 retina-gfx = { path = "../retina-gfx" }

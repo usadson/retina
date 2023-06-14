@@ -6,6 +6,8 @@ use winit::event::{
     ModifiersState,
 };
 
+use crate::WindowApplication;
+
 use super::keyboard::WindowKeyboardState;
 
 /// Handles the state of a [`Window`].
@@ -23,9 +25,10 @@ impl WindowState {
         }
     }
 
-    pub(crate) fn on_device_event(&mut self, event: DeviceEvent) {
+    pub(crate) fn on_device_event<EventType>(&mut self, event: DeviceEvent, app: &mut dyn WindowApplication<EventType>)
+            where EventType: 'static {
         match event {
-            DeviceEvent::Key(event) => self.keyboard_state.on_input(event),
+            DeviceEvent::Key(event) => self.keyboard_state.on_input(event, app),
             _ => (),
         }
     }

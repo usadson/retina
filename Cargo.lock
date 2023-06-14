@@ -1824,6 +1824,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "retina-debug"
+version = "0.2.0"
+dependencies = [
+ "retina-dom",
+ "winsafe",
+]
+
+[[package]]
 name = "retina-dom"
 version = "0.2.0"
 dependencies = [
@@ -1880,6 +1888,7 @@ version = "0.2.0"
 dependencies = [
  "log",
  "retina-compositor",
+ "retina-debug",
  "retina-dom",
  "retina-fetch",
  "retina-gfx",
@@ -3027,6 +3036,12 @@ dependencies = [
  "windows-sys 0.45.0",
  "x11-dl",
 ]
+
+[[package]]
+name = "winsafe"
+version = "0.0.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f7f49f787625d514b564aac6ba73648d4464347b4f38ed71ea15316c2228c12"
 
 [[package]]
 name = "x11-dl"

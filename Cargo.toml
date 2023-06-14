@@ -3,6 +3,7 @@ members = [
     "retina",
     "retina-common",
     "retina-compositor",
+    "retina-debug",
     "retina-dom",
     "retina-fetch",
     "retina-gfx",

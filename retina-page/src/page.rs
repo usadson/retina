@@ -23,6 +23,7 @@ pub(crate) struct Page {
     pub(crate) message_sender: Sender<PageMessage>,
 
     pub(crate) url: Url,
+    pub(crate) title: String,
     pub(crate) document: Option<Rc<NodeKind>>,
     pub(crate) style_sheets: Option<Vec<Stylesheet>>,
     pub(crate) layout_root: Option<LayoutBox>,
@@ -41,6 +42,7 @@ impl Page {
         })?;
 
         info!("Loading page: {:?}", self.url);
+        self.title = self.url.to_string();
 
         self.load_page().await?;
         self.find_title();
@@ -71,7 +73,7 @@ impl Page {
         Ok(())
     }
 
-    pub(crate) fn find_title(&self) {
+    pub(crate) fn find_title(&mut self) {
         let mut has_found = false;
         self.document.as_ref().unwrap().for_each_child_node_recursive(&mut |node, _| {
             if has_found {
@@ -82,6 +84,7 @@ impl Page {
                 if element.qualified_name().local.as_ref().eq_ignore_ascii_case("title") {
                     if let Some(node) = element.as_parent_node().children().borrow().first() {
                         if let Some(text) = node.as_text() {
+                            self.title = text.data_as_str().to_string();
                             _ = self.message_sender.send(PageMessage::Title {
                                 title: text.data_as_str().to_string(),
                             });
@@ -117,6 +120,13 @@ impl Page {
             PageCommand::ResizeCanvas { size } => {
                 self.canvas.resize(size);
                 self.paint()?;
+            }
+
+            PageCommand::OpenDomTreeView => {
+                retina_debug::open_dom_tree_view(retina_debug::DomTreeViewDescriptor {
+                    page_title: self.title.clone(),
+                    root: Rc::clone(self.document.as_ref().unwrap()),
+                });
             }
         }
 

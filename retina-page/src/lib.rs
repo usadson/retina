@@ -50,6 +50,7 @@ pub fn spawn(
                     message_sender,
 
                     url,
+                    title: String::new(),
                     document: None,
                     style_sheets: None,
                     layout_root: None,

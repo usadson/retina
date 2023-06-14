@@ -3,6 +3,10 @@
 
 use winit::event::{KeyboardInput, ElementState, ModifiersState, VirtualKeyCode};
 
+use crate::WindowApplication;
+
+use super::interface::WindowKeyPressEvent;
+
 /// The keyboard state of a window.
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) struct WindowKeyboardState {
@@ -14,9 +18,17 @@ impl WindowKeyboardState {
         Self::default()
     }
 
-    pub(crate) fn on_input(&mut self, event: KeyboardInput) {
+    pub(crate) fn on_input<EventType>(&mut self, event: KeyboardInput, app: &mut dyn WindowApplication<EventType>)
+            where EventType: 'static {
         if event.state != ElementState::Pressed {
             return;
+        }
+
+        if let Some(key) = event.virtual_keycode {
+           app.on_key_press(WindowKeyPressEvent {
+                key,
+                modifiers: self.modifiers_state,
+            });
         }
 
         if self.modifiers_state.ctrl() && event.virtual_keycode == Some(VirtualKeyCode::W) {

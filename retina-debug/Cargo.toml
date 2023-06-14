@@ -1,0 +1,12 @@
+[package]
+name = "retina-debug"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+retina-dom = { path = "../retina-dom" }
+
+[target.'cfg(windows)'.dependencies]
+winsafe = { version = "*", features = [
+    "gui"
+] }

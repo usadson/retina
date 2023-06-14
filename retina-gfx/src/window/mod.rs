@@ -107,7 +107,7 @@ impl<EventType> Window<EventType>
                 }
 
                 winit::event::Event::DeviceEvent { event, .. } => {
-                    self.state.on_device_event(event);
+                    self.state.on_device_event(event, app.as_mut());
                 }
 
                 winit::event::Event::WindowEvent {
