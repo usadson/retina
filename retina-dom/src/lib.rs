@@ -53,6 +53,8 @@ impl Node {
     }
 }
 
+unsafe impl Sync for Node {}
+
 impl AsRef<NodeKind> for Node {
     fn as_ref(&self) -> &NodeKind {
         &self.inner
@@ -210,6 +212,8 @@ impl NodeKind {
         ShortDumpable { node_kind: self }
     }
 }
+
+unsafe impl Sync for NodeKind {}
 
 impl DumpableNode for NodeKind {
     fn dump_to(&self, depth: usize, writer: &mut dyn std::io::Write) -> Result<(), std::io::Error> {
