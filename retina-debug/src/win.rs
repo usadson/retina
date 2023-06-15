@@ -86,7 +86,9 @@ fn tree_add_node(parent: &TreeViewItem, node: &Node) {
     }
 
     if let Some(as_parent) = node.as_parent_node() {
-        tree_add_children(&item, as_parent.children().borrow().as_slice());
+        if !node.is_element() || node.children_count() > 1 {
+            tree_add_children(&item, as_parent.children().borrow().as_slice());
+        }
     }
 }
 
@@ -106,20 +108,29 @@ fn tree_format_node<T>(node: &NodeKind, callback: impl FnOnce(&str) -> T) -> T {
     }
 
     if let Some(dom) = node.as_dom_element() {
-        if dom.as_parent_node().children().borrow().len() == 1 {
+        let tag_name = &node.as_dom_element().unwrap().qualified_name().local;
+        let attrs = node.as_dom_element().unwrap().attributes();
+
+        let child_count = dom.as_parent_node().children().borrow().len();
+
+        if child_count == 1 {
             if let Some(text) = dom.as_parent_node().children().borrow().first().unwrap().as_text() {
                 let trim = text.data_as_str().trim();
                 if !trim.is_empty() {
                     let text_storage = format!(
-                        "{:?}{}</{}>",
-                        node.to_short_dumpable(),
+                        "<{tag_name} {attrs}>{}</{tag_name}>",
                         trim,
-                        node.as_dom_element().unwrap().qualified_name().local,
                     );
                     return callback(&text_storage);
                 }
             }
         }
+
+        if child_count == 0 {
+            return callback(&format!("<{tag_name} {attrs}></{tag_name}>"));
+        }
+
+        return callback(&format!("<{tag_name} {attrs}>"));
     }
 
     callback(&format!("{:?}", node.to_short_dumpable()))
