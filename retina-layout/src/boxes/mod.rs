@@ -13,6 +13,7 @@ pub use dimensions::LayoutBoxDimensions;
 pub use edge::LayoutEdge;
 pub use line::LineBox;
 use retina_common::DumpableNode;
+use retina_style::CssReferencePixels;
 
 use super::DomNode;
 use retina_style_computation::PropertyMap;
@@ -24,6 +25,7 @@ pub struct LayoutBox {
     pub(crate) computed_style: PropertyMap,
     pub(crate) dimensions: LayoutBoxDimensions,
     pub(crate) children: Vec<LayoutBox>,
+    pub(crate) font_size: CssReferencePixels,
 }
 
 impl LayoutBox {
@@ -32,6 +34,7 @@ impl LayoutBox {
         node: DomNode,
         computed_style: PropertyMap,
         dimensions: LayoutBoxDimensions,
+        font_size: CssReferencePixels,
     ) -> Self {
         Self {
             kind,
@@ -39,6 +42,7 @@ impl LayoutBox {
             computed_style,
             dimensions,
             children: Vec::new(),
+            font_size,
         }
     }
 
@@ -52,6 +56,10 @@ impl LayoutBox {
 
     pub fn dimensions(&self) -> LayoutBoxDimensions {
         self.dimensions
+    }
+
+    pub const fn font_size(&self) -> CssReferencePixels {
+        self.font_size
     }
 
     pub fn kind(&self) -> &LayoutBoxKind {

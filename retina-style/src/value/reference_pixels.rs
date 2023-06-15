@@ -1,6 +1,8 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use std::ops::Mul;
+
 use crate::CssDecimal;
 
 /// The [___reference pixel___][rp] is the pixel unit that is independent of
@@ -19,5 +21,13 @@ impl CssReferencePixels {
 
     pub fn value(&self) -> CssDecimal {
         self.value
+    }
+}
+
+impl Mul<CssDecimal> for CssReferencePixels {
+    type Output = Self;
+
+    fn mul(self, rhs: CssDecimal) -> Self::Output {
+        Self::new(self.value * rhs)
     }
 }

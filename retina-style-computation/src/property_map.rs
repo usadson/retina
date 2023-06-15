@@ -83,6 +83,10 @@ impl PropertyMap {
         self.color.unwrap_or(CssNamedColor::BLACK)
     }
 
+    pub fn font_size(&self) -> CssLength {
+        self.font_size.unwrap_or(CssLength::Pixels(16.0))
+    }
+
     pub fn height(&self) -> CssLength {
         self.height.unwrap_or(CssLength::Auto)
     }

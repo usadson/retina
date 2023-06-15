@@ -55,19 +55,14 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
     fn calculate_dimensions_for_block_flow(
         &self,
         computed_style: &PropertyMap,
-        parent: &LayoutBox
+        parent: &LayoutBox,
+        font_size: CssReferencePixels,
     ) -> LayoutBoxDimensions {
-        let mut width = parent.dimensions().width;
-        let mut height = parent.dimensions().height;
+        let parent_width = parent.dimensions().width;
+        let parent_height = parent.dimensions().height;
 
-        if let Some(CssLength::Pixels(pixels)) = computed_style.width {
-            width = CssReferencePixels::new(pixels);
-        }
-
-        if let Some(CssLength::Pixels(pixels)) = computed_style.height {
-            height = CssReferencePixels::new(pixels);
-        }
-
+        let width = self.resolve_length(font_size, parent_width, computed_style.width(), computed_style);
+        let height = self.resolve_length(font_size, parent_height, computed_style.height(), computed_style);
         // TODO
         _ = computed_style;
         LayoutBoxDimensions {
@@ -94,9 +89,31 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         &self,
         computed_style: &PropertyMap,
         parent: &LayoutBox,
+        font_size: CssReferencePixels,
     ) -> LayoutBoxDimensions {
         // TODO
-        self.calculate_dimensions_for_block_flow(computed_style, parent)
+        self.calculate_dimensions_for_block_flow(computed_style, parent, font_size)
+    }
+
+    fn resolve_length(
+        &self,
+        font_size: CssReferencePixels,
+        parent_value: CssReferencePixels,
+        length_value: CssLength,
+        computed_style: &PropertyMap,
+    ) -> CssReferencePixels {
+        match length_value {
+            CssLength::Auto => parent_value,
+            CssLength::FontSize(percentage) => font_size * percentage,
+
+            // TODO this should use the size of the root element
+            CssLength::FontSizeOfRootElement(percentage) => font_size * percentage,
+
+            CssLength::Percentage(percentage) => parent_value * percentage,
+            CssLength::Pixels(pixels) => CssReferencePixels::new(pixels),
+            CssLength::UaDefaultViewportHeightPercentage(percentage) => self.viewport_height * percentage,
+            CssLength::UaDefaultViewportWidthPercentage(percentage) => self.viewport_width * percentage,
+        }
     }
 
     fn resolve_style(
@@ -115,6 +132,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         parent: &LayoutBox,
     ) -> Option<LayoutBox> {
         let computed_style = self.resolve_style(&node, Some(parent));
+        let font_size = self.resolve_length(parent.font_size, parent.font_size, computed_style.font_size(), &computed_style);
 
         if node.is_text() {
             // TODO
@@ -123,11 +141,11 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             let parent_display = parent.computed_style().display();
             return match parent_display {
                 CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => Some(
-                    LayoutBox::new(LayoutBoxKind::AnonymousBlock, node, computed_style, dimensions)
+                    LayoutBox::new(LayoutBoxKind::AnonymousBlock, node, computed_style, dimensions, font_size)
                 ),
 
                 CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => Some(
-                    LayoutBox::new(LayoutBoxKind::AnonymousInline, node, computed_style, dimensions)
+                    LayoutBox::new(LayoutBoxKind::AnonymousInline, node, computed_style, dimensions, font_size)
                 ),
 
                 _ => {
@@ -142,13 +160,13 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
 
             // `display: inline`
             CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => {
-                let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent);
-                LayoutBox::new(LayoutBoxKind::Inline, node, computed_style, dimensions)
+                let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent, font_size);
+                LayoutBox::new(LayoutBoxKind::Inline, node, computed_style, dimensions, font_size)
             }
 
             CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => {
-                let dimensions = self.calculate_dimensions_for_block_flow(&computed_style, parent);
-                LayoutBox::new(LayoutBoxKind::Block, node, computed_style, dimensions)
+                let dimensions = self.calculate_dimensions_for_block_flow(&computed_style, parent, font_size);
+                LayoutBox::new(LayoutBoxKind::Block, node, computed_style, dimensions, font_size)
             }
 
             _ => {
@@ -181,11 +199,16 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             ..Default::default()
         };
 
+        let default_reference_pixels = CssReferencePixels::new(16.0);
+
+        let font_size = self.resolve_length(default_reference_pixels, default_reference_pixels, computed_style.font_size(), &computed_style);
+
         LayoutBox::new(
             LayoutBoxKind::Block,
             root,
             computed_style,
             self.calculate_dimensions_for_initial_containing_block(),
+            font_size
         )
     }
 
