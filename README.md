@@ -12,7 +12,7 @@ Retina is a fresh approach to web browser engines, written entirely in Rust. It 
 * [`retina-page`](retina-page) - Orchestrates the creation and management of web pages.
 * [`retina-style`](retina-style) - Implements the CSS representation.
 * [`retina-style-computation`](retina-style-computation) - Computes the final style of the elements based on CSS rules.
-* [`retina-style-parser`] - Parses CSS stylesheets and inline styles.
+* [`retina-style-parser`](retina-style-parser) - Parses CSS stylesheets and inline styles.
 * [`retina-user-agent`](retina-user-agent) - Handles the behavior and identity of the web browser, and also specifies the browser/implementation-specific behavior.
 
 ## 🏃 Process Flow
