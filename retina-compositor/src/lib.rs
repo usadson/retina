@@ -45,6 +45,8 @@ impl Compositor {
             return;
         }
 
+        println!("Colored rect: {size:?} @ {position:?} with color {background_color:?}");
+
         painter.paint_rect_colored(Rect::new(position, size), background_color);
     }
 }

@@ -2,6 +2,7 @@
 name = "retina-gfx"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [dependencies]
 retina-common = { path = "../retina-common" }
