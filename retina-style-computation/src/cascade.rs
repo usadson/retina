@@ -1,21 +1,24 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_style::{StyleRule, CascadeOrigin};
+use retina_style::CascadeOrigin;
 
-use crate::{CollectedStyles, PropertyMap};
+use crate::{CollectedStyles, PropertyMap, collect::ApplicableRule};
 
 fn cascade_normal_declarations_for_origin(
     property_map: &mut PropertyMap,
-    rules: &[&StyleRule],
+    applicable_rules: &[ApplicableRule],
     origin: CascadeOrigin,
 ) {
-    for rule in rules {
-        if rule.cascade_origin != origin {
+    let mut applicable_rules: Vec<_> = applicable_rules.to_vec();
+    applicable_rules.sort_by(|a, b| a.specificity.cmp(&b.specificity));
+
+    for applicable_rule in applicable_rules.iter() {
+        if applicable_rule.rule.cascade_origin != origin {
             continue;
         }
 
-        for declaration in &rule.declarations {
+        for declaration in &applicable_rule.rule.declarations {
             property_map.apply_property(declaration.property(), declaration.value().clone());
         }
     }

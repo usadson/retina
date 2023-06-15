@@ -1916,6 +1916,7 @@ dependencies = [
 name = "retina-style-computation"
 version = "0.2.0"
 dependencies = [
+ "pretty_assertions",
  "retina-common",
  "retina-dom",
  "retina-style",

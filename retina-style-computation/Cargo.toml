@@ -13,4 +13,5 @@ tendril = "*"
 [dev-dependencies]
 retina-style-parser = { path = "../retina-style-parser" }
 
+pretty_assertions = "*"
 rstest = "*"

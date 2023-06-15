@@ -9,11 +9,23 @@ use retina_style::{
     StyleRule,
 };
 
-use crate::SelectorMatcher;
+use crate::{SelectorMatcher, SelectorSpecificity, selector_specificity::CalculateSpecificity};
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct ApplicableRule<'stylesheet> {
+    pub(crate) rule: &'stylesheet StyleRule,
+    pub(crate) specificity: SelectorSpecificity,
+}
+
+impl<'stylesheet> PartialOrd for ApplicableRule<'stylesheet> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.specificity.partial_cmp(&other.specificity)
+    }
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct CollectedStyles<'stylesheets> {
-    applicable_rules: Vec<&'stylesheets StyleRule>,
+    applicable_rules: Vec<ApplicableRule<'stylesheets>>,
 }
 
 impl<'stylesheets> CollectedStyles<'stylesheets> {
@@ -24,7 +36,7 @@ impl<'stylesheets> CollectedStyles<'stylesheets> {
     }
 
     /// Get the rules that are applicable to this node.
-    pub fn applicable_rules(&self) -> &[&'stylesheets StyleRule] {
+    pub fn applicable_rules(&self) -> &[ApplicableRule] {
         &self.applicable_rules
     }
 }
@@ -46,8 +58,11 @@ impl<'stylesheets> StyleCollector<'stylesheets> {
         for sheet in self.stylesheets {
             for rule in sheet.rules() {
                 if let Rule::Style(rule) = rule {
-                    if rule.selector_list.matches(node) {
-                        collected_styles.applicable_rules.push(rule);
+                    if let Some(selector) = rule.selector_list.most_specific_match(node) {
+                        collected_styles.applicable_rules.push(ApplicableRule {
+                            rule,
+                            specificity: selector.calculate_specificity()
+                        });
                         continue;
                     }
                 }
@@ -79,7 +94,12 @@ mod tests {
 
         let collected = StyleCollector::new(stylesheets).collect(node);
         assert_eq!(collected, CollectedStyles{
-            applicable_rules: vec![stylesheets[0].rules()[0].try_as_style().unwrap()]
+            applicable_rules: vec![
+                ApplicableRule {
+                    rule: stylesheets[0].rules()[0].try_as_style().unwrap(),
+                    specificity: Default::default(),
+                }
+            ]
         });
     }
 

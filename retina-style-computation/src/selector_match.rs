@@ -148,18 +148,22 @@ pub fn matches_selector(selector: &Selector, node: &NodeKind) -> bool {
 /// A simple extension trait to be able to call `Selector::matches`.
 pub trait SelectorMatcher {
     /// Checks whether or not the given node matches the selector.
-    fn matches(&self, node: &NodeKind) -> bool;
+    fn matches(&self, node: &NodeKind) -> bool {
+        self.most_specific_match(node).is_some()
+    }
+
+    fn most_specific_match(&self, node: &NodeKind) -> Option<&Selector>;
 }
 
 impl SelectorMatcher for Selector {
-    fn matches(&self, node: &NodeKind) -> bool {
-        matches_selector(self, node)
+    fn most_specific_match(&self, node: &NodeKind) -> Option<&Selector> {
+        matches_selector(self, node).then_some(self)
     }
 }
 
 impl SelectorMatcher for SelectorList {
-    fn matches(&self, node: &NodeKind) -> bool {
-        self.items.iter().any(|selector| selector.matches(node))
+    fn most_specific_match(&self, node: &NodeKind) -> Option<&Selector> {
+        self.items.iter().filter(|selector| selector.matches(node)).max()
     }
 }
 
