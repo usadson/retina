@@ -83,6 +83,8 @@ pub(crate) fn parse_length<'i, 't>(
             Ok(CssLength::Pixels(0.0))
         }
 
+        Token::Percentage { unit_value, .. } => Ok(CssLength::Percentage(unit_value as _)),
+
         _ => Err(ParseError {
             kind: ParseErrorKind::Custom(RetinaStyleParseError::LengthUnexpectedToken(token)),
             location: token_location,

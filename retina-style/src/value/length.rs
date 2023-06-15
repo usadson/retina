@@ -17,6 +17,8 @@ pub enum CssLength {
     /// <https://drafts.csswg.org/css-values-4/#rem>
     FontSizeOfRootElement(CssDecimal),
 
+    Percentage(CssDecimal),
+
     Pixels(CssDecimal),
 
     UaDefaultViewportHeightPercentage(CssDecimal),
