@@ -18,7 +18,7 @@ pub mod parent_node;
 pub mod parse;
 pub mod text;
 
-use std::{ops::Deref, rc::{Rc, Weak}};
+use std::{ops::Deref, sync::{Arc, Weak}};
 
 pub use attribute::AttributeList;
 pub use character_data::CharacterData;
@@ -34,22 +34,22 @@ pub use text::Text;
 
 #[derive(Clone, Debug)]
 pub struct Node {
-    inner: Rc<NodeKind>,
+    inner: Arc<NodeKind>,
 }
 
 impl Node {
     pub fn new(kind: NodeKind) -> Self {
         Self {
-            inner: Rc::new(kind),
+            inner: Arc::new(kind),
         }
     }
 
     pub fn ptr_eq(this: &Node, other: &Node) -> bool {
-        Rc::<NodeKind>::ptr_eq(&this.inner, &other.inner)
+        Arc::<NodeKind>::ptr_eq(&this.inner, &other.inner)
     }
 
     fn downgrade(this: &Node) -> Weak<NodeKind> {
-        Rc::downgrade(&this.inner)
+        Arc::downgrade(&this.inner)
     }
 }
 

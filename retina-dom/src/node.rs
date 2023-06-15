@@ -5,7 +5,7 @@
 //! implementation.
 
 use core::fmt;
-use std::{cell::RefCell, rc::Weak};
+use std::{cell::RefCell, sync::Weak};
 
 use crate::NodeKind;
 
