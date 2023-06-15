@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Write};
 
 use html5ever::{Attribute, LocalName};
 use tendril::StrTendril;
@@ -64,5 +64,22 @@ impl IntoIterator for AttributeList {
 
     fn into_iter(self) -> Self::IntoIter {
         self.map.into_iter()
+    }
+}
+
+impl std::fmt::Display for AttributeList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for (index, (name, value)) in self.map.iter().enumerate() {
+            if index != 0 {
+                f.write_char(' ')?;
+            }
+
+            f.write_str(name.as_ref())?;
+            if !value.is_empty() {
+                f.write_fmt(format_args!("=\"{value}\""))?;
+            }
+        }
+
+        Ok(())
     }
 }

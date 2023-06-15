@@ -158,6 +158,10 @@ impl NodeKind {
         }
     }
 
+    pub fn children_count(&self) -> usize {
+        self.as_parent_node().map(|p| p.children().borrow().len()).unwrap_or(0)
+    }
+
     pub fn for_each_child_node_recursive(&self, callback: &mut dyn FnMut(&NodeKind, usize), depth: usize) {
         if let Some(as_parent) = self.as_parent_node() {
             let children = as_parent.children().borrow();
