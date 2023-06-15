@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::sync::{mpsc::{Receiver as SyncReceiver, Sender as SyncSender}, Arc};
+use std::sync::{mpsc::{Receiver as SyncReceiver, SyncSender}, Arc};
 
 use log::{error, info};
 use retina_compositor::Compositor;
@@ -97,7 +97,7 @@ impl Page {
 
             if let Some(element) = node.as_dom_element() {
                 if element.qualified_name().local.as_ref().eq_ignore_ascii_case("title") {
-                    if let Some(node) = element.as_parent_node().children().borrow().first() {
+                    if let Some(node) = element.as_parent_node().children().first() {
                         if let Some(text) = node.as_text() {
                             self.title = text.data_as_str().to_string();
                             _ = self.message_sender.send(PageMessage::Title {

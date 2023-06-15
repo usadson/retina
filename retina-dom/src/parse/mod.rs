@@ -148,7 +148,6 @@ impl TreeSink for Sink {
             NodeOrText::AppendText(text) => {
                 if let Some(mut previous_text) = parent_node
                     .children()
-                    .borrow()
                     .last()
                     .and_then(|child| child.as_text())
                     .map(|s| StrTendril::clone(s.data())) {
@@ -163,7 +162,7 @@ impl TreeSink for Sink {
 
         child.as_node().set_parent(Some(Node::downgrade(parent)));
 
-        let mut children = parent.as_parent_node().unwrap().children().borrow_mut();
+        let mut children = parent.as_parent_node().unwrap().children_mut();
         if replace_previous {
             let idx = children.len() - 1;
             children[idx] = child;

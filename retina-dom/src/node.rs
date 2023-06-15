@@ -5,14 +5,14 @@
 //! implementation.
 
 use core::fmt;
-use std::{cell::RefCell, sync::Weak};
+use std::sync::{RwLock, Weak};
 
 use crate::NodeKind;
 
 /// The [Interface `Node`](https://dom.spec.whatwg.org/#interface-node)
 /// implementation.
 pub struct NodeInterface {
-    parent: RefCell<Option<Weak<NodeKind>>>,
+    parent: RwLock<Option<Weak<NodeKind>>>,
 }
 
 impl NodeInterface {
@@ -23,11 +23,15 @@ impl NodeInterface {
     }
 
     pub fn parent(&self) -> Option<Weak<NodeKind>> {
-        self.parent.borrow().clone()
+        if let Ok(parent) = self.parent.read() {
+            Option::clone(&parent)
+        } else {
+            None
+        }
     }
 
     pub fn set_parent(&self, parent: Option<Weak<NodeKind>>) {
-        self.parent.replace(parent);
+        *self.parent.write().unwrap() = parent;
     }
 }
 

@@ -152,7 +152,7 @@ mod tests {
         );
 
         let mut parent_node = Document::new();
-        parent_node.as_parent_node_mut().children().borrow_mut().push(
+        parent_node.as_parent_node_mut().children_mut().push(
             Node::clone(&node)
         );
 

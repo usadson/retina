@@ -4,7 +4,7 @@
 //! The [Mixin `ParentNode`](https://dom.spec.whatwg.org/#interface-parentnode)
 //! implementation.
 
-use std::cell::RefCell;
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use crate::Node;
 
@@ -12,21 +12,21 @@ use crate::Node;
 /// implementation.
 #[derive(Debug)]
 pub struct ParentNode {
-    children: RefCell<Vec<Node>>,
+    children: RwLock<Vec<Node>>,
 }
 
 impl ParentNode {
     pub fn new() -> Self {
         Self {
-            children: RefCell::new(Vec::new()),
+            children: RwLock::new(Vec::new()),
         }
     }
 
-    pub fn children(&self) -> &RefCell<Vec<Node>> {
-        &self.children
+    pub fn children(&self) -> RwLockReadGuard<Vec<Node>> {
+        self.children.read().unwrap()
     }
 
-    pub fn children_mut(&mut self) -> &mut RefCell<Vec<Node>> {
-        &mut self.children
+    pub fn children_mut(&self) -> RwLockWriteGuard<Vec<Node>> {
+        self.children.write().unwrap()
     }
 }

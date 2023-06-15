@@ -38,7 +38,6 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             &root.as_parent_node()
                 .expect("root DOM node not the Document")
                 .children()
-                .borrow()
                 .first()
                 .expect("DOM Document should have 1 child, the HTMLHtmlElement")
         );
@@ -162,7 +161,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         };
 
         if let Some(node) = layout_box.node.as_parent_node() {
-            for child in node.children().borrow().iter() {
+            for child in node.children().iter() {
                 if let Some(child) = self.generate_for(Node::clone(child), &layout_box) {
                     layout_box.children.push(child);
                 }

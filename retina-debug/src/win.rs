@@ -28,7 +28,7 @@ impl DomTreeView {
 
             // dom_tree_view2.tree_view.on()
             let root = dom_tree_view2.tree_view.items().add_root("#document", None);
-            tree_add_children(&root, dom_tree_view2.dom_root.as_parent_node().unwrap().children().borrow().as_slice());
+            tree_add_children(&root, dom_tree_view2.dom_root.as_parent_node().unwrap().children().as_slice());
             Ok(0)
         });
     }
@@ -87,7 +87,7 @@ fn tree_add_node(parent: &TreeViewItem, node: &Node) {
 
     if let Some(as_parent) = node.as_parent_node() {
         if !node.is_element() || node.children_count() > 1 {
-            tree_add_children(&item, as_parent.children().borrow().as_slice());
+            tree_add_children(&item, as_parent.children().as_slice());
         }
     }
 }
@@ -111,10 +111,10 @@ fn tree_format_node<T>(node: &NodeKind, callback: impl FnOnce(&str) -> T) -> T {
         let tag_name = &node.as_dom_element().unwrap().qualified_name().local;
         let attrs = node.as_dom_element().unwrap().attributes();
 
-        let child_count = dom.as_parent_node().children().borrow().len();
+        let child_count = dom.as_parent_node().children().len();
 
         if child_count == 1 {
-            if let Some(text) = dom.as_parent_node().children().borrow().first().unwrap().as_text() {
+            if let Some(text) = dom.as_parent_node().children().first().unwrap().as_text() {
                 let trim = text.data_as_str().trim();
                 if !trim.is_empty() {
                     let text_storage = format!(

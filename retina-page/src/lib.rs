@@ -14,7 +14,7 @@ use page::Page;
 use retina_compositor::Compositor;
 use retina_gfx::{canvas::CanvasPaintingContext, euclid::Size2D};
 
-use std::{sync::{mpsc::channel, Arc}, time::Duration};
+use std::{sync::{mpsc::{channel, sync_channel}, Arc}, time::Duration};
 use url::Url;
 
 pub fn spawn(
@@ -23,7 +23,7 @@ pub fn spawn(
     canvas_size: Size2D<u32, u32>,
 ) -> PageHandle {
     let (command_sender, command_receiver) = channel();
-    let (message_sender, message_receiver) = channel();
+    let (message_sender, message_receiver) = sync_channel(128);
 
     let handle = PageHandle {
         receive: PageHandleReceiveHalf {
