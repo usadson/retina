@@ -8,6 +8,7 @@ pub struct PropertyMap {
     pub background_color: Option<CssColor>,
     pub color: Option<CssColor>,
     pub display: Option<CssDisplay>,
+    pub font_size: Option<CssLength>,
     pub height: Option<CssLength>,
     pub width: Option<CssLength>,
     pub white_space: Option<CssWhiteSpace>,
@@ -38,6 +39,13 @@ impl PropertyMap {
 
             Property::Display => if let Value::Display(display) = value {
                 self.display = Some(display);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::FontSize => if let Value::Length(length) = value {
+                self.font_size = Some(length);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue
