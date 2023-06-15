@@ -19,10 +19,10 @@ pub trait FromCssParser<T> {
     fn into(self) -> Self::Output;
 }
 
-pub fn convert_color(value: cssparser::Color) -> Result<CssColor, String> {
+pub fn convert_color(value: cssparser::Color) -> Option<CssColor> {
     match value {
-        cssparser::Color::Rgba(rgba) => Ok(convert_rgba(rgba)),
-        _ => Err(format!("failed to convert value: {value:?}")),
+        cssparser::Color::Rgba(rgba) => Some(convert_rgba(rgba)),
+        _ => None,
     }
 }
 

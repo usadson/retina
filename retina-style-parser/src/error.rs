@@ -5,6 +5,8 @@ use cssparser::{Token, CowRcStr};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum RetinaStyleParseError<'i> {
+    ColorUnknownValue(cssparser::Color),
+
     ExpectedIdentifierAsPropertyValue,
 
     LengthUnexpectedToken(Token<'i>),

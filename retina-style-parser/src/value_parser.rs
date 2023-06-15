@@ -87,8 +87,19 @@ pub(crate) fn parse_length<'i, 't>(
 }
 
 pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<Value, ParseError<'i>> {
+    let location = input.current_source_location();
+
     if let Ok(color) = input.try_parse(Color::parse) {
-        return Ok(Value::Color(convert_color(color).unwrap()));
+        if let Some(color) = convert_color(color) {
+            return Ok(Value::Color(color));
+        }
+
+        return Err(ParseError {
+            kind: ParseErrorKind::Custom(
+                RetinaStyleParseError::ColorUnknownValue(color)
+            ),
+            location,
+        });
     }
 
     if let Ok(display) = input.try_parse(parse_display) {
