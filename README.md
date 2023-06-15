@@ -1,4 +1,7 @@
 # ✨ Retina - A Browser Engine Project 🔗
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/usadson/retina/rust.yml?style=for-the-badge)
+![GitHub](https://img.shields.io/github/license/usadson/retina?style=for-the-badge)
+
 Retina is a fresh approach to web browser engines, written entirely in Rust. It aims to stay close to web standards and specifications, focusing on correctness, performance, and safety. This is a monorepo that contains the main binary `retina`, alongside several libraries that define different aspects of the browser's operations.
 
 ## 📦️ Components
