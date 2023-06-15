@@ -14,7 +14,7 @@ use page::Page;
 use retina_compositor::Compositor;
 use retina_gfx::{canvas::CanvasPaintingContext, euclid::Size2D};
 
-use std::{sync::mpsc::channel, time::Duration};
+use std::{sync::{mpsc::channel, Arc}, time::Duration};
 use url::Url;
 
 pub fn spawn(
@@ -40,28 +40,33 @@ pub fn spawn(
     let canvas = CanvasPaintingContext::new(graphics_context, "Page Canvas", canvas_size);
 
     std::thread::spawn(move || {
-        tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(async {
-                let mut page = Page {
-                    command_receiver,
-                    message_sender,
+        let runtime = Arc::new(
+            tokio::runtime::Builder::new_multi_thread()
+                .enable_all()
+                .build()
+                .unwrap()
+        );
+        runtime.clone().block_on(async {
+            let (page_task_message_sender, page_task_message_receiver) = tokio::sync::mpsc::channel(128);
 
-                    url,
-                    title: String::new(),
-                    document: None,
-                    style_sheets: None,
-                    layout_root: None,
+            let page = Page {
+                runtime,
+                message_sender,
 
-                    canvas,
-                    compositor: Compositor::new(),
-                    fetch: retina_fetch::Fetch::new(),
-                };
+                url,
+                title: String::new(),
+                document: None,
+                style_sheets: None,
+                layout_root: None,
 
-                page.start().await.unwrap()
-            })
+                canvas,
+                compositor: Compositor::new(),
+                fetch: retina_fetch::Fetch::new(),
+                page_task_message_sender,
+            };
+
+            page.start(command_receiver, page_task_message_receiver).await.unwrap()
+        })
     });
 
     handle

@@ -3,6 +3,8 @@
 
 use retina_gfx::euclid::Size2D;
 
+use crate::PageCommand;
+
 /// The page sends messages to the browser to inform it of it's status.
 #[derive(Debug)]
 pub enum PageMessage {
@@ -36,4 +38,15 @@ pub enum PageProgress {
     Painted,
 
     Ready,
+}
+
+#[derive(Debug)]
+pub(crate) enum PageTaskMessage {
+    /// A message from the browser manager.
+    Command {
+        command: PageCommand
+    },
+
+    /// The browser (probably) closed.
+    CommandPipelineClosed,
 }

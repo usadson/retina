@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::sync::mpsc::{Receiver, Sender};
+use std::sync::{mpsc::{Receiver as SyncReceiver, Sender as SyncSender}, Arc};
 
 use log::{error, info};
 use retina_compositor::Compositor;
@@ -11,13 +11,14 @@ use retina_gfx::{canvas::CanvasPaintingContext, Color};
 use retina_layout::{LayoutBox, LayoutGenerator};
 use retina_style::{Stylesheet, CascadeOrigin, CssReferencePixels};
 use retina_style_parser::CssParsable;
+use tokio::{sync::mpsc::{Receiver as AsyncReceiver, Sender as AsyncSender}, runtime::Runtime};
 use url::Url;
 
-use crate::{PageCommand, PageMessage, PageProgress};
+use crate::{PageCommand, PageMessage, PageProgress, message::PageTaskMessage};
 
 pub(crate) struct Page {
-    pub(crate) command_receiver: Receiver<PageCommand>,
-    pub(crate) message_sender: Sender<PageMessage>,
+    pub(crate) runtime: Arc<Runtime>,
+    pub(crate) message_sender: SyncSender<PageMessage>,
 
     pub(crate) url: Url,
     pub(crate) title: String,
@@ -28,12 +29,19 @@ pub(crate) struct Page {
     pub(crate) canvas: CanvasPaintingContext,
     pub(crate) compositor: Compositor,
     pub(crate) fetch: Fetch,
+    pub(crate) page_task_message_sender: AsyncSender<PageTaskMessage>,
 }
 
 type ErrorKind = Box<dyn std::error::Error>;
 
 impl Page {
-    pub(crate) async fn start(&mut self) -> Result<(), ErrorKind> {
+    pub(crate) async fn start(
+        mut self,
+        command_receiver: SyncReceiver<PageCommand>,
+        mut page_task_message_receiver: AsyncReceiver<PageTaskMessage>
+    ) -> Result<(), ErrorKind> {
+        self.spawn_command_receiver(command_receiver);
+
         self.message_sender.send(PageMessage::Progress {
             progress: PageProgress::Initial,
         })?;
@@ -53,19 +61,29 @@ impl Page {
 
         self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
 
-        while let Ok(command) = self.command_receiver.recv() {
-            self.handle_command(command).await?;
+        while let Some(task_message) = page_task_message_receiver.recv().await {
+            match task_message {
+                PageTaskMessage::Command { command } => {
+                    self.handle_command(command).await?;
 
-            // If there are commands sent consecutively, handle them before sending
-            // `PageProgress::Ready`.
-            while let Ok(command) = self.command_receiver.try_recv() {
-                self.handle_command(command).await?;
+                    // If there are commands sent consecutively, handle them before sending
+                    // `PageProgress::Ready`.
+                    // while let Ok(command) = self.command_receiver.try_recv() {
+                    //     self.handle_command(command).await?;
+                    // }
+                    // TODO
+
+                    self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
+                }
+
+                PageTaskMessage::CommandPipelineClosed => {
+                    error!("Command pipeline closed");
+                    break;
+                }
             }
-
-            self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
         }
 
-        error!("Command pipeline dead!");
+        error!("Task pipeline dead!");
 
         Ok(())
     }
@@ -196,5 +214,25 @@ impl Page {
         })?;
 
         Ok(())
+    }
+
+    fn spawn_command_receiver(&self, command_receiver: SyncReceiver<PageCommand>) {
+        let task_message_sender = self.page_task_message_sender.clone();
+        let runtime = Arc::clone(&self.runtime);
+        std::thread::spawn(move || {
+            while let Ok(command) = command_receiver.recv() {
+                let result = runtime.block_on(async {
+                    task_message_sender.send(PageTaskMessage::Command { command }).await
+                });
+
+                if result.is_err() {
+                    return;
+                }
+            }
+
+            runtime.spawn(async move {
+                _ = task_message_sender.send(PageTaskMessage::CommandPipelineClosed).await;
+            });
+        });
     }
 }
