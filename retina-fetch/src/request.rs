@@ -22,6 +22,15 @@ pub struct Request {
 }
 
 impl Request {
+    pub fn new(url: Url, initiator: RequestInitiator, destination: RequestDestination) -> Self {
+        Request {
+            initiator,
+            destination,
+            method: hyper::Method::GET,
+            url,
+        }
+    }
+
     pub fn get_document(url: Url) -> Self {
         Request {
             initiator: RequestInitiator::None,
@@ -29,5 +38,9 @@ impl Request {
             method: Method::GET,
             url,
         }
+    }
+
+    pub fn url(&self) -> &Url {
+        &self.url
     }
 }
