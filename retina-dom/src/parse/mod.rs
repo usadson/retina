@@ -107,7 +107,7 @@ impl TreeSink for Sink {
     }
 
     fn create_comment(&mut self, _text: StrTendril) -> Self::Handle {
-        Comment::new_handle(_text)
+        Comment::new_handle(retina_common::StrTendril::from(_text.as_ref()))
     }
 
     #[allow(unused_variables)]
@@ -146,11 +146,12 @@ impl TreeSink for Sink {
         let child = match child {
             NodeOrText::AppendNode(node) => node,
             NodeOrText::AppendText(text) => {
+                let text = retina_common::StrTendril::from(text.as_ref());
                 if let Some(mut previous_text) = parent_node
                     .children()
                     .last()
                     .and_then(|child| child.as_text())
-                    .map(|s| StrTendril::clone(s.data())) {
+                    .map(|s| retina_common::StrTendril::clone(s.data())) {
                     previous_text.push_tendril(&text);
                     replace_previous = true;
                     Text::new_handle(previous_text)

@@ -77,7 +77,7 @@ impl<'stylesheets> StyleCollector<'stylesheets> {
 mod tests {
     use retina_dom::Text;
     use retina_style::CascadeOrigin;
-    use tendril::StrTendril;
+    use retina_common::StrTendril;
 
     use super::*;
     use retina_style_parser::CssParsable;

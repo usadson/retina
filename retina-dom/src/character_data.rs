@@ -4,7 +4,7 @@
 //! The [Interface `Tex`](https://dom.spec.whatwg.org/#interface-text)
 //! implementation.
 
-use tendril::StrTendril;
+use retina_common::StrTendril;
 
 use crate::NodeInterface;
 

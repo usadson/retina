@@ -4,7 +4,7 @@
 //! # References
 //! * [CSS - Selectors Level 4 - 3.1](https://www.w3.org/TR/selectors-4/#simple)
 
-use tendril::StrTendril;
+use retina_common::StrTendril;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct AttributeSelector {

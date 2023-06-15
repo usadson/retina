@@ -7,7 +7,7 @@ use cssparser::{
     Token,
 };
 
-use tendril::StrTendril;
+use retina_common::StrTendril;
 
 use retina_style::{
     AttributeSelector,

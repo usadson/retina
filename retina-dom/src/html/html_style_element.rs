@@ -2,7 +2,7 @@
 // All Rights Reserved.
 
 use html5ever::QualName;
-use tendril::StrTendril;
+use retina_common::StrTendril;
 
 use crate::{
     Element,

@@ -1,10 +1,10 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::{collections::HashMap, fmt::Write};
+use std::{collections::HashMap, fmt::Write, str::FromStr};
 
 use html5ever::{Attribute, LocalName};
-use tendril::StrTendril;
+use retina_common::StrTendril;
 
 pub type AttributeName = html5ever::LocalName;
 
@@ -28,7 +28,7 @@ impl AttributeList {
     }
 
     pub(crate) fn append_attribute(&mut self, attribute: Attribute) {
-        self.append(attribute.name.local, attribute.value);
+        self.append(attribute.name.local, StrTendril::from_str(attribute.value.as_ref()).unwrap());
     }
 
     pub fn find(&self, name: &LocalName) -> Option<&str> {

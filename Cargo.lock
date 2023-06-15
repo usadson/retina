@@ -1812,6 +1812,9 @@ dependencies = [
 [[package]]
 name = "retina-common"
 version = "0.2.0"
+dependencies = [
+ "tendril",
+]
 
 [[package]]
 name = "retina-compositor"

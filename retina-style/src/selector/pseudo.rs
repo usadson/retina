@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use tendril::StrTendril;
+use retina_common::StrTendril;
 
 use crate::SelectorList;
 

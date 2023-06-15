@@ -173,7 +173,7 @@ mod tests {
 
     use retina_dom::*;
     use rstest::rstest;
-    use tendril::StrTendril;
+    use retina_common::StrTendril;
 
     #[rstest]
     #[case("who", "me", AttributeSelector::new("who".into(), AttributeSelectorCaseSensitivity::Identical, AttributeSelectorKind::RegardlessOfValue), true)]

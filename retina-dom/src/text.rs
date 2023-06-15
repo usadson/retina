@@ -6,7 +6,7 @@
 
 use std::ops::{Deref, DerefMut};
 
-use tendril::StrTendril;
+use retina_common::StrTendril;
 
 use crate::{CharacterData, Node, NodeKind};
 
