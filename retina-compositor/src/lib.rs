@@ -29,7 +29,7 @@ impl Compositor {
         let position = Point2D::new(0.0, 0.0);
 
         let width = layout_box.dimensions().width().value();
-        let height = layout_box.dimensions().width().value();
+        let height = layout_box.dimensions().height().value();
 
         let size = Size2D::new(width, height);
 
