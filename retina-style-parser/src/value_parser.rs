@@ -67,7 +67,9 @@ pub(crate) fn parse_length<'i, 't>(
 
         Token::Dimension { value, unit, .. } => {
             match unit.as_ref() {
+                "em" => Ok(CssLength::FontSize(value as _)),
                 "px" => Ok(CssLength::Pixels(value as _)),
+                "rem" => Ok(CssLength::FontSizeOfRootElement(value as _)),
                 _ => Err(ParseError {
                     kind: ParseErrorKind::Custom(RetinaStyleParseError::LengthUnknownUnit(unit)),
                     location: token_location,
