@@ -144,6 +144,7 @@ impl Page {
         match command {
             PageCommand::ResizeCanvas { size } => {
                 self.canvas.resize(size);
+                self.generate_layout_tree().await?;
                 self.paint()?;
             }
 
