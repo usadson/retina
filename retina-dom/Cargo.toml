@@ -9,4 +9,5 @@ retina-common = { path = "../retina-common" }
 
 log = "*"
 html5ever = "*"
+strum = { version = "*", features = ["derive"] }
 tendril = "*"

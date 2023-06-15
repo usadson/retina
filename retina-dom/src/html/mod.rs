@@ -2,18 +2,29 @@
 // All Rights Reserved.
 
 pub mod html_element;
+pub mod html_link_element;
 pub mod html_style_element;
 pub mod html_unknown_element;
+pub mod link_kind;
+pub mod link_relationship;
+pub mod link_type;
 
 use html5ever::{LocalName, Namespace, QualName};
-pub use html_element::HtmlElement;
-pub use html_unknown_element::HtmlUnknownElement;
-pub use self::html_style_element::HtmlStyleElement;
+pub use self::{
+    html_element::HtmlElement,
+    html_link_element::HtmlLinkElement,
+    html_style_element::HtmlStyleElement,
+    html_unknown_element::HtmlUnknownElement,
+    link_kind::LinkKind,
+    link_relationship::LinkRelationship,
+    link_type::LinkType,
+};
 
 use crate::{Element, NodeInterface};
 
 #[derive(Debug)]
 pub enum HtmlElementKind {
+    Link(HtmlLinkElement),
     Style(HtmlStyleElement),
     Unknown(HtmlUnknownElement),
 }
@@ -21,6 +32,7 @@ pub enum HtmlElementKind {
 impl HtmlElementKind {
     pub fn as_dom_element(&self) -> &Element {
         match self {
+            Self::Link(element) => element.as_ref(),
             Self::Style(element) => element.as_ref(),
             Self::Unknown(element) => element.as_ref(),
         }
@@ -28,6 +40,7 @@ impl HtmlElementKind {
 
     pub fn as_dom_element_mut(&mut self) -> &mut Element {
         match self {
+            Self::Link(element) => element.as_mut(),
             Self::Style(element) => element.as_mut(),
             Self::Unknown(element) => element.as_mut(),
         }

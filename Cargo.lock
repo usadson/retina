@@ -1841,6 +1841,7 @@ dependencies = [
  "html5ever",
  "log",
  "retina-common",
+ "strum",
  "tendril",
 ]
 
