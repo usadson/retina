@@ -70,6 +70,8 @@ pub(crate) fn parse_length<'i, 't>(
                 "em" => Ok(CssLength::FontSize(value as _)),
                 "px" => Ok(CssLength::Pixels(value as _)),
                 "rem" => Ok(CssLength::FontSizeOfRootElement(value as _)),
+                "vh" => Ok(CssLength::UaDefaultViewportHeightPercentage(value as _)),
+                "vw" => Ok(CssLength::UaDefaultViewportWidthPercentage(value as _)),
                 _ => Err(ParseError {
                     kind: ParseErrorKind::Custom(RetinaStyleParseError::LengthUnknownUnit(unit)),
                     location: token_location,

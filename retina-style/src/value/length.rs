@@ -18,4 +18,7 @@ pub enum CssLength {
     FontSizeOfRootElement(CssDecimal),
 
     Pixels(CssDecimal),
+
+    UaDefaultViewportHeightPercentage(CssDecimal),
+    UaDefaultViewportWidthPercentage(CssDecimal),
 }
