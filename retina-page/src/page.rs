@@ -3,10 +3,10 @@
 
 use std::sync::{mpsc::{Receiver as SyncReceiver, SyncSender}, Arc};
 
-use log::{error, info};
+use log::{error, info, warn};
 use retina_compositor::Compositor;
-use retina_dom::{HtmlElementKind, Node};
-use retina_fetch::Fetch;
+use retina_dom::{HtmlElementKind, LinkType, Node};
+use retina_fetch::{Fetch, Request};
 use retina_gfx::{canvas::CanvasPaintingContext, Color};
 use retina_layout::{LayoutBox, LayoutGenerator};
 use retina_style::{Stylesheet, CascadeOrigin, CssReferencePixels};
@@ -50,6 +50,7 @@ impl Page {
         self.title = self.url.to_string();
 
         self.load_page().await?;
+        self.load_stylesheets_in_background();
         self.find_title();
 
         self.parse_stylesheets().await?;
@@ -79,6 +80,15 @@ impl Page {
                 PageTaskMessage::CommandPipelineClosed => {
                     error!("Command pipeline closed");
                     break;
+                }
+
+                PageTaskMessage::StylesheetLoaded { stylesheet } => {
+                    self.layout_root = None;
+                    self.style_sheets.get_or_insert(Default::default()).push(stylesheet);
+                    self.generate_layout_tree().await?;
+                    self.paint()?;
+
+                    self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
                 }
             }
         }
@@ -166,6 +176,91 @@ impl Page {
         })?;
 
         Ok(())
+    }
+
+    fn load_stylesheets_in_background(&self) {
+        let Some(document) = self.document.as_ref().cloned() else {
+            return;
+        };
+
+        let base_url = Some(self.url.clone());
+        let fetch = self.fetch.clone();
+        let task_message_sender = self.page_task_message_sender.clone();
+
+        tokio::task::spawn(async move {
+            let base_url = base_url;
+            let base_url = base_url.as_ref();
+
+            document.for_each_child_node_recursive(&mut |node, _| {
+                let Some(html_kind) = node.as_html_element_kind() else { return };
+                let HtmlElementKind::Link(link) = html_kind else { return };
+                info!("[stylesheet] Found link: {link:#?}");
+                if !link.relationship().contains(LinkType::Stylesheet) {
+                    warn!("[stylesheet] Not a stylesheet: {:#?}", link.relationship().collect::<Vec<_>>()); return }
+
+                let href = link.href();
+                if href.is_empty() {
+                    warn!("[stylesheet] Link rel=\"stylesheet\" without `href` attribute: {link:#?}");
+                    return;
+                }
+
+                let url = match url::Url::options().base_url(base_url).parse(href) {
+                    Ok(url) => url,
+                    Err(err) => {
+                        warn!("[stylesheet] Invalid stylesheet <link>: \"{href:?}\": {err}");
+                        return;
+                    }
+                };
+
+                Self::load_stylesheet_in_background(url, fetch.clone(), task_message_sender.clone());
+            }, 0);
+        });
+    }
+
+    fn load_stylesheet_in_background(
+        url: Url,
+        fetch: Fetch,
+        page_task_message_sender: AsyncSender<PageTaskMessage>,
+    ) {
+        use retina_fetch::{
+            RequestDestination,
+            RequestInitiator,
+        };
+
+        info!("[stylesheet] Initiating stylesheet load: \"{}\"", url.as_str());
+
+        tokio::task::spawn(async move {
+            let href = url.as_str();
+
+            let request = Request::new(url.clone(), RequestInitiator::default(), RequestDestination::Style);
+            let mut response = match fetch.fetch(request).await {
+                Ok(response) => response,
+                Err(e) => {
+                    error!("[stylesheet] Failed to load stylesheet \"{href}\": {e:#?}");
+                    return;
+                }
+            };
+
+            let mut text = String::new();
+            if let Err(e) = response.body().await.read_to_string(&mut text) {
+                error!("[stylesheet] Failed to load stylesheet \"{href}\": {e:#?}");
+                return;
+            }
+
+            let stylesheet = Stylesheet::parse(CascadeOrigin::Author, &text);
+            info!(
+                "[stylesheet] Loaded stylesheet from \"{}\" containing {} rules",
+                href,
+                stylesheet.rules().len()
+            );
+
+            let result = page_task_message_sender.send(PageTaskMessage::StylesheetLoaded { stylesheet }).await;
+
+            if let Err(e) = result {
+                error!("Failed to notify of a new stylesheet \"{href}\": {e}");
+                return;
+            }
+        });
     }
 
     pub(crate) fn paint(&mut self) -> Result<(), ErrorKind> {

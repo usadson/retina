@@ -2,6 +2,7 @@
 // All Rights Reserved.
 
 use retina_gfx::euclid::Size2D;
+use retina_style::Stylesheet;
 
 use crate::PageCommand;
 
@@ -49,4 +50,8 @@ pub(crate) enum PageTaskMessage {
 
     /// The browser (probably) closed.
     CommandPipelineClosed,
+
+    StylesheetLoaded {
+        stylesheet: Stylesheet,
+    },
 }
