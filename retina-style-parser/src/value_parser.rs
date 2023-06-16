@@ -92,7 +92,24 @@ pub(crate) fn parse_length<'i, 't>(
     }
 }
 
-pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<Value, ParseError<'i>> {
+
+pub(crate) fn parse_line_style<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssLineStyle, ParseError<'i>> {
+    let token = input.next()
+        .cloned()
+        .map_err(|_| input.new_custom_error(RetinaStyleParseError::LineStyleUnknownKeyword))?;
+
+    let Token::Ident(ident) = token else {
+        return Err(input.new_custom_error(RetinaStyleParseError::LineStyleExpectedKeyword));
+    };
+
+    CssLineStyle::from_str(ident.as_ref())
+        .ok_or_else(|| input.new_custom_error(RetinaStyleParseError::LineStyleUnknownKeyword))
+}
+
+
+pub(crate) fn parse_single_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<Value, ParseError<'i>> {
     let location = input.current_source_location();
 
     if let Ok(color) = input.try_parse(Color::parse) {
@@ -116,6 +133,10 @@ pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<Value, P
         return Ok(Value::Length(length));
     }
 
+    if let Ok(line_style) = input.try_parse(parse_line_style) {
+        return Ok(Value::LineStyle(line_style));
+    }
+
     if let Ok(white_space) = input.try_parse(parse_white_space) {
         return Ok(Value::WhiteSpace(white_space));
     }
@@ -123,6 +144,84 @@ pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<Value, P
     let token = input.next().ok().cloned();
     Err(input.new_custom_error(RetinaStyleParseError::UnknownValue(token)))
 }
+
+pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<Value, ParseError<'i>> {
+    let value = parse_single_value(input)?;
+    if input.is_exhausted() {
+        return Ok(value);
+    }
+
+    let mut values = Vec::with_capacity(4);
+    values.push(value);
+
+    while !input.is_exhausted() {
+        values.push(parse_single_value(input)?);
+    }
+
+    assert_ne!(values.len(), 1);
+
+    match &values[..] {
+        //
+        // Border
+        //
+        &[Value::Length(length), Value::LineStyle(style)] => Ok(Value::BorderLonghand(
+            CssBorderLonghand {
+                width: Some(length),
+                style: Some(style),
+                color: None,
+            }
+        )),
+
+        &[Value::Length(length), Value::LineStyle(style), Value::Color(color)] => Ok(Value::BorderLonghand(
+            CssBorderLonghand {
+                width: Some(length),
+                style: Some(style),
+                color: Some(color),
+            }
+        )),
+
+        &[Value::LineStyle(style), Value::Color(color)] => Ok(Value::BorderLonghand(
+            CssBorderLonghand {
+                width: None,
+                style: Some(style),
+                color: Some(color),
+            }
+        )),
+
+        //
+        // Colors
+        //
+        &[Value::Color(a), Value::Color(b)] => Ok(Value::ComponentList(
+            ValueComponentList::TwoColors([a, b]),
+        )),
+
+        &[Value::Color(a), Value::Color(b), Value::Color(c)] => Ok(Value::ComponentList(
+            ValueComponentList::ThreeColors([a, b, c]),
+        )),
+
+        &[Value::Color(a), Value::Color(b), Value::Color(c), Value::Color(d)] => Ok(Value::ComponentList(
+            ValueComponentList::FourColors([a, b, c, d]),
+        )),
+
+        //
+        // Lengths
+        //
+        &[Value::Length(a), Value::Length(b)] => Ok(Value::ComponentList(
+            ValueComponentList::TwoLengths([a, b]),
+        )),
+
+        &[Value::Length(a), Value::Length(b), Value::Length(c)] => Ok(Value::ComponentList(
+            ValueComponentList::ThreeLengths([a, b, c]),
+        )),
+
+        &[Value::Length(a), Value::Length(b), Value::Length(c), Value::Length(d)] => Ok(Value::ComponentList(
+            ValueComponentList::FourLengths([a, b, c, d]),
+        )),
+
+        _ => Err(input.new_custom_error(RetinaStyleParseError::ComponentListUnknownKinds(values))),
+    }
+}
+
 pub(crate) fn parse_white_space<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<CssWhiteSpace, ParseError<'i>> {

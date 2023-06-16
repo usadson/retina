@@ -2,16 +2,23 @@
 // All Rights Reserved.
 
 use cssparser::{Token, CowRcStr};
+use retina_style::Value;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum RetinaStyleParseError<'i> {
     ColorUnknownValue(cssparser::Color),
+
+    ComponentListUnknownKinds(Vec<Value>),
 
     ExpectedIdentifierAsPropertyValue,
 
     LengthUnexpectedToken(Token<'i>),
     LengthUnknownIdentifier(CowRcStr<'i>),
     LengthUnknownUnit(CowRcStr<'i>),
+
+    LineStyleExpectedKeyword,
+    LineStyleUnexpectedEof,
+    LineStyleUnknownKeyword,
 
     UnexpectedEofBasicColorKeyword,
 
