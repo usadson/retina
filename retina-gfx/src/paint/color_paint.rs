@@ -29,24 +29,24 @@ impl ColorPaint {
                     count: None,
                 }
             ],
-            label: Some("color_bind_group_layout"),
+            label: Some("color_paint Bind Group Layout"),
         });
 
         let render_pipeline_layout = device.create_pipeline_layout(
             &wgpu::PipelineLayoutDescriptor {
-                label: Some("Render Pipeline Layout"),
+                label: Some("color_paint Render Pipeline Layout"),
                 bind_group_layouts: &[&color_bind_group_layout],
                 push_constant_ranges: &[],
             }
         );
 
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("Shader"),
+            label: Some("color_paint Shader"),
             source: wgpu::ShaderSource::Wgsl(include_str!("../vertex/colored_vertex.wgsl").into()),
         });
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Render Pipeline"),
+            label: Some("color_paint Render Pipeline"),
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &shader,
@@ -90,12 +90,12 @@ impl ColorPaint {
         });
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Vertex Buffer"),
+            label: Some("color_paint Vertex Buffer"),
             contents: bytemuck::cast_slice(VERTICES),
             usage: wgpu::BufferUsages::VERTEX,
         });
         let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Index Buffer"),
+            label: Some("color_paint Index Buffer"),
             contents: bytemuck::cast_slice(INDICES),
             usage: wgpu::BufferUsages::INDEX,
         });
@@ -103,7 +103,7 @@ impl ColorPaint {
 
         let color_buffer = device.create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
-                label: Some("Color Buffer"),
+                label: Some("color_paint Uniform Buffer"),
                 contents: bytemuck::cast_slice(&[
                     // color
                     1.0, 0.0, 1.0, 1.0,
@@ -126,7 +126,7 @@ impl ColorPaint {
                     resource: color_buffer.as_entire_binding(),
                 }
             ],
-            label: Some("color_bind_group")
+            label: Some("color_paint Bind Group")
         });
 
         Self {

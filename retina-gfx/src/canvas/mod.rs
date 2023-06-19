@@ -172,17 +172,20 @@ impl<'canvas> CanvasPainter<'canvas> {
     }
 
     pub fn paint_rect_colored(&mut self, rect: euclid::Rect<f64, f64>, color: Color) {
-        let model = euclid::default::Transform3D::identity()
-            .then_scale(rect.width() as _, rect.height() as _, 1.0)
-            .then_translate(rect.origin.to_3d().to_vector().cast_unit().cast());
+        let model = Transform3D::identity()
+            .then_scale(rect.size.width as f32, rect.size.height as f32, 1.0)
+            .then_translate(Vector3D::new(rect.origin.x as f32, self.canvas_height - rect.size.height as f32 - rect.origin.y as f32, 0.0));
 
-        let view = Transform3D::identity()
-            .then_translate(Vector3D::new(-self.canvas_width / 2.0, self.canvas_height / 2.0, 0.0));
+        let projection = Transform3D::ortho(
+            0.0,
+            self.canvas_width as f32,
+            0.0,
+            self.canvas_height as f32,
+            -1.0,
+            1.0
+        );
 
-        let projective = euclid::default::Transform3D::identity()
-            .then_scale(2.0 / self.canvas_width, 2.0 / self.canvas_height, 1.0);
-
-        let transformation = model.then(&view.then(&projective)).to_arrays();
+        let transformation = model.then(&projection).to_arrays();
 
         let uniform: [[f32; 4]; 5] = [
             [
@@ -199,18 +202,20 @@ impl<'canvas> CanvasPainter<'canvas> {
 
         let uniform: &[u8] = bytemuck::cast_slice(&uniform);
 
-        let mut uniform_buffer_view = self.canvas.staging_belt.write_buffer(
-            &mut self.encoder,
-            &self.color_paint.color_buffer,
-            0,
-            NonZeroU64::new(uniform.len() as _).unwrap(),
-            self.canvas.context.device(),
-        );
-        uniform_buffer_view.copy_from_slice(uniform);
+        {
+            let mut uniform_buffer_view = self.canvas.staging_belt.write_buffer(
+                &mut self.encoder,
+                &self.color_paint.color_buffer,
+                0,
+                NonZeroU64::new(uniform.len() as _).unwrap(),
+                self.canvas.context.device(),
+            );
+            uniform_buffer_view.copy_from_slice(uniform);
+        }
 
         let mut render_pass = self.encoder.begin_render_pass(
             &wgpu::RenderPassDescriptor {
-                label: Some("Render pass"),
+                label: Some(&format!("paint_colored_rect {color:?} {rect:?}")),
                 color_attachments: &[Some(
                     wgpu::RenderPassColorAttachment {
                         view: &self.canvas.surface_texture_view,
@@ -230,6 +235,9 @@ impl<'canvas> CanvasPainter<'canvas> {
         render_pass.set_vertex_buffer(0, self.color_paint.vertex_buffer.slice(..));
         render_pass.set_index_buffer(self.color_paint.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
         render_pass.draw_indexed(0..self.color_paint.num_indices, 0, 0..1);
+
+        drop(render_pass);
+        self.submit();
     }
 
     pub fn paint_text(&mut self, text: &str, color: Color, position: euclid::Point2D<f32, f32>) {
@@ -256,10 +264,21 @@ impl<'canvas> CanvasPainter<'canvas> {
                 self.canvas.size.height,
             )
             .expect("Draw queued");
+
+        self.submit();
     }
 
-    pub fn submit_and_present(self) {
+    fn submit(&mut self) {
+        let encoder = self.canvas.context.device().create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            ..Default::default()
+        });
+        let encoder = std::mem::replace(&mut self.encoder, encoder);
+
         self.canvas.staging_belt.finish();
-        self.canvas.context.queue().submit(Some(self.encoder.finish()));
+        self.canvas.context.queue().submit(Some(encoder.finish()));
+    }
+
+    pub fn submit_and_present(mut self) {
+        self.submit()
     }
 }

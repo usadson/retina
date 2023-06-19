@@ -4,15 +4,15 @@
 pub(crate) const VERTICES: &[ColoredVertex] = &[
     // Top left
     ColoredVertex {
-        position: [-1.0, 1.0],
+        position: [0.0, 1.0],
     },
     // Bottom left
     ColoredVertex {
-        position: [-1.0, -1.0],
+        position: [0.0, 0.0],
     },
     // Bottom right
     ColoredVertex {
-        position: [1.0, -1.0],
+        position: [1.0, 0.0],
     },
     // Top right
     ColoredVertex {
