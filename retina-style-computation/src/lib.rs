@@ -9,6 +9,6 @@ pub(crate) mod selector_specificity;
 
 pub use collect::{CollectedStyles, StyleCollector};
 pub use cascade::Cascade;
-pub use property_map::PropertyMap;
+pub use property_map::{BorderProperties, PropertyMap};
 pub use selector_match::SelectorMatcher;
 pub use selector_specificity::SelectorSpecificity;

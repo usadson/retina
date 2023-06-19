@@ -11,7 +11,7 @@ use crate::{
     DomNode,
     LayoutBox,
     LayoutBoxDimensions,
-    LayoutBoxKind,
+    LayoutBoxKind, LayoutEdge,
 };
 
 pub struct LayoutGenerator<'stylesheets> {
@@ -48,7 +48,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             .expect("root node has no layout box generated");
 
         initial_containing_block.children.push(html_box);
-        initial_containing_block.dump();
+        // initial_containing_block.dump();
         initial_containing_block
     }
 
@@ -61,13 +61,33 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         let parent_width = parent.dimensions().width;
         let parent_height = parent.dimensions().height;
 
-        let width = self.resolve_length(font_size, parent_width, computed_style.width(), computed_style);
-        let height = self.resolve_length(font_size, parent_height, computed_style.height(), computed_style);
+        let border = LayoutEdge {
+            bottom: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.border_bottom.width, computed_style),
+            left: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.border_left.width, computed_style),
+            right: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.border_right.width, computed_style),
+            top: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.border_top.width, computed_style),
+        };
+
+        let mut width = self.resolve_length(font_size, parent_width, computed_style.width(), computed_style);
+        let mut height = self.resolve_length(font_size, parent_height, computed_style.height(), computed_style);
+
+        if let CssLength::Auto = computed_style.width() {
+            width -= border.left + border.right;
+        }
+
+        if let CssLength::Auto = computed_style.height() {
+            height -= border.left + border.right;
+        }
+
+        width.ensure_abs();
+        height.ensure_abs();
+
         // TODO
         _ = computed_style;
         LayoutBoxDimensions {
             width,
             height,
+            border,
             ..Default::default()
         }
     }
@@ -102,6 +122,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         length_value: CssLength,
         computed_style: &PropertyMap,
     ) -> CssReferencePixels {
+        _ = computed_style;
         match length_value {
             CssLength::Auto => parent_value,
             CssLength::FontSize(percentage) => font_size * percentage,

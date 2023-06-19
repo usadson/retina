@@ -21,7 +21,7 @@ use retina_style_computation::PropertyMap;
 #[derive(Clone, Debug)]
 pub struct LayoutBox {
     pub(crate) kind: LayoutBoxKind,
-    pub(crate) node: DomNode,
+    pub node: DomNode,
     pub(crate) computed_style: PropertyMap,
     pub(crate) dimensions: LayoutBoxDimensions,
     pub(crate) children: Vec<LayoutBox>,
