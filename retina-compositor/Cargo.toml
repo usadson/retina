@@ -8,5 +8,6 @@ license.workspace = true
 retina-gfx = { path = "../retina-gfx" }
 retina-layout = { path = "../retina-layout" }
 retina-style = { path = "../retina-style" }
+retina-style-computation = { path = "../retina-style-computation" }
 
 wgpu = "*"
