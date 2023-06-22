@@ -3,7 +3,7 @@
 
 use retina_common::StrTendril;
 
-#[derive(Clone, Debug, PartialEq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum FamilyName {
     Title(StrTendril),
     SansSerif,
