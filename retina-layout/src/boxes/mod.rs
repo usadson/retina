@@ -69,13 +69,18 @@ impl LayoutBox {
     pub fn kind_mut(&mut self) -> &mut LayoutBoxKind {
         &mut self.kind
     }
+
+    #[inline]
+    pub fn dump(&self) {
+        DumpableNode::dump(self);
+    }
 }
 
 impl DumpableNode for LayoutBox {
     fn dump_to(&self, depth: usize, writer: &mut dyn std::io::Write) -> Result<(), std::io::Error> {
         writeln!(
             writer,
-            "{pad:pad_width$}LayoutBox({kind:?}({display:?}), {dom:?}, {width}x{height})",
+            "{pad:pad_width$}LayoutBox({kind:?}, {display}), {dom:?}, {width}x{height} @ ({x}, {y})",
             pad = "",
             pad_width = depth * 4,
             kind = self.kind,
@@ -83,6 +88,8 @@ impl DumpableNode for LayoutBox {
             height = self.dimensions.height().value(),
             dom = self.node.to_short_dumpable(),
             display = self.computed_style.display(),
+            x = self.dimensions.position.x,
+            y = self.dimensions.position.y,
         )?;
 
         for child in &self.children {

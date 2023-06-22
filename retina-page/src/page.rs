@@ -154,6 +154,12 @@ impl Page {
                     root: Node::clone(self.document.as_ref().unwrap()),
                 });
             }
+
+            PageCommand::OpenLayoutTreeView => {
+                if let Some(layout_root) = &self.layout_root {
+                    layout_root.dump();
+                }
+            }
         }
 
         Ok(())

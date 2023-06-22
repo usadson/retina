@@ -72,8 +72,12 @@ impl WindowApplication<RetinaEvent> for Application {
     }
 
     fn on_key_press(&mut self, event: WindowKeyPressEvent) {
+        if event.key() == VirtualKeyCode::F1 {
+            _ = self.page_send_half.send_command(PageCommand::OpenLayoutTreeView);
+        }
+
         if event.key() == VirtualKeyCode::F12 {
-            self.page_send_half.send_command(PageCommand::OpenDomTreeView).unwrap();
+            _ = self.page_send_half.send_command(PageCommand::OpenDomTreeView);
         }
     }
 
