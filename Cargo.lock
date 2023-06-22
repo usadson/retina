@@ -1871,6 +1871,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "retina-gfx-font"
+version = "0.2.0"
+dependencies = [
+ "euclid",
+ "log",
+ "retina-common",
+ "wgpu",
+ "wgpu_glyph",
+]
+
+[[package]]
 name = "retina-layout"
 version = "0.2.0"
 dependencies = [

@@ -7,6 +7,7 @@ members = [
     "retina-dom",
     "retina-fetch",
     "retina-gfx",
+    "retina-gfx-font",
     "retina-layout",
     "retina-page",
     "retina-style",
