@@ -86,12 +86,9 @@ impl Compositor {
     }
 
     fn paint_background(&self, layout_box: &LayoutBox, painter: &mut CanvasPainter) {
-        let position = layout_box.dimensions().position();
+        let position = layout_box.dimensions().position_padding_box();
 
-        let width = layout_box.dimensions().width().value();
-        let height = layout_box.dimensions().height().value();
-
-        let size = Size2D::new(width, height);
+        let size = layout_box.dimensions().size_padding_box();
 
         if size.is_empty() {
             return;
@@ -109,7 +106,7 @@ impl Compositor {
     }
 
     fn paint_border(&self, layout_box: &LayoutBox, painter: &mut CanvasPainter) {
-        let position = layout_box.dimensions().position();
+        let position = layout_box.dimensions().position_border_box();
 
         self.paint_border_part(
             layout_box.computed_style().border_bottom,

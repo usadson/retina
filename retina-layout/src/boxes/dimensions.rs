@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use euclid::default::Point2D;
+use euclid::default::{Point2D, Size2D};
 use retina_style::{CssReferencePixels, CssDecimal};
 
 use super::LayoutEdge;
@@ -19,8 +19,43 @@ pub struct LayoutBoxDimensions {
 }
 
 impl LayoutBoxDimensions {
-    pub fn position(&self) -> Point2D<CssDecimal> {
+    pub fn position_border_box(&self) -> Point2D<CssDecimal> {
         self.position
+    }
+
+    pub fn position_content_box(&self) -> Point2D<CssDecimal> {
+        Point2D::new(
+            self.position.x + self.border.left.value() + self.padding.left.value(),
+            self.position.y + self.border.top.value() + self.padding.top.value(),
+        )
+    }
+
+    pub fn position_margin_box(&self) -> Point2D<CssDecimal> {
+        Point2D::new(
+            self.position.x - self.margin.left.value(),
+            self.position.y - self.margin.top.value(),
+        )
+    }
+
+    pub fn position_padding_box(&self) -> Point2D<CssDecimal> {
+        Point2D::new(
+            self.position.x + self.border.left.value(),
+            self.position.y + self.border.top.value(),
+        )
+    }
+
+    pub fn size_content_box(&self) -> Size2D<CssDecimal> {
+        Size2D::new(
+            self.width.value(),
+            self.height.value(),
+        )
+    }
+
+    pub fn size_padding_box(&self) -> Size2D<CssDecimal> {
+        Size2D::new(
+            self.padding.left.value() + self.width.value() + self.padding.right.value(),
+            self.padding.top.value() + self.height.value() + self.padding.bottom.value()
+        )
     }
 
     pub fn width(&self) -> CssReferencePixels {
