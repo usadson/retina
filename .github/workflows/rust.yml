@@ -23,10 +23,24 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Install latest rust toolchain
+    - name: Install nightly Rust toolchain
       uses: actions-rs/toolchain@v1
       with:
         toolchain: nightly
+        default: true
+        override: true
+    - name: Install beta Rust toolchain (as fallback for nightly)
+      if: ${{ failure() }}
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: beta
+        default: true
+        override: true
+    - name: Install stable Rust toolchain (as fallback for nightly and beta)
+      if: ${{ failure() }}
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
         default: true
         override: true
     - name: Build
