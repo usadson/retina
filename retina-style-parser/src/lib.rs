@@ -1,7 +1,6 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-mod color_parser;
 mod declaration_parser;
 mod error;
 mod rule_parser;
@@ -20,8 +19,7 @@ pub(self) type ParseError<'i> = cssparser::ParseError<'i, RetinaStyleParseError<
 
 use cssparser::{
     Parser,
-    ParserInput,
-    RuleListParser,
+    ParserInput, StyleSheetParser,
 };
 use log::warn;
 
@@ -30,12 +28,13 @@ use retina_style::{CascadeOrigin, Rule, Stylesheet};
 pub fn parse_stylesheet(cascade_origin: CascadeOrigin, input: &str) -> Stylesheet {
     let mut input = ParserInput::new(input);
     let mut parser = Parser::new(&mut input);
-    let mut rule_list_parser = RuleListParser::new_for_stylesheet(&mut parser, RuleParser::new(cascade_origin));
+    let mut rule_parser = RuleParser::new(cascade_origin);
+    let mut stylesheet_parser = StyleSheetParser::new(&mut parser, &mut rule_parser);
 
     let mut stylesheet = Stylesheet::new();
 
-    while !rule_list_parser.input.is_exhausted() {
-        let Some(rule) = rule_list_parser.next() else { continue };
+    while !stylesheet_parser.input.is_exhausted() {
+        let Some(rule) = stylesheet_parser.next() else { continue };
         match rule {
             Ok(rule) => {
                 if let Rule::Style(style_rule) = &rule {

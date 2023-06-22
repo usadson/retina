@@ -29,8 +29,14 @@ impl<'i> cssparser::DeclarationParser<'i> for DeclarationParser {
 
         parse_value(input).map(|value| Declaration::new(property, value))
     }
+}
 
-    fn enable_nesting(&self) -> bool {
+impl<'i> cssparser::RuleBodyItemParser<'i, Declaration, RetinaStyleParseError<'i>> for DeclarationParser {
+    fn parse_declarations(&self) -> bool {
+        true
+    }
+
+    fn parse_qualified(&self) -> bool {
         false
     }
 }

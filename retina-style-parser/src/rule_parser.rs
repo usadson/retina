@@ -2,9 +2,10 @@
 // All Rights Reserved.
 
 use cssparser::{
-    DeclarationListParser,
     Parser,
+    RuleBodyParser,
 };
+
 use log::warn;
 
 use retina_style::{
@@ -52,7 +53,8 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for RuleParser {
     ) -> Result<Self::QualifiedRule, cssparser::ParseError<'i, Self::Error>> {
         let mut declarations = Vec::new();
 
-        let mut declaration_parser = DeclarationListParser::new(input, DeclarationParser{});
+        let mut declaration_parser = DeclarationParser{};
+        let mut declaration_parser = RuleBodyParser::new(input, &mut declaration_parser);
 
         while let Some(result) = declaration_parser.next() {
             match result {
