@@ -96,15 +96,15 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         width.ensure_abs();
         height.ensure_abs();
 
-        let position = Point2D::new(
-            parent.dimensions.position.x + margin.left.value(),
-            parent.dimensions.position.y + margin.top.value()
+        let content_position = Point2D::new(
+            parent.dimensions.content_position.x + margin.left.value() + border.left.value() + padding.left.value(),
+            parent.dimensions.content_position.y + margin.top.value() + border.top.value() + padding.top.value()
         );
 
         // TODO
         _ = computed_style;
         LayoutBoxDimensions {
-            position,
+            content_position,
 
             width,
             height,

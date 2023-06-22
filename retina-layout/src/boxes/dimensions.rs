@@ -8,7 +8,7 @@ use super::LayoutEdge;
 
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct LayoutBoxDimensions {
-    pub(crate) position: Point2D<CssDecimal>,
+    pub(crate) content_position: Point2D<CssDecimal>,
 
     pub(crate) width: CssReferencePixels,
     pub(crate) height: CssReferencePixels,
@@ -20,27 +20,27 @@ pub struct LayoutBoxDimensions {
 
 impl LayoutBoxDimensions {
     pub fn position_border_box(&self) -> Point2D<CssDecimal> {
-        self.position
+        Point2D::new(
+            self.content_position.x - self.border.left.value() - self.padding.left.value(),
+            self.content_position.y - self.border.top.value() - self.padding.top.value(),
+        )
     }
 
     pub fn position_content_box(&self) -> Point2D<CssDecimal> {
-        Point2D::new(
-            self.position.x + self.border.left.value() + self.padding.left.value(),
-            self.position.y + self.border.top.value() + self.padding.top.value(),
-        )
+        self.content_position
     }
 
     pub fn position_margin_box(&self) -> Point2D<CssDecimal> {
         Point2D::new(
-            self.position.x - self.margin.left.value(),
-            self.position.y - self.margin.top.value(),
+            self.content_position.x - self.border.left.value() - self.padding.left.value() - self.margin.left.value(),
+            self.content_position.y - self.border.top.value() - self.padding.top.value() - self.margin.top.value(),
         )
     }
 
     pub fn position_padding_box(&self) -> Point2D<CssDecimal> {
         Point2D::new(
-            self.position.x + self.border.left.value(),
-            self.position.y + self.border.top.value(),
+            self.content_position.x - self.border.left.value(),
+            self.content_position.y - self.border.top.value(),
         )
     }
 

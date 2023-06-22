@@ -88,8 +88,8 @@ impl DumpableNode for LayoutBox {
             height = self.dimensions.height().value(),
             dom = self.node.to_short_dumpable(),
             display = self.computed_style.display(),
-            x = self.dimensions.position.x,
-            y = self.dimensions.position.y,
+            x = self.dimensions.position_padding_box().x,
+            y = self.dimensions.position_padding_box().y,
         )?;
 
         for child in &self.children {
