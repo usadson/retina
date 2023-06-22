@@ -24,6 +24,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install nightly Rust toolchain
+      continue-on-error: true
       uses: actions-rs/toolchain@v1
       with:
         toolchain: nightly
@@ -31,6 +32,7 @@ jobs:
         override: true
     - name: Install beta Rust toolchain (as fallback for nightly)
       if: ${{ failure() }}
+      continue-on-error: true
       uses: actions-rs/toolchain@v1
       with:
         toolchain: beta
