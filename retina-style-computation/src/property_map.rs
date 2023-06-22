@@ -374,6 +374,22 @@ impl PropertyMap {
             is_list_item: false
         })
     }
+
+    pub fn margin_bottom(&self) -> CssLength {
+        self.margin_bottom.unwrap_or(CssLength::Pixels(0.0))
+    }
+
+    pub fn margin_left(&self) -> CssLength {
+        self.margin_left.unwrap_or(CssLength::Pixels(0.0))
+    }
+
+    pub fn margin_right(&self) -> CssLength {
+        self.margin_right.unwrap_or(CssLength::Pixels(0.0))
+    }
+
+    pub fn margin_top(&self) -> CssLength {
+        self.margin_top.unwrap_or(CssLength::Pixels(0.0))
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]

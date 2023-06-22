@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_gfx::{canvas::CanvasPainter, euclid::{Rect, Point2D, Size2D}};
+use retina_gfx::{canvas::CanvasPainter, euclid::{Rect, Point2D, Size2D, UnknownUnit}};
 use retina_layout::LayoutBox;
 use retina_style::{CssColor, CssDecimal, CssLineStyle};
 use retina_style_computation::BorderProperties;
@@ -18,9 +18,9 @@ impl Compositor {
 
     fn calculate_border_rect_bottom(
         &self,
-        mut position: Point2D<CssDecimal, CssDecimal>,
+        mut position: Point2D<CssDecimal, UnknownUnit>,
         layout_box: &LayoutBox,
-    ) -> Rect<CssDecimal, CssDecimal> {
+    ) -> Rect<CssDecimal, UnknownUnit> {
         position.y += layout_box.dimensions().height().value() + layout_box.dimensions().border().top().value();
         let size = Size2D::new(
             layout_box.dimensions().border().left().value()
@@ -33,9 +33,9 @@ impl Compositor {
 
     fn calculate_border_rect_left(
         &self,
-        position: Point2D<CssDecimal, CssDecimal>,
+        position: Point2D<CssDecimal, UnknownUnit>,
         layout_box: &LayoutBox,
-    ) -> Rect<CssDecimal, CssDecimal> {
+    ) -> Rect<CssDecimal, UnknownUnit> {
         let size = Size2D::new(
             layout_box.dimensions().border().left().value(),
             layout_box.dimensions().border().top().value()
@@ -47,9 +47,9 @@ impl Compositor {
 
     fn calculate_border_rect_right(
         &self,
-        mut position: Point2D<CssDecimal, CssDecimal>,
+        mut position: Point2D<CssDecimal, UnknownUnit>,
         layout_box: &LayoutBox,
-    ) -> Rect<CssDecimal, CssDecimal> {
+    ) -> Rect<CssDecimal, UnknownUnit> {
         position.x += layout_box.dimensions().width().value() + layout_box.dimensions().border().left().value();
         let size = Size2D::new(
             layout_box.dimensions().border().right().value(),
@@ -62,9 +62,9 @@ impl Compositor {
 
     fn calculate_border_rect_top(
         &self,
-        position: Point2D<CssDecimal, CssDecimal>,
+        position: Point2D<CssDecimal, UnknownUnit>,
         layout_box: &LayoutBox,
-    ) -> Rect<CssDecimal, CssDecimal> {
+    ) -> Rect<CssDecimal, UnknownUnit> {
         let size = Size2D::new(
             layout_box.dimensions().border().left().value()
                 + layout_box.dimensions().width().value()
@@ -86,10 +86,7 @@ impl Compositor {
     }
 
     fn paint_background(&self, layout_box: &LayoutBox, painter: &mut CanvasPainter) {
-        let position = Point2D::new(
-            layout_box.dimensions().border().left().value(),
-            layout_box.dimensions().border().top().value(),
-        );
+        let position = layout_box.dimensions().position();
 
         let width = layout_box.dimensions().width().value();
         let height = layout_box.dimensions().height().value();
@@ -112,10 +109,7 @@ impl Compositor {
     }
 
     fn paint_border(&self, layout_box: &LayoutBox, painter: &mut CanvasPainter) {
-        let position = Point2D::new(
-            0.0,
-            0.0
-        );
+        let position = layout_box.dimensions().position();
 
         self.paint_border_part(
             layout_box.computed_style().border_bottom,
@@ -145,7 +139,7 @@ impl Compositor {
     fn paint_border_part(
         &self,
         border: BorderProperties,
-        rect: Rect<CssDecimal, CssDecimal>,
+        rect: Rect<CssDecimal, UnknownUnit>,
         painter: &mut CanvasPainter,
     ) {
         let CssLineStyle::Solid = border.style else {

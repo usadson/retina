@@ -1,8 +1,8 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use euclid::default::Point2D;
 use log::warn;
-use retina_common::DumpableNode;
 use retina_dom::Node;
 use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength, CssDisplayBox};
 use retina_style_computation::{PropertyMap, StyleCollector, Cascade};
@@ -61,6 +61,13 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         let parent_width = parent.dimensions().width;
         let parent_height = parent.dimensions().height;
 
+        let margin = LayoutEdge {
+            bottom: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.margin_bottom(), computed_style),
+            left: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.margin_left(), computed_style),
+            right: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.margin_right(), computed_style),
+            top: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.margin_top(), computed_style),
+        };
+
         let border = LayoutEdge {
             bottom: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.border_bottom.width, computed_style),
             left: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.border_left.width, computed_style),
@@ -72,22 +79,29 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         let mut height = self.resolve_length(font_size, parent_height, computed_style.height(), computed_style);
 
         if let CssLength::Auto = computed_style.width() {
-            width -= border.left + border.right;
+            width -= margin.left + border.left + border.right + margin.right;
         }
 
         if let CssLength::Auto = computed_style.height() {
-            height -= border.left + border.right;
+            height -= margin.top + border.top + border.bottom + margin.bottom;
         }
 
         width.ensure_abs();
         height.ensure_abs();
 
+        let position = Point2D::new(
+            parent.dimensions.position.x + margin.left.value(),
+            parent.dimensions.position.y + margin.top.value()
+        );
+
         // TODO
         _ = computed_style;
         LayoutBoxDimensions {
+            position,
             width,
             height,
             border,
+            margin,
             ..Default::default()
         }
     }

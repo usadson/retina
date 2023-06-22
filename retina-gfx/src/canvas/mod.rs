@@ -171,7 +171,7 @@ impl<'canvas> CanvasPainter<'canvas> {
         );
     }
 
-    pub fn paint_rect_colored(&mut self, rect: euclid::Rect<f64, f64>, color: Color) {
+    pub fn paint_rect_colored<Unit>(&mut self, rect: euclid::Rect<f64, Unit>, color: Color) {
         let model = Transform3D::identity()
             .then_scale(rect.size.width as f32, rect.size.height as f32, 1.0)
             .then_translate(Vector3D::new(rect.origin.x as f32, self.canvas_height - rect.size.height as f32 - rect.origin.y as f32, 0.0));

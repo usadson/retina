@@ -1,12 +1,15 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_style::CssReferencePixels;
+use euclid::default::Point2D;
+use retina_style::{CssReferencePixels, CssDecimal};
 
 use super::LayoutEdge;
 
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct LayoutBoxDimensions {
+    pub(crate) position: Point2D<CssDecimal>,
+
     pub(crate) width: CssReferencePixels,
     pub(crate) height: CssReferencePixels,
 
@@ -16,6 +19,10 @@ pub struct LayoutBoxDimensions {
 }
 
 impl LayoutBoxDimensions {
+    pub fn position(&self) -> Point2D<CssDecimal> {
+        self.position
+    }
+
     pub fn width(&self) -> CssReferencePixels {
         self.width
     }
