@@ -79,6 +79,11 @@ pub struct PropertyMap {
     pub border_right: BorderProperties,
     pub border_top: BorderProperties,
 
+    pub margin_bottom: Option<CssLength>,
+    pub margin_left: Option<CssLength>,
+    pub margin_right: Option<CssLength>,
+    pub margin_top: Option<CssLength>,
+
     pub color: Option<CssColor>,
     pub display: Option<CssDisplay>,
     pub font_size: Option<CssLength>,
@@ -279,6 +284,47 @@ impl PropertyMap {
 
             Property::Height => if let Value::Length(length) = value {
                 self.height = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::Margin => {
+                match value.into_length_percentage_longhand() {
+                    Some((bottom, left, right, top)) => {
+                        self.margin_bottom = Some(bottom);
+                        self.margin_left = Some(left);
+                        self.margin_right = Some(right);
+                        self.margin_bottom = Some(top);
+                        PropertyMapDidApply::Yes
+                    }
+                    _ => PropertyMapDidApply::NoBecauseOfAnInvalidValue,
+                }
+            }
+
+            Property::MarginBottom => if let Value::Length(length) = value {
+                self.margin_bottom = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::MarginLeft => if let Value::Length(length) = value {
+                self.margin_left = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::MarginRight => if let Value::Length(length) = value {
+                self.margin_right = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::MarginTop => if let Value::Length(length) = value {
+                self.margin_top = Some(length);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue

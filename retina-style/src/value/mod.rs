@@ -35,6 +35,26 @@ pub enum Value {
     WhiteSpace(CssWhiteSpace),
 }
 
+impl Value {
+    pub fn into_length_percentage_longhand(self) -> Option<(CssLength, CssLength, CssLength, CssLength)> {
+        match self {
+            Self::ComponentList(ValueComponentList::TwoLengths([vertical, horizontal])) =>
+                Some((vertical, horizontal, horizontal, vertical)),
+
+            Self::ComponentList(ValueComponentList::ThreeLengths([top, horizontal, bottom])) =>
+                Some((bottom, horizontal, horizontal, top)),
+
+            Self::ComponentList(ValueComponentList::FourLengths([top, right, bottom, left])) =>
+                Some((bottom, left, right, top)),
+
+            Self::Length(length) =>
+                Some((length, length, length, length)),
+
+            _ => None
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ValueComponentList {
     TwoColors([CssColor; 2]),

@@ -45,6 +45,13 @@ pub enum Property {
     FontSize,
 
     Height,
+
+    Margin,
+    MarginBottom,
+    MarginLeft,
+    MarginRight,
+    MarginTop,
+
     Width,
     WhiteSpace,
 }
