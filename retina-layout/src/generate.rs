@@ -75,6 +75,13 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             top: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.border_top.width, computed_style),
         };
 
+        let padding = LayoutEdge {
+            bottom: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.padding_bottom(), computed_style),
+            left: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.padding_left(), computed_style),
+            right: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.padding_right(), computed_style),
+            top: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.padding_top(), computed_style),
+        };
+
         let mut width = self.resolve_length(font_size, parent_width, computed_style.width(), computed_style);
         let mut height = self.resolve_length(font_size, parent_height, computed_style.height(), computed_style);
 
@@ -98,11 +105,13 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         _ = computed_style;
         LayoutBoxDimensions {
             position,
+
             width,
             height,
-            border,
+
             margin,
-            ..Default::default()
+            border,
+            padding,
         }
     }
 
