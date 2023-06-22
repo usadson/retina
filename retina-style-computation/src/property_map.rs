@@ -84,6 +84,11 @@ pub struct PropertyMap {
     pub margin_right: Option<CssLength>,
     pub margin_top: Option<CssLength>,
 
+    pub padding_bottom: Option<CssLength>,
+    pub padding_left: Option<CssLength>,
+    pub padding_right: Option<CssLength>,
+    pub padding_top: Option<CssLength>,
+
     pub color: Option<CssColor>,
     pub display: Option<CssDisplay>,
     pub font_size: Option<CssLength>,
@@ -330,6 +335,47 @@ impl PropertyMap {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue
             }
 
+            Property::Padding => {
+                match value.into_length_percentage_longhand() {
+                    Some((bottom, left, right, top)) => {
+                        self.padding_bottom = Some(bottom);
+                        self.padding_left = Some(left);
+                        self.padding_right = Some(right);
+                        self.padding_top = Some(top);
+                        PropertyMapDidApply::Yes
+                    }
+                    _ => PropertyMapDidApply::NoBecauseOfAnInvalidValue,
+                }
+            }
+
+            Property::PaddingBottom => if let Value::Length(length) = value {
+                self.padding_bottom = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::PaddingLeft => if let Value::Length(length) = value {
+                self.padding_left = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::PaddingRight => if let Value::Length(length) = value {
+                self.padding_right = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::PaddingTop => if let Value::Length(length) = value {
+                self.padding_top = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
             Property::Width => if let Value::Length(length) = value {
                 self.width = Some(length);
                 PropertyMapDidApply::Yes
@@ -389,6 +435,22 @@ impl PropertyMap {
 
     pub fn margin_top(&self) -> CssLength {
         self.margin_top.unwrap_or(CssLength::Pixels(0.0))
+    }
+
+    pub fn padding_bottom(&self) -> CssLength {
+        self.padding_bottom.unwrap_or(CssLength::Pixels(0.0))
+    }
+
+    pub fn padding_left(&self) -> CssLength {
+        self.padding_left.unwrap_or(CssLength::Pixels(0.0))
+    }
+
+    pub fn padding_right(&self) -> CssLength {
+        self.padding_right.unwrap_or(CssLength::Pixels(0.0))
+    }
+
+    pub fn padding_top(&self) -> CssLength {
+        self.padding_top.unwrap_or(CssLength::Pixels(0.0))
     }
 }
 

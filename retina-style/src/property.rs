@@ -52,6 +52,12 @@ pub enum Property {
     MarginRight,
     MarginTop,
 
+    Padding,
+    PaddingBottom,
+    PaddingLeft,
+    PaddingRight,
+    PaddingTop,
+
     Width,
     WhiteSpace,
 }
