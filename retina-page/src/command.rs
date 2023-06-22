@@ -13,4 +13,6 @@ pub enum PageCommand {
     OpenDomTreeView,
 
     OpenLayoutTreeView,
+
+    Reload,
 }

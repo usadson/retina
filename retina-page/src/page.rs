@@ -46,19 +46,9 @@ impl Page {
             progress: PageProgress::Initial,
         })?;
 
-        info!("Loading page: {:?}", self.url);
         self.title = self.url.to_string();
 
-        self.load_page().await?;
-        self.load_stylesheets_in_background();
-        self.find_title();
-
-        self.parse_stylesheets().await?;
-        info!("Stylesheets: {:#?}", self.style_sheets.as_ref().unwrap());
-
-        self.generate_layout_tree().await?;
-
-        self.paint()?;
+        self.load().await?;
 
         self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
 
@@ -160,7 +150,25 @@ impl Page {
                     layout_root.dump();
                 }
             }
+
+            PageCommand::Reload => self.load().await?,
         }
+
+        Ok(())
+    }
+
+    pub(crate) async fn load(&mut self) -> Result<(), ErrorKind> {
+        info!("Loading page: {:?}", self.url);
+        self.load_page().await?;
+        self.load_stylesheets_in_background();
+        self.find_title();
+
+        self.parse_stylesheets().await?;
+        info!("Stylesheets: {:#?}", self.style_sheets.as_ref().unwrap());
+
+        self.generate_layout_tree().await?;
+
+        self.paint()?;
 
         Ok(())
     }

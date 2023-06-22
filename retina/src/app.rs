@@ -76,6 +76,10 @@ impl WindowApplication<RetinaEvent> for Application {
             _ = self.page_send_half.send_command(PageCommand::OpenLayoutTreeView);
         }
 
+        if event.key() == VirtualKeyCode::F5 {
+            _ = self.page_send_half.send_command(PageCommand::Reload);
+        }
+
         if event.key() == VirtualKeyCode::F12 {
             _ = self.page_send_half.send_command(PageCommand::OpenDomTreeView);
         }
