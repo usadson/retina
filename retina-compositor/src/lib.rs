@@ -21,10 +21,15 @@ impl Compositor {
         mut position: Point2D<CssDecimal, UnknownUnit>,
         layout_box: &LayoutBox,
     ) -> Rect<CssDecimal, UnknownUnit> {
-        position.y += layout_box.dimensions().height().value() + layout_box.dimensions().border().top().value();
+        position.y += layout_box.dimensions().border().top().value();
+        position.y += layout_box.dimensions().padding().top().value();
+        position.y += layout_box.dimensions().height().value();
+        position.y += layout_box.dimensions().padding().bottom().value();
         let size = Size2D::new(
             layout_box.dimensions().border().left().value()
+                + layout_box.dimensions().padding().left().value()
                 + layout_box.dimensions().width().value()
+                + layout_box.dimensions().padding().right().value()
                 + layout_box.dimensions().border().right().value(),
             layout_box.dimensions().border().bottom().value(),
         );
@@ -39,7 +44,9 @@ impl Compositor {
         let size = Size2D::new(
             layout_box.dimensions().border().left().value(),
             layout_box.dimensions().border().top().value()
+                + layout_box.dimensions().padding().top().value()
                 + layout_box.dimensions().height().value()
+                + layout_box.dimensions().padding().bottom().value()
                 + layout_box.dimensions().border().bottom().value(),
         );
         Rect::new(position, size)
@@ -50,11 +57,16 @@ impl Compositor {
         mut position: Point2D<CssDecimal, UnknownUnit>,
         layout_box: &LayoutBox,
     ) -> Rect<CssDecimal, UnknownUnit> {
-        position.x += layout_box.dimensions().width().value() + layout_box.dimensions().border().left().value();
+        position.x += layout_box.dimensions().border().left().value();
+        position.x += layout_box.dimensions().padding().left().value();
+        position.x += layout_box.dimensions().width().value();
+        position.x += layout_box.dimensions().padding().right().value();
         let size = Size2D::new(
             layout_box.dimensions().border().right().value(),
             layout_box.dimensions().border().top().value()
+                + layout_box.dimensions().padding().top().value()
                 + layout_box.dimensions().height().value()
+                + layout_box.dimensions().padding().bottom().value()
                 + layout_box.dimensions().border().bottom().value(),
         );
         Rect::new(position, size)
@@ -67,7 +79,9 @@ impl Compositor {
     ) -> Rect<CssDecimal, UnknownUnit> {
         let size = Size2D::new(
             layout_box.dimensions().border().left().value()
+                + layout_box.dimensions().padding().left().value()
                 + layout_box.dimensions().width().value()
+                + layout_box.dimensions().padding().right().value()
                 + layout_box.dimensions().border().right().value(),
             layout_box.dimensions().border().top().value(),
         );
