@@ -295,7 +295,7 @@ impl PropertyMap {
                         self.margin_bottom = Some(bottom);
                         self.margin_left = Some(left);
                         self.margin_right = Some(right);
-                        self.margin_bottom = Some(top);
+                        self.margin_top = Some(top);
                         PropertyMapDidApply::Yes
                     }
                     _ => PropertyMapDidApply::NoBecauseOfAnInvalidValue,
