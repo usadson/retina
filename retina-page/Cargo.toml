@@ -10,6 +10,7 @@ retina-debug = { path = "../retina-debug" }
 retina-dom = { path = "../retina-dom" }
 retina-fetch = { path = "../retina-fetch" }
 retina-gfx = { path = "../retina-gfx" }
+retina-gfx-font = { path = "../retina-gfx-font" }
 retina-layout = { path = "../retina-layout" }
 retina-scrittura = { path = "../retina-scrittura" }
 retina-style = { path = "../retina-style" }

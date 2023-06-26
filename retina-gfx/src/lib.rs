@@ -3,12 +3,9 @@
 
 pub mod canvas;
 pub mod context;
-pub mod glyph_brush;
 pub mod paint;
 pub mod vertex;
 pub mod window;
-
-pub(crate) use glyph_brush::GlyphBrush;
 
 pub(crate) type GfxResult<T> = Result<T, Box<dyn std::error::Error>>;
 

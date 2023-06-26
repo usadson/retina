@@ -6,7 +6,8 @@ license.workspace = true
 
 [dependencies]
 retina-common = { path = "../retina-common" }
-
+retina-gfx = { path = "../retina-gfx" }
+font-kit = "*"
 euclid = "*"
 log = "*"
 wgpu = "*"

@@ -35,16 +35,16 @@ impl Context {
         }
     }
 
-    pub(crate) fn device(&self) -> &wgpu::Device {
+    pub fn device(&self) -> &wgpu::Device {
         &self.data.as_ref().device
     }
 
     #[allow(dead_code)]
-    pub(crate) fn instance(&self) -> &wgpu::Instance {
+    pub fn instance(&self) -> &wgpu::Instance {
         &self.data.as_ref().instance
     }
 
-    pub(crate) fn queue(&self) -> &wgpu::Queue {
+    pub fn queue(&self) -> &wgpu::Queue {
         &self.data.as_ref().queue
     }
 }

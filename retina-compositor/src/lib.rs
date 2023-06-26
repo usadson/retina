@@ -185,7 +185,15 @@ impl Compositor {
                     return;
                 }
 
-                painter.paint_text(text, color, position, size);
+                let mut brush = layout_box.font().brush();
+
+                painter.paint_text(
+                    &mut brush,
+                    text,
+                    color,
+                    position,
+                    size,
+                );
             }
         }
     }

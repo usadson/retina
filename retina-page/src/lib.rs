@@ -13,12 +13,14 @@ pub use message::{PageMessage, PageProgress};
 use page::Page;
 use retina_compositor::Compositor;
 use retina_gfx::{canvas::CanvasPaintingContext, euclid::Size2D};
+use retina_gfx_font::FontProvider;
 
 use std::{sync::{mpsc::{channel, sync_channel}, Arc}, time::Duration};
 use url::Url;
 
 pub fn spawn(
     url: Url,
+    font_provider: FontProvider,
     graphics_context: retina_gfx::Context,
     canvas_size: Size2D<u32, u32>,
 ) -> PageHandle {
@@ -60,6 +62,7 @@ pub fn spawn(
                 layout_root: None,
 
                 canvas,
+                font_provider,
                 compositor: Compositor::new(),
                 fetch: retina_fetch::Fetch::new(),
                 page_task_message_sender,

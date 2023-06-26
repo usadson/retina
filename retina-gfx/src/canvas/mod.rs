@@ -6,18 +6,19 @@
 //! definition of a CSS canvas, where the canvas is just the area where there
 //! can be painted to, for example the viewport of a page.
 
-use std::{collections::HashMap, num::NonZeroU64};
+use std::num::NonZeroU64;
 
 use euclid::default::{Transform3D, Vector3D};
 use retina_common::Color;
 use wgpu::Extent3d;
 
-use crate::{glyph_brush::GlyphBrush, Context, paint::color_paint::ColorPaint};
+use crate::{
+    Context,
+    paint::color_paint::ColorPaint,
+};
 
 pub struct CanvasPaintingContext {
     pub(crate) context: Context,
-
-    pub(crate) fonts: HashMap<String, GlyphBrush>,
 
     pub(crate) staging_belt: wgpu::util::StagingBelt,
     pub(crate) render_format: wgpu::TextureFormat,
@@ -56,16 +57,12 @@ impl CanvasPaintingContext {
             ..Default::default()
         });
 
-        let mut fonts = HashMap::new();
-        fonts.insert("Noto Serif".into(), GlyphBrush::new_noto_serif(context.device(), render_format).unwrap());
-
         let staging_belt = wgpu::util::StagingBelt::new(1024);
 
         Self {
             context,
 
             size,
-            fonts,
 
             render_format,
             surface: render_texture,
@@ -240,19 +237,18 @@ impl<'canvas> CanvasPainter<'canvas> {
         self.submit();
     }
 
-    pub fn paint_text<PositionUnit, Size>(
+    pub fn paint_text<PositionUnit, Size, FontType>(
         &mut self,
+        glyph_brush: &mut wgpu_glyph::GlyphBrush<(), FontType>,
         text: &str,
         color: Color,
         position: euclid::Point2D<f32, PositionUnit>,
-        size: Size
+        size: Size,
     )
-            where Size: Into<f32> {
-        let glyph_brush = self.canvas.fonts.iter_mut().next().unwrap().1;
-
+            where Size: Into<f32>, FontType: Sync + wgpu_glyph::ab_glyph::Font {
         let color = [0.0, color.green() as f32, color.red() as f32, color.alpha() as f32];
 
-        glyph_brush.inner.queue(wgpu_glyph::Section {
+        glyph_brush.queue(wgpu_glyph::Section {
             screen_position: (position.x, position.y),
             bounds: (self.canvas.size.width as f32, self.canvas.size.height as f32),
             text: vec![wgpu_glyph::Text::new(text)
@@ -261,7 +257,7 @@ impl<'canvas> CanvasPainter<'canvas> {
             ..Default::default()
         });
 
-        glyph_brush.inner
+        glyph_brush
             .draw_queued(
                 self.canvas.context.device(),
                 &mut self.canvas.staging_belt,

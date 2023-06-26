@@ -8,6 +8,7 @@ use retina_compositor::Compositor;
 use retina_dom::{HtmlElementKind, LinkType, Node, event::queue::EventQueue};
 use retina_fetch::{Fetch, Request};
 use retina_gfx::{canvas::CanvasPaintingContext, Color};
+use retina_gfx_font::FontProvider;
 use retina_layout::{LayoutBox, LayoutGenerator};
 use retina_scrittura::BrowsingContext;
 use retina_style::{Stylesheet, CascadeOrigin, CssReferencePixels};
@@ -28,6 +29,7 @@ pub(crate) struct Page {
     pub(crate) layout_root: Option<LayoutBox>,
 
     pub(crate) canvas: CanvasPaintingContext,
+    pub(crate) font_provider: FontProvider,
     pub(crate) compositor: Compositor,
     pub(crate) fetch: Fetch,
     pub(crate) page_task_message_sender: AsyncSender<PageTaskMessage>,
@@ -121,6 +123,7 @@ impl Page {
                 &self.style_sheets.as_ref().unwrap(),
                 CssReferencePixels::new(self.canvas.size().width as _),
                 CssReferencePixels::new(self.canvas.size().height as _),
+                self.font_provider.clone(),
             )
         );
 

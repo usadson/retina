@@ -3,7 +3,10 @@
 
 use winit::dpi::LogicalSize;
 
-use crate::{GlyphBrush, WindowApplication, Context};
+use crate::{
+    Context,
+    WindowApplication,
+};
 
 use super::{
     GfxResult,
@@ -16,8 +19,6 @@ pub struct WindowPainter {
     pub(crate) surface: wgpu::Surface,
 
     pub(crate) swap_chain: WindowSwapChain,
-
-    pub(crate) glyph_brush: GlyphBrush,
 }
 
 impl WindowPainter {
@@ -48,15 +49,12 @@ impl WindowPainter {
         let context = Context::new(instance, device, queue);
 
         let swap_chain = WindowSwapChain::new(context.clone(), &surface, window.inner_size().to_logical(1.0))?;
-        let glyph_brush = GlyphBrush::new_noto_serif(context.device(), swap_chain.render_format)?;
 
         Ok(Self {
             context,
             surface,
 
             swap_chain,
-
-            glyph_brush,
         })
     }
 
@@ -89,8 +87,6 @@ impl WindowPainter {
         render_pass.clear();
 
         app.on_paint(&mut render_pass);
-
-        render_pass.paint_debug();
 
         render_pass.submit();
         surface_texture.present();

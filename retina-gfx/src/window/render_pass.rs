@@ -3,7 +3,6 @@
 
 use euclid::Rect;
 use wgpu::util::DeviceExt;
-use wgpu_glyph::{Section, Text};
 
 use crate::vertex::textured_vertex;
 
@@ -123,40 +122,6 @@ impl<'painter> WindowRenderPass<'painter> {
         render_pass.set_vertex_buffer(0, self.texture_paint.vertex_buffer.slice(..));
         render_pass.set_index_buffer(self.texture_paint.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
         render_pass.draw_indexed(0..self.texture_paint.num_indices, 0, 0..1);
-    }
-
-    /// A debug method for painting stuff.
-    pub(crate) fn paint_debug(&mut self) {
-        let size: winit::dpi::LogicalSize<u32> = self.painter.swap_chain.size;
-
-        self.painter.glyph_brush.inner.queue(Section {
-            screen_position: (30.0, 30.0),
-            bounds: (size.width as f32, size.height as f32),
-            text: vec![Text::new("Hello wgpu_glyph!")
-                .with_color([1.0, 0.0, 0.0, 1.0])
-                .with_scale(40.0)],
-            ..Section::default()
-        });
-
-        self.painter.glyph_brush.inner.queue(Section {
-            screen_position: (30.0, 90.0),
-            bounds: (size.width as f32, size.height as f32),
-            text: vec![Text::new("Hello wgpu_glyph!")
-                .with_color([1.0, 1.0, 1.0, 1.0])
-                .with_scale(40.0)],
-            ..Section::default()
-        });
-
-        self.painter.glyph_brush.inner
-            .draw_queued(
-                self.painter.context.device(),
-                &mut self.painter.swap_chain.staging_belt,
-                &mut self.encoder,
-                &self.surface_texture_view,
-                size.width,
-                size.height,
-            )
-            .expect("Draw queued");
     }
 
     /// Submit the enqueued commands and present to the surface.

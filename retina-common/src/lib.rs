@@ -3,10 +3,12 @@
 
 mod color;
 mod dumpable;
+mod time;
 mod transparent_wrapper;
 
 pub use color::Color;
 pub use dumpable::DumpableNode;
+pub use time::LoadTime;
 pub use transparent_wrapper::TransparentWrapper;
 
 /// An atomic UTF-8 string tendril (shared buffer string).

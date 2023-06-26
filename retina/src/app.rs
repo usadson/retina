@@ -7,6 +7,7 @@ use retina_gfx::{
     WindowApplication,
     WindowRenderPass, window::Window, WindowEventProxy, WindowKeyPressEvent, VirtualKeyCode,
 };
+use retina_gfx_font::FontProvider;
 use retina_page::*;
 use url::Url;
 
@@ -28,7 +29,15 @@ impl Application {
 
         window.set_title(&format!("{} — Retina", url.as_str()));
 
-        let page_handle = retina_page::spawn(url, window.context(), window.size());
+        let font_provider = FontProvider::new(window.context());
+        font_provider.load_defaults();
+
+        let page_handle = retina_page::spawn(
+            url,
+            font_provider,
+            window.context(),
+            window.size(),
+        );
         let (page_send_half, page_receive_half) = page_handle.split();
 
         spawn_page_event_forward_proxy(page_receive_half, window.create_proxy());

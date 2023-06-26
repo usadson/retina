@@ -6,6 +6,7 @@ license.workspace = true
 
 [dependencies]
 retina-gfx = { path = "../retina-gfx" }
+retina-gfx-font = { path = "../retina-gfx-font" }
 retina-page = { path = "../retina-page" }
 
 env_logger = "*"

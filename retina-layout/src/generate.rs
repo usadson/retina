@@ -4,6 +4,7 @@
 use euclid::default::Point2D;
 use log::warn;
 use retina_dom::Node;
+use retina_gfx_font::{FontProvider, FontDescriptor, FontWeight, FontHandle};
 use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength, CssDisplayBox};
 use retina_style_computation::{PropertyMap, StyleCollector, Cascade};
 
@@ -18,6 +19,7 @@ pub struct LayoutGenerator<'stylesheets> {
     stylesheets: &'stylesheets [Stylesheet],
     viewport_width: CssReferencePixels,
     viewport_height: CssReferencePixels,
+    font_provider: FontProvider,
 }
 
 impl<'stylesheets> LayoutGenerator<'stylesheets> {
@@ -27,11 +29,13 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         stylesheets: &'stylesheets [Stylesheet],
         viewport_width: CssReferencePixels,
         viewport_height: CssReferencePixels,
+        font_provider: FontProvider,
     ) -> LayoutBox {
         let instance = Self {
             stylesheets,
             viewport_width,
             viewport_height,
+            font_provider,
         };
 
         let html_element = Node::clone(
@@ -138,6 +142,16 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         self.calculate_dimensions_for_block_flow(computed_style, parent, font_size)
     }
 
+    fn resolve_font(
+        &self,
+        node: &DomNode,
+        parent: &LayoutBox
+    ) -> FontHandle {
+        _ = node;
+        // TODO
+        parent.font.clone()
+    }
+
     fn resolve_length(
         &self,
         font_size: CssReferencePixels,
@@ -176,20 +190,20 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         parent: &LayoutBox,
     ) -> Option<LayoutBox> {
         let computed_style = self.resolve_style(&node, Some(parent));
+        let font = self.resolve_font(&node, parent);
         let font_size = self.resolve_length(parent.font_size, parent.font_size, computed_style.font_size(), &computed_style);
 
         if node.is_text() {
-            // TODO
-            let dimensions = Default::default();
+            let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent, font_size);
 
             let parent_display = parent.computed_style().display();
             return match parent_display {
                 CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => Some(
-                    LayoutBox::new(LayoutBoxKind::AnonymousBlock, node, computed_style, dimensions, font_size)
+                    LayoutBox::new(LayoutBoxKind::AnonymousBlock, node, computed_style, dimensions, font, font_size)
                 ),
 
                 CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => Some(
-                    LayoutBox::new(LayoutBoxKind::AnonymousInline, node, computed_style, dimensions, font_size)
+                    LayoutBox::new(LayoutBoxKind::AnonymousInline, node, computed_style, dimensions, font, font_size)
                 ),
 
                 _ => {
@@ -205,12 +219,12 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             // `display: inline`
             CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => {
                 let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent, font_size);
-                LayoutBox::new(LayoutBoxKind::Inline, node, computed_style, dimensions, font_size)
+                LayoutBox::new(LayoutBoxKind::Inline, node, computed_style, dimensions, font, font_size)
             }
 
             CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => {
                 let dimensions = self.calculate_dimensions_for_block_flow(&computed_style, parent, font_size);
-                LayoutBox::new(LayoutBoxKind::Block, node, computed_style, dimensions, font_size)
+                LayoutBox::new(LayoutBoxKind::Block, node, computed_style, dimensions, font, font_size)
             }
 
             _ => {
@@ -245,6 +259,11 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
 
         let default_reference_pixels = CssReferencePixels::new(16.0);
 
+        let font = self.font_provider.get(FontDescriptor {
+            name: retina_gfx_font::FamilyName::SansSerif,
+            weight: FontWeight::REGULAR,
+        }).expect("failed to load sans-serif font");
+
         let font_size = self.resolve_length(default_reference_pixels, default_reference_pixels, computed_style.font_size(), &computed_style);
 
         LayoutBox::new(
@@ -252,6 +271,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             root,
             computed_style,
             self.calculate_dimensions_for_initial_containing_block(),
+            font,
             font_size
         )
     }
