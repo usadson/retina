@@ -63,6 +63,8 @@ pub fn spawn(
                 compositor: Compositor::new(),
                 fetch: retina_fetch::Fetch::new(),
                 page_task_message_sender,
+                browsing_context: None,
+                event_queue: None,
             };
 
             page.start(command_receiver, page_task_message_receiver).await.unwrap()

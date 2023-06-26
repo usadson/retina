@@ -2598,6 +2598,7 @@ dependencies = [
  "retina-fetch",
  "retina-gfx",
  "retina-layout",
+ "retina-scrittura",
  "retina-style",
  "retina-style-parser",
  "retina-user-agent",

@@ -5,10 +5,11 @@ use std::sync::{mpsc::{Receiver as SyncReceiver, SyncSender}, Arc};
 
 use log::{error, info, warn};
 use retina_compositor::Compositor;
-use retina_dom::{HtmlElementKind, LinkType, Node};
+use retina_dom::{HtmlElementKind, LinkType, Node, event::queue::EventQueue};
 use retina_fetch::{Fetch, Request};
 use retina_gfx::{canvas::CanvasPaintingContext, Color};
 use retina_layout::{LayoutBox, LayoutGenerator};
+use retina_scrittura::BrowsingContext;
 use retina_style::{Stylesheet, CascadeOrigin, CssReferencePixels};
 use retina_style_parser::CssParsable;
 use tokio::{sync::mpsc::{Receiver as AsyncReceiver, Sender as AsyncSender}, runtime::Runtime};
@@ -30,6 +31,8 @@ pub(crate) struct Page {
     pub(crate) compositor: Compositor,
     pub(crate) fetch: Fetch,
     pub(crate) page_task_message_sender: AsyncSender<PageTaskMessage>,
+    pub(crate) browsing_context: Option<BrowsingContext>,
+    pub(crate) event_queue: Option<EventQueue>,
 }
 
 type ErrorKind = Box<dyn std::error::Error>;
@@ -182,13 +185,18 @@ impl Page {
 
         let mut reader = document.body().await;
 
-        self.document = Some(
-            retina_dom::Parser::parse_with_reader(&mut reader)
-        );
+        let document = retina_dom::Parser::parse_with_reader(&mut reader);
+        self.document = Some(document.clone());
 
         self.message_sender.send(PageMessage::Progress {
             progress: PageProgress::ParsedHtml,
         })?;
+
+        let event_queue = EventQueue::new();
+        self.event_queue = Some(event_queue.clone());
+
+        let browsing_context = BrowsingContext::new(document, event_queue);
+        self.browsing_context = Some(browsing_context);
 
         Ok(())
     }

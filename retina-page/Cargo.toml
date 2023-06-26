@@ -11,6 +11,7 @@ retina-dom = { path = "../retina-dom" }
 retina-fetch = { path = "../retina-fetch" }
 retina-gfx = { path = "../retina-gfx" }
 retina-layout = { path = "../retina-layout" }
+retina-scrittura = { path = "../retina-scrittura" }
 retina-style = { path = "../retina-style" }
 retina-style-parser = { path = "../retina-style-parser" }
 retina-user-agent = { path = "../retina-user-agent" }
