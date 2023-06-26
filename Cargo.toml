@@ -10,6 +10,8 @@ members = [
     "retina-gfx-font",
     "retina-layout",
     "retina-page",
+    "retina-platform-object",
+    "retina-scrittura",
     "retina-style",
     "retina-style-computation",
     "retina-style-parser",

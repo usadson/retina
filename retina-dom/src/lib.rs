@@ -12,10 +12,12 @@ pub mod comment;
 pub mod document;
 pub mod element;
 pub mod element_kind;
+pub mod event;
 pub mod html;
 pub mod node;
 pub mod parent_node;
 pub mod parse;
+pub mod platform_messenger;
 pub mod text;
 
 use std::{ops::Deref, sync::{Arc, Weak}};
@@ -29,8 +31,10 @@ pub use html::*;
 pub use node::NodeInterface;
 pub use parent_node::ParentNode;
 pub use parse::Parser;
-use retina_common::DumpableNode;
+pub use platform_messenger::{PlatformMessage, PlatformMessenger};
 pub use text::Text;
+
+use retina_common::DumpableNode;
 
 #[derive(Clone, Debug)]
 pub struct Node {
@@ -88,6 +92,14 @@ impl NodeKind {
     pub fn as_comment_mut(&mut self) -> Option<&mut Comment> {
         if let Self::Comment(comment) = self {
             Some(comment)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_document(&self) -> Option<&Document> {
+        if let Self::Document(document) = self {
+            Some(document)
         } else {
             None
         }

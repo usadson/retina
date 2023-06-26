@@ -1,0 +1,13 @@
+[package]
+name = "retina-platform-object"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+retina-common = { path = "../retina-common" }
+retina-dom = { path = "../retina-dom" }
+
+log = "*"
+boa_engine = { git = "https://github.com/boa-dev/boa", features = ["intl"] }
+boa_gc = { git = "https://github.com/boa-dev/boa", features = [] }

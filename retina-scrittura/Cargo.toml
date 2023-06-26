@@ -1,0 +1,19 @@
+[package]
+name = "retina-scrittura"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+retina-common = { path = "../retina-common" }
+retina-dom = { path = "../retina-dom" }
+retina-platform-object = { path = "../retina-platform-object" }
+
+log = "*"
+boa_engine = { git = "https://github.com/boa-dev/boa", features = ["intl"] }
+boa_gc = { git = "https://github.com/boa-dev/boa", features = [] }
+boa_runtime = { git = "https://github.com/boa-dev/boa" }
+
+[dev-dependencies]
+env_logger = "*"
+rayon = "*"
