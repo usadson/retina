@@ -240,7 +240,14 @@ impl<'canvas> CanvasPainter<'canvas> {
         self.submit();
     }
 
-    pub fn paint_text(&mut self, text: &str, color: Color, position: euclid::Point2D<f32, f32>) {
+    pub fn paint_text<PositionUnit, Size>(
+        &mut self,
+        text: &str,
+        color: Color,
+        position: euclid::Point2D<f32, PositionUnit>,
+        size: Size
+    )
+            where Size: Into<f32> {
         let glyph_brush = self.canvas.fonts.iter_mut().next().unwrap().1;
 
         let color = [0.0, color.green() as f32, color.red() as f32, color.alpha() as f32];
@@ -250,7 +257,7 @@ impl<'canvas> CanvasPainter<'canvas> {
             bounds: (self.canvas.size.width as f32, self.canvas.size.height as f32),
             text: vec![wgpu_glyph::Text::new(text)
                 .with_color(color)
-                .with_scale(40.0)],
+                .with_scale(size.into())],
             ..Default::default()
         });
 

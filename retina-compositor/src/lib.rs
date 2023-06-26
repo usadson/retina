@@ -93,6 +93,7 @@ impl Compositor {
 
         self.paint_background(layout_box, painter);
         self.paint_border(layout_box, painter);
+        self.paint_text(layout_box, painter);
 
         for child in layout_box.children() {
             self.paint(child, painter);
@@ -159,6 +160,33 @@ impl Compositor {
 
         match border.color {
             CssColor::Color(color) => painter.paint_rect_colored(rect, color),
+        }
+    }
+
+    fn paint_text(
+        &self,
+        layout_box: &LayoutBox,
+        painter: &mut CanvasPainter,
+    ) {
+        let Some(text) = layout_box.node.as_text() else { return };
+
+        let text = text.data().trim();
+        if text.is_empty() { return };
+
+        let position = layout_box.dimensions().position_content_box().cast();
+        let size = layout_box.font_size().as_abs().value() as f32;
+        if size <= 0.0 {
+            return;
+        }
+
+        match layout_box.computed_style().color() {
+            CssColor::Color(color) => {
+                if color.alpha() <= 0.0 {
+                    return;
+                }
+
+                painter.paint_text(text, color, position, size);
+            }
         }
     }
 }
