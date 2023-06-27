@@ -253,7 +253,7 @@ impl<'canvas> CanvasPainter<'canvas> {
             bounds: (self.canvas.size.width as f32, self.canvas.size.height as f32),
             text: vec![wgpu_glyph::Text::new(text)
                 .with_color(color)
-                .with_scale(size.into())],
+                .with_scale(size.into() * 1.5)],
             ..Default::default()
         });
 
