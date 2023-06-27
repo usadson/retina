@@ -33,6 +33,7 @@ fn inherit_property<T>(target: &mut Option<T>, source: &Option<T>)
 
 fn inherit_properties(property_map: &mut PropertyMap, parent: &PropertyMap) {
     inherit_property(&mut property_map.color, &parent.color);
+    inherit_property(&mut property_map.font_size, &parent.font_size);
     // `display` is not inherited
     inherit_property(&mut property_map.white_space, &parent.white_space);
 }
