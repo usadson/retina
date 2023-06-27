@@ -41,8 +41,13 @@ pub enum Property {
     Color,
     Display,
 
+    Font,
+    FontFamily,
     /// <https://drafts.csswg.org/css-fonts-4/#font-size-prop>
     FontSize,
+    FontStretch,
+    FontStyle,
+    FontWeight,
 
     Height,
 

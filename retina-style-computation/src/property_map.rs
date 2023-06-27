@@ -92,7 +92,11 @@ pub struct PropertyMap {
     pub color: Option<CssColor>,
     pub display: Option<CssDisplay>,
     pub font_size: Option<CssLength>,
+    pub font_family_list: Option<Vec<CssFontFamilyName>>,
+    pub font_style: Option<CssFontStyle>,
+    pub font_weight: Option<CssFontWeight>,
     pub height: Option<CssLength>,
+    pub line_height: Option<CssLength>,
     pub width: Option<CssLength>,
     pub white_space: Option<CssWhiteSpace>,
 }
@@ -280,6 +284,41 @@ impl PropertyMap {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue
             }
 
+            Property::Font => if let Value::FontShorthand(shorthand) = value {
+                self.font_family_list = Some(shorthand.families);
+                self.font_size = Some(shorthand.size);
+                self.font_style = shorthand.style;
+                self.font_weight = shorthand.weight;
+                self.line_height = shorthand.line_height;
+
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::FontFamily => if let Value::FontFamily(families) = value {
+                self.font_family_list = Some(families);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::FontStretch => PropertyMapDidApply::NoBecauseOfAnUnsupportedFeature,
+
+            Property::FontStyle => if let Value::FontStyle(style) = value {
+                self.font_style = Some(style);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::FontWeight => if let Value::FontWeight(weight) = value {
+                self.font_weight = Some(weight);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
             Property::FontSize => if let Value::Length(length) = value {
                 self.font_size = Some(length);
                 PropertyMapDidApply::Yes
@@ -458,5 +497,6 @@ impl PropertyMap {
 pub enum PropertyMapDidApply {
     NoBecauseOfAnInvalidProperty,
     NoBecauseOfAnInvalidValue,
+    NoBecauseOfAnUnsupportedFeature,
     Yes,
 }

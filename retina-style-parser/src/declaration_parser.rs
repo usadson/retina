@@ -27,7 +27,7 @@ impl<'i> cssparser::DeclarationParser<'i> for DeclarationParser {
     ) -> Result<Self::Declaration, cssparser::ParseError<'i, Self::Error>> {
         let property = Property::parse(name.as_ref()).unwrap_or(Property::Invalid);
 
-        parse_value(input).map(|value| Declaration::new(property, value))
+        parse_value(input, property).map(|value| Declaration::new(property, value))
     }
 }
 

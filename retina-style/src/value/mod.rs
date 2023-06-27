@@ -3,6 +3,7 @@
 
 pub mod color;
 pub mod display;
+pub mod font;
 pub mod length;
 pub mod line_style;
 pub mod reference_pixels;
@@ -12,6 +13,7 @@ pub type CssDecimal = f64;
 
 pub use color::{CssColor, CssNamedColor};
 pub use display::{CssDisplay, CssDisplayBox, CssDisplayInside, CssDisplayInternal, CssDisplayOutside};
+pub use font::{CssFontFamilyName, CssFontShorthand, CssFontStyle, CssFontWeight, CssGenericFontFamilyName};
 pub use length::CssLength;
 pub use line_style::CssLineStyle;
 pub use reference_pixels::CssReferencePixels;
@@ -27,6 +29,10 @@ pub struct CssBorderLonghand {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     BorderLonghand(CssBorderLonghand),
+    FontFamily(Vec<CssFontFamilyName>),
+    FontShorthand(CssFontShorthand),
+    FontStyle(CssFontStyle),
+    FontWeight(CssFontWeight),
     Color(CssColor),
     ComponentList(ValueComponentList),
     Display(CssDisplay),

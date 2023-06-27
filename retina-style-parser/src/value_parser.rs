@@ -7,6 +7,7 @@ use cssparser::{
     Token, Color,
 };
 
+use retina_common::StrTendril;
 use strum::IntoEnumIterator;
 
 use retina_style::*;
@@ -43,6 +44,88 @@ pub(crate) fn parse_display<'i, 't>(
         "none" => CssDisplay::Box(CssDisplayBox::None),
         _ => return Err(input.new_custom_error(RetinaStyleParseError::UnknownBasicColorKeyword)),
     })
+}
+
+pub(crate) fn parse_font_families<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<Vec<CssFontFamilyName>, ParseError<'i>> {
+    let mut families = Vec::new();
+    while !input.is_exhausted() {
+        input.skip_whitespace();
+
+        let location = input.current_source_location();
+
+        match input.next() {
+            Ok(Token::Ident(ident)) => {
+                if let Some(generic) = CssGenericFontFamilyName::iter().find(|generic| ident.eq_ignore_ascii_case(generic.as_ref())) {
+                    families.push(CssFontFamilyName::Generic(generic));
+                } else {
+                    families.push(CssFontFamilyName::Name(StrTendril::from(&ident[..])));
+                }
+            }
+
+            Ok(Token::QuotedString(str)) => families.push(CssFontFamilyName::Name(StrTendril::from(&str[..]))),
+
+            Ok(token) => return Err(ParseError {
+                kind: ParseErrorKind::Basic(cssparser::BasicParseErrorKind::UnexpectedToken(token.clone())),
+                location,
+            }),
+
+            Err(..) => break,
+        }
+
+        input.skip_whitespace();
+        if input.is_exhausted() {
+            break;
+        }
+
+        input.expect_comma()?;
+    }
+
+    Ok(families)
+}
+
+pub(crate) fn parse_font_shorthand<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssFontShorthand, ParseError<'i>> {
+    let size = parse_length(input)?;
+    let line_height = input.try_parse(parse_font_shorthand_line_height).ok();
+    let families = parse_font_families(input)?;
+
+    Ok(CssFontShorthand {
+        families,
+        style: None,
+        size,
+        line_height,
+        weight: None,
+    })
+}
+
+pub(crate) fn parse_font_shorthand_line_height<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssLength, ParseError<'i>> {
+    input.skip_whitespace();
+    input.expect_delim('/')?;
+    input.skip_whitespace();
+
+    parse_line_height(input)
+}
+
+pub(crate) fn parse_font_style<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssFontStyle, ParseError<'i>> {
+    let location = input.current_source_location();
+    let keyword = input.expect_ident()?;
+    CssFontStyle::iter()
+        .find(|style| {
+            style.as_ref().eq_ignore_ascii_case(&keyword)
+        })
+        .ok_or_else(|| ParseError {
+            kind: ParseErrorKind::Custom(
+                RetinaStyleParseError::FontStyleUnknownKeyword(keyword.clone())
+            ),
+            location,
+        })
 }
 
 pub(crate) fn parse_length<'i, 't>(
@@ -92,6 +175,19 @@ pub(crate) fn parse_length<'i, 't>(
     }
 }
 
+pub(crate) fn parse_line_height<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssLength, ParseError<'i>> {
+    let result = input.try_parse(parse_length);
+
+    if result.is_err() {
+        if let Ok(number) = input.expect_number() {
+            return Ok(CssLength::FontSize(number as _));
+        }
+    }
+
+    result
+}
 
 pub(crate) fn parse_line_style<'i, 't>(
     input: &mut Parser<'i, 't>
@@ -145,7 +241,24 @@ pub(crate) fn parse_single_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<V
     Err(input.new_custom_error(RetinaStyleParseError::UnknownValue(token)))
 }
 
-pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<Value, ParseError<'i>> {
+fn parse_specific_value<'i, 't>(
+    input: &mut Parser<'i, 't>,
+    property: Property,
+) -> Option<Result<Value, ParseError<'i>>> {
+    match property {
+        Property::Font => Some(parse_font_shorthand(input).map(|shorthand| Value::FontShorthand(shorthand))),
+        Property::FontFamily => Some(parse_font_families(input).map(|families| Value::FontFamily(families))),
+        Property::FontStyle => Some(parse_font_style(input).map(|style| Value::FontStyle(style))),
+
+        _ => None,
+    }
+}
+
+pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>, property: Property) -> Result<Value, ParseError<'i>> {
+    if let Some(result) = parse_specific_value(input, property) {
+        return result;
+    }
+
     let value = parse_single_value(input)?;
     if input.is_exhausted() {
         return Ok(value);
@@ -257,7 +370,7 @@ mod tests {
         let mut input = cssparser::ParserInput::new(input);
         let input = &mut cssparser::Parser::new(&mut input);
 
-        let result = parse_value(input);
+        let result = parse_value(input, Property::Color);
         let expected = Ok(color.into());
         assert_eq!(result, expected);
     }
@@ -271,9 +384,36 @@ mod tests {
         let mut input = cssparser::ParserInput::new(input);
         let input = &mut cssparser::Parser::new(&mut input);
 
-        let result = parse_value(input);
+        let result = parse_value(input, Property::Display);
         let expected = Ok(Value::Display(display));
         assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case("10px/1 Verdana, sans-serif", CssFontShorthand {
+        families: vec![CssFontFamilyName::Name("Verdana".into()), CssFontFamilyName::Generic(CssGenericFontFamilyName::SansSerif)],
+        style: None,
+        size: CssLength::Pixels(10.0),
+        line_height: Some(CssLength::FontSize(1.0)),
+        weight: None,
+    })]
+    fn value_font_shorthand(#[case] input: &str, #[case] shorthand: CssFontShorthand) {
+        let mut input = cssparser::ParserInput::new(input);
+        let input = &mut cssparser::Parser::new(&mut input);
+
+        let result = parse_value(input, Property::Font);
+        let expected = Ok(Value::FontShorthand(shorthand));
+        pretty_assertions::assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case("/1", Some(CssLength::FontSize(1.0)))]
+    fn value_font_shorthand_line_height(#[case] input: &str, #[case] expected: Option<CssLength>) {
+        let mut input = cssparser::ParserInput::new(input);
+        let input = &mut cssparser::Parser::new(&mut input);
+
+        let result = parse_font_shorthand_line_height(input);
+        pretty_assertions::assert_eq!(result.as_ref().ok(), expected.as_ref(), "result was: {result:#?}");
     }
 
     #[rstest]
@@ -285,7 +425,7 @@ mod tests {
         let mut input = cssparser::ParserInput::new(input);
         let input = &mut cssparser::Parser::new(&mut input);
 
-        let result = parse_value(input);
+        let result = parse_value(input, Property::Width);
         let expected = Ok(Value::Length(display));
         assert_eq!(result, expected);
     }
@@ -301,7 +441,7 @@ mod tests {
         let mut input = cssparser::ParserInput::new(input);
         let input = &mut cssparser::Parser::new(&mut input);
 
-        let result = parse_value(input);
+        let result = parse_value(input, Property::WhiteSpace);
         let expected = Ok(Value::WhiteSpace(white_space));
         assert_eq!(result, expected);
     }
