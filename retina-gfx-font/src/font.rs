@@ -50,4 +50,9 @@ impl Font {
     pub fn calculate_width(&self, size: f32, text: &str) -> f32 {
         self.calculate_size(size, text).width
     }
+
+    #[inline]
+    pub const fn descriptor(&self) -> &FontDescriptor {
+        &self.descriptor
+    }
 }

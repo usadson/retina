@@ -4,8 +4,8 @@
 use euclid::default::Point2D;
 use log::warn;
 use retina_dom::Node;
-use retina_gfx_font::{FontProvider, FontDescriptor, FontWeight, FontHandle};
-use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength, CssDisplayBox};
+use retina_gfx_font::{FontProvider, FontDescriptor, FontWeight, FontHandle, FamilyName};
+use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength, CssDisplayBox, CssFontFamilyName, CssGenericFontFamilyName, CssFontWeight};
 use retina_style_computation::{PropertyMap, StyleCollector, Cascade};
 
 use crate::{
@@ -142,13 +142,78 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         self.calculate_dimensions_for_block_flow(computed_style, parent, font_size)
     }
 
+    /// <https://drafts.csswg.org/css-fonts-4/#relative-weights>
+    fn compute_font_weight(
+        &self,
+        parent: &LayoutBox,
+        value: CssFontWeight,
+    ) -> FontWeight {
+        let parent_weight = parent.font.descriptor().weight;
+
+        match value {
+            CssFontWeight::Absolute(value) => FontWeight::new(value as _),
+            CssFontWeight::Bolder => {
+                if parent_weight.value() < 350.0 {
+                    FontWeight::new(400.0)
+                } else if parent_weight.value() <= 550.0 {
+                    FontWeight::new(700.0)
+                } else {
+                    FontWeight::new(900.0)
+                }
+            }
+            CssFontWeight::Lighter => {
+                if parent_weight.value() < 100.0 {
+                    parent_weight
+                } else if parent_weight.value() < 550.0 {
+                    FontWeight::new(100.0)
+                } else if parent_weight.value() <= 750.0 {
+                    FontWeight::new(400.0)
+                } else {
+                    FontWeight::new(700.0)
+                }
+            }
+        }
+    }
+
     fn resolve_font(
         &self,
         node: &DomNode,
-        parent: &LayoutBox
+        parent: &LayoutBox,
+        computed_style: &PropertyMap,
     ) -> FontHandle {
         _ = node;
-        // TODO
+
+        if computed_style.has_same_font_properties(&parent.computed_style) {
+            return parent.font.clone();
+        }
+
+        if let Some(font_families) = &computed_style.font_family_list {
+            for font_family in font_families {
+                let name = match font_family {
+                    CssFontFamilyName::Name(name) => FamilyName::Title(name.clone()),
+                    CssFontFamilyName::Generic(generic) => match generic {
+                        CssGenericFontFamilyName::Cursive => FamilyName::Cursive,
+                        CssGenericFontFamilyName::Fantasy => FamilyName::Fantasy,
+                        CssGenericFontFamilyName::Monospace => FamilyName::Monospace,
+                        CssGenericFontFamilyName::SansSerif => FamilyName::SansSerif,
+                        CssGenericFontFamilyName::Serif => FamilyName::SansSerif,
+                        _ => continue,
+                    }
+                };
+
+                let weight = self.compute_font_weight(parent, computed_style.font_weight());
+
+                let descriptor = FontDescriptor {
+                    name,
+                    weight,
+                };
+
+                if let Some(font) = self.font_provider.get(descriptor) {
+                    return font;
+                }
+            }
+        }
+
         parent.font.clone()
     }
 
@@ -190,7 +255,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         parent: &LayoutBox,
     ) -> Option<LayoutBox> {
         let computed_style = self.resolve_style(&node, Some(parent));
-        let font = self.resolve_font(&node, parent);
+        let font = self.resolve_font(&node, parent, &computed_style);
         let font_size = self.resolve_length(parent.font_size, parent.font_size, computed_style.font_size(), &computed_style);
 
         if node.is_text() {

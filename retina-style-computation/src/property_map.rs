@@ -440,24 +440,31 @@ impl PropertyMap {
         self.color.unwrap_or(CssNamedColor::BLACK)
     }
 
-    pub fn font_size(&self) -> CssLength {
-        self.font_size.unwrap_or(CssLength::Pixels(16.0))
-    }
-
-    pub fn height(&self) -> CssLength {
-        self.height.unwrap_or(CssLength::Auto)
-    }
-
-    pub fn width(&self) -> CssLength {
-        self.width.unwrap_or(CssLength::Auto)
-    }
-
     pub fn display(&self) -> CssDisplay {
         self.display.unwrap_or(CssDisplay::Normal {
             inside: CssDisplayInside::Flow,
             outside: CssDisplayOutside::Block,
             is_list_item: false
         })
+    }
+
+    pub fn font_size(&self) -> CssLength {
+        self.font_size.unwrap_or(CssLength::Pixels(16.0))
+    }
+
+    pub fn font_weight(&self) -> CssFontWeight {
+        self.font_weight.unwrap_or(CssFontWeight::Absolute(400.0))
+    }
+
+    pub fn has_same_font_properties(&self, other: &PropertyMap) -> bool {
+        self.font_size == other.font_size
+            && self.font_family_list == other.font_family_list
+            && self.font_style == other.font_style
+            && self.font_weight == other.font_weight
+    }
+
+    pub fn height(&self) -> CssLength {
+        self.height.unwrap_or(CssLength::Auto)
     }
 
     pub fn margin_bottom(&self) -> CssLength {
@@ -490,6 +497,10 @@ impl PropertyMap {
 
     pub fn padding_top(&self) -> CssLength {
         self.padding_top.unwrap_or(CssLength::Pixels(0.0))
+    }
+
+    pub fn width(&self) -> CssLength {
+        self.width.unwrap_or(CssLength::Auto)
     }
 }
 

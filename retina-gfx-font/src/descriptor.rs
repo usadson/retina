@@ -6,7 +6,24 @@ use retina_common::StrTendril;
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum FamilyName {
     Title(StrTendril),
+    Cursive,
+    Fantasy,
+    Monospace,
     SansSerif,
+    Serif,
+}
+
+impl From<FamilyName> for font_kit::family_name::FamilyName {
+    fn from(value: FamilyName) -> Self {
+        match value {
+            FamilyName::Title(name) => font_kit::family_name::FamilyName::Title(name.to_string()),
+            FamilyName::Cursive => font_kit::family_name::FamilyName::Cursive,
+            FamilyName::Fantasy => font_kit::family_name::FamilyName::Fantasy,
+            FamilyName::Monospace => font_kit::family_name::FamilyName::Monospace,
+            FamilyName::SansSerif => font_kit::family_name::FamilyName::SansSerif,
+            FamilyName::Serif => font_kit::family_name::FamilyName::Serif,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -29,7 +46,17 @@ impl FontWeight {
     pub const EXTRA_BOLD: Self = Self(800.0);
     pub const BLACK: Self = Self(900.0);
 
+    pub const fn new(value: f32) -> Self {
+        Self(value)
+    }
+
     pub const fn value(&self) -> f32 {
         self.0
+    }
+}
+
+impl From<FontWeight> for font_kit::properties::Weight {
+    fn from(value: FontWeight) -> Self {
+        font_kit::properties::Weight(value.value())
     }
 }
