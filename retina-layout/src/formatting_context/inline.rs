@@ -19,10 +19,13 @@ pub struct InlineFormattingContext<'bx> {
     base: FormattingContext<'bx>,
     x_offset: CssDecimal,
     line_boxes: Vec<LineBox>,
+    content_position_origin: Point2D<CssDecimal>,
 }
 
 impl<'bx> InlineFormattingContext<'bx> {
     pub fn perform(layout_box: &'bx mut LayoutBox) {
+        let content_position_origin = layout_box.dimensions().content_position;
+
         let mut instance = Self {
             base: FormattingContext {
                 layout_box,
@@ -30,6 +33,7 @@ impl<'bx> InlineFormattingContext<'bx> {
             },
             line_boxes: vec![LineBox::new()],
             x_offset: 0.0,
+            content_position_origin,
         };
 
         instance.perform_inner()
@@ -42,7 +46,14 @@ impl<'bx> InlineFormattingContext<'bx> {
     fn perform_inner(&mut self) {
         let mut children = std::mem::replace(&mut self.layout_box().children, Vec::new());
 
+        let max_width = self.layout_box().dimensions().width().value();
+
         for child in &mut children {
+            if max_width != 0.0 && self.x_offset > max_width {
+                self.content_position_origin.y += self.line_boxes.last().unwrap().height;
+                self.line_boxes.push(LineBox::new());
+                self.x_offset = 0.0;
+            }
             self.layout_child(child);
         }
 
@@ -65,11 +76,9 @@ impl<'bx> InlineFormattingContext<'bx> {
         &mut self,
         child: &mut LayoutBox,
     ) {
-        let content_position_origin = self.layout_box().dimensions.content_position;
-
         child.dimensions.set_margin_position(Point2D::new(
-            content_position_origin.x + self.x_offset,
-            content_position_origin.y,
+            self.content_position_origin.x + self.x_offset,
+            self.content_position_origin.y,
         ));
 
         child.run_layout(Some(&mut self.base));
