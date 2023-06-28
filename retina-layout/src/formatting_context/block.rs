@@ -2,7 +2,11 @@
 // All Rights Reserved.
 
 use euclid::default::Point2D;
-use retina_style::{CssDecimal, CssReferencePixels, CssLength};
+use retina_style::{
+    CssDecimal,
+    CssLength,
+    CssReferencePixels,
+};
 
 use crate::LayoutBox;
 
@@ -49,7 +53,7 @@ impl<'bx> BlockFormattingContext<'bx> {
         }
 
         if let CssLength::Auto = self.layout_box.computed_style.width() {
-            self.layout_box.dimensions.width = CssReferencePixels::new(self.y_offset);
+            self.layout_box.dimensions.width = CssReferencePixels::new(max_container_width);
         }
 
         self.layout_box.children = children;

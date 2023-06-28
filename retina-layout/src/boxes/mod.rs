@@ -12,13 +12,15 @@ mod line;
 pub use dimensions::LayoutBoxDimensions;
 pub use edge::LayoutEdge;
 pub use line::LineBox;
+use log::{warn, info};
 use retina_common::DumpableNode;
 use retina_gfx_font::FontHandle;
-use retina_style::CssReferencePixels;
+use retina_style::{CssReferencePixels, CssDecimal};
 
 use crate::formatting_context::{
     BlockFormattingContext,
     FormattingContextKind,
+    InlineFormattingContext,
 };
 
 use super::DomNode;
@@ -91,13 +93,45 @@ impl LayoutBox {
         DumpableNode::dump(self);
     }
 
+    fn run_anonymous_layout(&mut self, parent: &mut LayoutBox) {
+        let Some(text) = self.node.as_text() else {
+            warn!("Anonymous layout with a non-Text DOM node: {:#?}", self.node);
+            return;
+        };
+
+        let text = text.data_as_str().trim();
+        if text.is_empty() {
+            self.dimensions.width = CssReferencePixels::new(0.0);
+            self.dimensions.height = CssReferencePixels::new(0.0);
+            return;
+        }
+
+        // TODO this should participate in a inline formatting context.
+        _ = parent;
+
+        let size = self.font.calculate_size(self.font_size.value() as _, text);
+        info!("Anonymous layout of \"{text}\" is: {} x {}", size.width, size.height);
+        self.dimensions.width = CssReferencePixels::new(size.width as CssDecimal);
+        self.dimensions.height = CssReferencePixels::new(size.height as CssDecimal);
+    }
+
     pub fn run_layout(&mut self, parent: Option<&mut LayoutBox>) {
+        if let LayoutBoxKind::Anonymous = self.kind {
+            if let Some(parent) = parent {
+                self.run_anonymous_layout(parent);
+            } else {
+                warn!("Anonymous layout without a parent node.");
+            }
+
+            return;
+        }
+
         match self.formatting_context {
             FormattingContextKind::Block => BlockFormattingContext::perform(self),
             FormattingContextKind::Inline => {
                 // TODO
                 _ = parent;
-                BlockFormattingContext::perform(self)
+                InlineFormattingContext::perform(self)
             }
         }
     }
