@@ -14,7 +14,7 @@ use std::borrow::Cow;
 pub use dimensions::LayoutBoxDimensions;
 pub use edge::LayoutEdge;
 pub use line::LineBox;
-use log::{warn, info};
+use log::warn;
 use retina_common::DumpableNode;
 use retina_gfx_font::FontHandle;
 use retina_style::{CssReferencePixels, CssDecimal};
@@ -117,7 +117,6 @@ impl LayoutBox {
         _ = parent;
 
         let size = self.font.calculate_size(self.font_size.value() as _, &text);
-        info!("Anonymous layout of \"{text}\" is: {} x {}", size.width, size.height);
         self.dimensions.width = CssReferencePixels::new(size.width as CssDecimal);
         self.dimensions.height = CssReferencePixels::new(size.height as CssDecimal);
     }
