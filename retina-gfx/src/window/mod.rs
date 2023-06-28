@@ -53,7 +53,6 @@ impl<EventType> Window<EventType>
         let event_proxy = WindowEventProxy { proxy: event_loop.create_proxy() };
 
         let window = winit::window::WindowBuilder::new()
-            .with_resizable(false)
             .with_title("Retina")
             .build(&event_loop)
             .unwrap();
