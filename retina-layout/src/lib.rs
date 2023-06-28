@@ -15,6 +15,7 @@
 //! * [CSS Writing Modes Level 3](https://www.w3.org/TR/css-writing-modes-3/)
 
 mod boxes;
+mod formatting_context;
 mod generate;
 
 pub use boxes::{

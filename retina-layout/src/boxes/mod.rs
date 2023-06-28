@@ -16,12 +16,18 @@ use retina_common::DumpableNode;
 use retina_gfx_font::FontHandle;
 use retina_style::CssReferencePixels;
 
+use crate::formatting_context::{
+    BlockFormattingContext,
+    FormattingContextKind,
+};
+
 use super::DomNode;
 use retina_style_computation::PropertyMap;
 
 #[derive(Clone, Debug)]
 pub struct LayoutBox {
     pub(crate) kind: LayoutBoxKind,
+    pub(crate) formatting_context: FormattingContextKind,
     pub node: DomNode,
     pub(crate) computed_style: PropertyMap,
     pub(crate) dimensions: LayoutBoxDimensions,
@@ -33,6 +39,7 @@ pub struct LayoutBox {
 impl LayoutBox {
     pub fn new(
         kind: LayoutBoxKind,
+        formatting_context: FormattingContextKind,
         node: DomNode,
         computed_style: PropertyMap,
         dimensions: LayoutBoxDimensions,
@@ -41,6 +48,7 @@ impl LayoutBox {
     ) -> Self {
         Self {
             kind,
+            formatting_context,
             node,
             computed_style,
             dimensions,
@@ -82,6 +90,17 @@ impl LayoutBox {
     pub fn dump(&self) {
         DumpableNode::dump(self);
     }
+
+    pub fn run_layout(&mut self, parent: Option<&mut LayoutBox>) {
+        match self.formatting_context {
+            FormattingContextKind::Block => BlockFormattingContext::perform(self),
+            FormattingContextKind::Inline => {
+                // TODO
+                _ = parent;
+                BlockFormattingContext::perform(self)
+            }
+        }
+    }
 }
 
 impl DumpableNode for LayoutBox {
@@ -110,8 +129,7 @@ impl DumpableNode for LayoutBox {
 
 #[derive(Clone, Debug)]
 pub enum LayoutBoxKind {
-    AnonymousBlock,
-    AnonymousInline,
-    Block,
-    Inline,
+    Root,
+    Normal,
+    Anonymous,
 }

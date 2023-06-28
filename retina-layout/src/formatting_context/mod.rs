@@ -2,7 +2,9 @@
 // All Rights Reserved.
 
 pub mod inline;
+pub mod block;
 
+pub use block::BlockFormattingContext;
 pub use inline::InlineFormattingContext;
 
 #[derive(Clone, Debug)]
@@ -10,7 +12,8 @@ pub struct FormattingContext {
 
 }
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum FormattingContextKind {
-    Inline(InlineFormattingContext),
+    Block,
+    Inline,
 }

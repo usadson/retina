@@ -44,6 +44,20 @@ impl LayoutBoxDimensions {
         )
     }
 
+    pub fn set_content_position(&mut self, position: Point2D<CssDecimal>) {
+        self.content_position = position;
+    }
+
+    pub fn set_margin_position(&mut self, mut position: Point2D<CssDecimal>) {
+        position.x += self.margin.left.value() + self.border.left.value() + self.padding.left.value();
+        position.x += self.margin.right.value() + self.border.left.value() + self.padding.right.value();
+
+        position.y += self.margin.top.value() + self.border.top.value() + self.padding.top.value();
+        position.y += self.margin.bottom.value() + self.border.bottom.value() + self.padding.bottom.value();
+
+        self.set_content_position(position);
+    }
+
     pub fn size_content_box(&self) -> Size2D<CssDecimal> {
         Size2D::new(
             self.width.value(),
@@ -56,6 +70,14 @@ impl LayoutBoxDimensions {
             self.padding.left.value() + self.width.value() + self.padding.right.value(),
             self.padding.top.value() + self.height.value() + self.padding.bottom.value()
         )
+    }
+
+    pub fn size_margin_box(&self) -> Size2D<CssDecimal> {
+        let margins = Size2D::new(
+            self.margin.left.value() + self.margin.right().value(),
+            self.margin.top.value() + self.margin.bottom.value(),
+        );
+        self.size_padding_box() + margins
     }
 
     pub fn width(&self) -> CssReferencePixels {

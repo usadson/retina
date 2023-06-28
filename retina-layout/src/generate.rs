@@ -10,9 +10,11 @@ use retina_style_computation::{PropertyMap, StyleCollector, Cascade};
 
 use crate::{
     DomNode,
+    formatting_context::FormattingContextKind,
     LayoutBox,
     LayoutBoxDimensions,
-    LayoutBoxKind, LayoutEdge,
+    LayoutBoxKind,
+    LayoutEdge,
 };
 
 pub struct LayoutGenerator<'stylesheets> {
@@ -52,6 +54,9 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             .expect("root node has no layout box generated");
 
         initial_containing_block.children.push(html_box);
+
+        initial_containing_block.run_layout(None);
+
         // initial_containing_block.dump();
         initial_containing_block
     }
@@ -262,13 +267,14 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent, font_size);
 
             let parent_display = parent.computed_style().display();
+
             return match parent_display {
                 CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => Some(
-                    LayoutBox::new(LayoutBoxKind::AnonymousBlock, node, computed_style, dimensions, font, font_size)
+                    LayoutBox::new(LayoutBoxKind::Anonymous, FormattingContextKind::Inline, node, computed_style, dimensions, font, font_size)
                 ),
 
                 CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => Some(
-                    LayoutBox::new(LayoutBoxKind::AnonymousInline, node, computed_style, dimensions, font, font_size)
+                    LayoutBox::new(LayoutBoxKind::Anonymous, FormattingContextKind::Inline, node, computed_style, dimensions, font, font_size)
                 ),
 
                 _ => {
@@ -284,12 +290,12 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             // `display: inline`
             CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => {
                 let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent, font_size);
-                LayoutBox::new(LayoutBoxKind::Inline, node, computed_style, dimensions, font, font_size)
+                LayoutBox::new(LayoutBoxKind::Normal, FormattingContextKind::Inline, node, computed_style, dimensions, font, font_size)
             }
 
             CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => {
                 let dimensions = self.calculate_dimensions_for_block_flow(&computed_style, parent, font_size);
-                LayoutBox::new(LayoutBoxKind::Block, node, computed_style, dimensions, font, font_size)
+                LayoutBox::new(LayoutBoxKind::Normal, FormattingContextKind::Block, node, computed_style, dimensions, font, font_size)
             }
 
             _ => {
@@ -332,7 +338,8 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         let font_size = self.resolve_length(default_reference_pixels, default_reference_pixels, computed_style.font_size(), &computed_style);
 
         LayoutBox::new(
-            LayoutBoxKind::Block,
+            LayoutBoxKind::Root,
+            FormattingContextKind::Block,
             root,
             computed_style,
             self.calculate_dimensions_for_initial_containing_block(),
