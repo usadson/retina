@@ -5,8 +5,8 @@ use euclid::default::Point2D;
 use log::warn;
 use retina_dom::Node;
 use retina_gfx_font::{FontProvider, FontDescriptor, FontWeight, FontHandle, FamilyName};
-use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength, CssDisplayBox, CssFontFamilyName, CssGenericFontFamilyName, CssFontWeight};
-use retina_style_computation::{PropertyMap, StyleCollector, Cascade};
+use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength, CssDisplayBox, CssFontFamilyName, CssGenericFontFamilyName, CssFontWeight, CssLineStyle};
+use retina_style_computation::{PropertyMap, StyleCollector, Cascade, BorderProperties};
 
 use crate::{
     DomNode,
@@ -77,12 +77,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             top: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.margin_top(), computed_style),
         };
 
-        let border = LayoutEdge {
-            bottom: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.border_bottom.width, computed_style),
-            left: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.border_left.width, computed_style),
-            right: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.border_right.width, computed_style),
-            top: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.border_top.width, computed_style),
-        };
+        let border = self.resolve_border_edge(computed_style, font_size);
 
         let padding = LayoutEdge {
             bottom: self.resolve_length(font_size, CssReferencePixels::new(0 as _), computed_style.padding_bottom(), computed_style),
@@ -178,6 +173,37 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
                 }
             }
         }
+    }
+
+    fn resolve_border_edge(
+        &self,
+        computed_style: &PropertyMap,
+        font_size: CssReferencePixels,
+    ) -> LayoutEdge {
+        LayoutEdge {
+            bottom: self.resolve_border_edge_part(&computed_style.border_bottom, font_size, computed_style),
+            left: self.resolve_border_edge_part(&computed_style.border_left, font_size, computed_style),
+            right: self.resolve_border_edge_part(&computed_style.border_right, font_size, computed_style),
+            top: self.resolve_border_edge_part(&computed_style.border_top, font_size, computed_style),
+        }
+    }
+
+    fn resolve_border_edge_part(
+        &self,
+        border: &BorderProperties,
+        font_size: CssReferencePixels,
+        computed_style: &PropertyMap
+    ) -> CssReferencePixels {
+        if border.style == CssLineStyle::None {
+            return Default::default()
+        }
+
+        self.resolve_length(
+            font_size,
+            CssReferencePixels::new(0 as _),
+            border.width,
+            computed_style
+        )
     }
 
     fn resolve_font(
