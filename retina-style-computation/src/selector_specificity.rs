@@ -23,6 +23,14 @@ impl SelectorSpecificity {
             type_and_pseudo_element_selectors: c,
         }
     }
+
+    pub const fn new_for_style_attribute() -> Self {
+        Self {
+            id_selectors: usize::MAX,
+            class_attribute_pseudo_class_selectors: usize::MAX,
+            type_and_pseudo_element_selectors: usize::MAX,
+        }
+    }
 }
 
 impl PartialOrd for SelectorSpecificity {

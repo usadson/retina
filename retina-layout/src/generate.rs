@@ -277,7 +277,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
     ) -> PropertyMap {
         StyleCollector::new(self.stylesheets)
             .collect(node.as_ref())
-            .cascade(parent.map(|parent| parent.computed_style()))
+            .cascade(Some(node.as_ref()), parent.map(|parent| parent.computed_style()))
     }
 
     fn generate_for(

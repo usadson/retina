@@ -1,7 +1,8 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_style::CascadeOrigin;
+use log::warn;
+use retina_style::{CascadeOrigin, Rule};
 
 use crate::{CollectedStyles, PropertyMap, collect::ApplicableRule};
 
@@ -24,6 +25,40 @@ fn cascade_normal_declarations_for_origin(
     }
 }
 
+fn cascade_styles_from_attribute(
+    property_map: &mut PropertyMap,
+    node: &retina_dom::NodeKind,
+ ) {
+    let Some(element) = node.as_dom_element() else { return };
+    let Some(style_attribute) = element.attributes().find_by_str("style") else { return };
+
+    if style_attribute.trim().is_empty() {
+        return;
+    }
+
+    match retina_style_parser::parse_style_attribute(style_attribute) {
+        Ok(Rule::Style(style_rule)) => {
+            cascade_normal_declarations_for_origin(
+                property_map,
+                &[
+                    ApplicableRule {
+                        specificity: crate::SelectorSpecificity::new_for_style_attribute(),
+                        rule: &style_rule,
+                    }
+                ],
+                CascadeOrigin::Author,
+            );
+        }
+
+        Ok(..) => unreachable!(),
+
+        Err(e) => {
+            warn!("Failed to parse style attribute: {e:#?}");
+            warn!("Style attribute contents: {style_attribute}");
+        }
+    }
+}
+
 fn inherit_property<T>(target: &mut Option<T>, source: &Option<T>)
         where T: Clone {
     if target.is_none() {
@@ -39,11 +74,19 @@ fn inherit_properties(property_map: &mut PropertyMap, parent: &PropertyMap) {
 }
 
 pub trait Cascade {
-    fn cascade(&self, parent: Option<&PropertyMap>) -> PropertyMap;
+    fn cascade(
+        &self,
+        node: Option<&retina_dom::NodeKind>,
+        parent: Option<&PropertyMap>,
+    ) -> PropertyMap;
 }
 
 impl<'stylesheets> Cascade for CollectedStyles<'stylesheets> {
-    fn cascade(&self, parent: Option<&PropertyMap>) -> PropertyMap {
+    fn cascade(
+        &self,
+        node: Option<&retina_dom::NodeKind>,
+        parent: Option<&PropertyMap>,
+    ) -> PropertyMap {
         let mut property_map = PropertyMap::new();
 
         // Declarations from origins earlier in this list win over declarations
@@ -57,6 +100,10 @@ impl<'stylesheets> Cascade for CollectedStyles<'stylesheets> {
 
         // 6. Normal author declarations
         cascade_normal_declarations_for_origin(&mut property_map, self.applicable_rules(), CascadeOrigin::Author);
+
+        if let Some(node) = node {
+            cascade_styles_from_attribute(&mut property_map, node);
+        }
 
         // 5. Animation declarations [css-animations-1]
         // TODO
@@ -116,7 +163,7 @@ mod tests {
         let node = &NodeKind::Text(Text::new(StrTendril::new()));
 
         let collected_styles = StyleCollector::new(&stylesheets).collect(node);
-        let cascaded_style = collected_styles.cascade(None);
+        let cascaded_style = collected_styles.cascade(None, None);
 
         let expected = PropertyMap {
             color: Some(CssNamedColor::BLUE),
@@ -160,7 +207,7 @@ mod tests {
         let parent_node = NodeKind::Document(parent_node);
 
         let parent_collected_styles = StyleCollector::new(&stylesheets).collect(&parent_node);
-        let parent_cascaded_styles = parent_collected_styles.cascade(None);
+        let parent_cascaded_styles = parent_collected_styles.cascade(None, None);
 
         assert_eq!(parent_cascaded_styles, PropertyMap {
             color: Some(CssNamedColor::BLUE),
@@ -169,7 +216,7 @@ mod tests {
         });
 
         let node_collected_styles = CollectedStyles::new();
-        let node_cascaded_style = node_collected_styles.cascade(Some(&parent_cascaded_styles));
+        let node_cascaded_style = node_collected_styles.cascade(None, Some(&parent_cascaded_styles));
 
         assert_eq!(node_cascaded_style, PropertyMap {
             color: Some(CssNamedColor::BLUE),

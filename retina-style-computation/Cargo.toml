@@ -8,11 +8,11 @@ license.workspace = true
 retina-common = { path = "../retina-common" }
 retina-dom = { path = "../retina-dom" }
 retina-style = { path = "../retina-style" }
+retina-style-parser = { path = "../retina-style-parser" }
 
+log = "*"
 tendril = "*"
 
 [dev-dependencies]
-retina-style-parser = { path = "../retina-style-parser" }
-
 pretty_assertions = "*"
 rstest = "*"

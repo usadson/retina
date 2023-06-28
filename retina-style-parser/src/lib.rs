@@ -19,11 +19,43 @@ pub(self) type ParseError<'i> = cssparser::ParseError<'i, RetinaStyleParseError<
 
 use cssparser::{
     Parser,
-    ParserInput, StyleSheetParser,
+    ParserInput,
+    QualifiedRuleParser,
+    StyleSheetParser,
 };
 use log::warn;
 
-use retina_style::{CascadeOrigin, Rule, Stylesheet};
+use retina_style::{
+    CascadeOrigin,
+    Rule,
+    SelectorList,
+    Stylesheet,
+};
+
+/// Parses the [`style`][attr] attribute according to the rules of
+/// [CSS Style Attributes][CSSATTR].
+///
+/// # References
+/// * [CSS Style Attributes][CSSATTR].
+/// * [HTML Living Standard § 3.2.6.5. The `style` attribute][attr]
+///
+/// [attr]: https://html.spec.whatwg.org/multipage/dom.html#the-style-attribute
+/// [CSSATTR]: https://w3c.github.io/csswg-drafts/css-style-attr/
+pub fn parse_style_attribute<'input>(
+    input: &'input str
+) -> Result<Rule, ParseError<'input>> {
+    let mut input = ParserInput::new(input);
+    let mut parser = Parser::new(&mut input);
+    let start = parser.state();
+
+    let mut rule_parser = RuleParser::new(CascadeOrigin::Author);
+    QualifiedRuleParser::parse_block(
+        &mut rule_parser,
+        SelectorList { items: Vec::new() },
+        &start,
+        &mut parser,
+    )
+}
 
 pub fn parse_stylesheet(cascade_origin: CascadeOrigin, input: &str) -> Stylesheet {
     let mut input = ParserInput::new(input);
