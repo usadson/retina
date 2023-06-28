@@ -443,7 +443,7 @@ impl PropertyMap {
     pub fn display(&self) -> CssDisplay {
         self.display.unwrap_or(CssDisplay::Normal {
             inside: CssDisplayInside::Flow,
-            outside: CssDisplayOutside::Block,
+            outside: CssDisplayOutside::Inline,
             is_list_item: false
         })
     }
