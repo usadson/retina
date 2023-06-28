@@ -7,9 +7,12 @@ pub mod block;
 pub use block::BlockFormattingContext;
 pub use inline::InlineFormattingContext;
 
-#[derive(Clone, Debug)]
-pub struct FormattingContext {
+use crate::LayoutBox;
 
+#[derive(Debug)]
+pub struct FormattingContext<'bx> {
+    pub(crate) layout_box: &'bx mut LayoutBox,
+    pub(crate) ended_with_whitespace: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]

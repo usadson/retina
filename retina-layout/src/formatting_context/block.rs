@@ -10,15 +10,20 @@ use retina_style::{
 
 use crate::LayoutBox;
 
+use super::FormattingContext;
+
 pub struct BlockFormattingContext<'bx> {
-    layout_box: &'bx mut LayoutBox,
+    base: FormattingContext<'bx>,
     y_offset: CssDecimal,
 }
 
 impl<'bx> BlockFormattingContext<'bx> {
     pub fn perform(layout_box: &'bx mut LayoutBox) {
         let mut instance = Self {
-            layout_box,
+            base: FormattingContext {
+                ended_with_whitespace: false,
+                layout_box,
+            },
             y_offset: 0.0,
         };
 
@@ -26,11 +31,13 @@ impl<'bx> BlockFormattingContext<'bx> {
     }
 
     fn perform_inner(&mut self) {
-        let mut children = std::mem::replace(&mut self.layout_box.children, Vec::new());
+        let layout_box = &mut self.base.layout_box;
+
+        let mut children = std::mem::replace(&mut layout_box.children, Vec::new());
 
         let mut max_container_width: f64 = 0.0;
 
-        let content_position_origin = self.layout_box.dimensions.content_position;
+        let content_position_origin = layout_box.dimensions.content_position;
 
         for child in &mut children {
             child.dimensions.set_margin_position(
@@ -40,7 +47,7 @@ impl<'bx> BlockFormattingContext<'bx> {
                 )
             );
 
-            child.run_layout(Some(self.layout_box));
+            child.run_layout(Some(layout_box));
 
             let child_size = child.dimensions.size_margin_box();
 
@@ -48,14 +55,14 @@ impl<'bx> BlockFormattingContext<'bx> {
             max_container_width = max_container_width.max(child_size.width);
         }
 
-        if let CssLength::Auto = self.layout_box.computed_style.height() {
-            self.layout_box.dimensions.height = CssReferencePixels::new(self.y_offset);
+        if let CssLength::Auto = layout_box.computed_style.height() {
+            layout_box.dimensions.height = CssReferencePixels::new(self.y_offset);
         }
 
-        if let CssLength::Auto = self.layout_box.computed_style.width() {
-            self.layout_box.dimensions.width = CssReferencePixels::new(max_container_width);
+        if let CssLength::Auto = layout_box.computed_style.width() {
+            layout_box.dimensions.width = CssReferencePixels::new(max_container_width);
         }
 
-        self.layout_box.children = children;
+        layout_box.children = children;
     }
 }
