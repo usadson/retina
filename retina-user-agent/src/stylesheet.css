@@ -51,3 +51,124 @@ listing, plaintext, pre, xmp {
     font-family: monospace;
     white-space: pre;
 }
+
+dialog:not([open]) { display: none; }
+dialog {
+  position: absolute;
+  inset-inline-start: 0; inset-inline-end: 0;
+  width: fit-content;
+  height: fit-content;
+  margin: auto;
+  border: solid;
+  padding: 1em;
+  background-color: Canvas;
+  color: CanvasText;
+}
+dialog:modal {
+  position: fixed;
+  overflow: auto;
+  inset-block: 0;
+  max-width: calc(100% - 6px - 2em);
+  max-height: calc(100% - 6px - 2em);
+}
+dialog::backdrop {
+  background: rgba(0,0,0,0.1);
+}
+
+[popover]:not(:popover-open):not(dialog[open]) {
+  display:none;
+}
+
+dialog:popover-open {
+  display:block;
+}
+
+[popover] {
+  position: fixed;
+  inset: 0;
+  width: fit-content;
+  height: fit-content;
+  margin: auto;
+  border: solid;
+  padding: 0.25em;
+  overflow: auto;
+  color: CanvasText;
+  background-color: Canvas;
+}
+
+:popover-open::backdrop {
+  position: fixed;
+  inset: 0;
+  pointer-events: none !important;
+  background-color: transparent;
+}
+
+slot {
+  display: contents;
+}
+
+pre[wrap] {
+    white-space: pre-wrap;
+}
+
+form {
+    margin-block-end: 1em;
+}
+
+/*
+ * 15.3.4. Phrasing content
+ * <https://html.spec.whatwg.org/multipage/rendering.html#phrasing-content-3>
+ */
+cite, dfn, em, i, var { font-style: italic; }
+b, strong { font-weight: bolder; }
+code, kbd, samp, tt { font-family: monospace; }
+big { font-size: larger; }
+small { font-size: smaller; }
+
+sub { vertical-align: sub; }
+sup { vertical-align: super; }
+sub, sup { line-height: normal; font-size: smaller; }
+
+ruby { display: ruby; }
+rt { display: ruby-text; }
+
+:link { color: #0000EE; }
+:visited { color: #551A8B; }
+:link:active, :visited:active { color: #FF0000; }
+:link, :visited { text-decoration: underline; cursor: pointer; }
+
+:focus-visible { outline: auto; }
+
+mark { background: yellow; color: black; } /* this color is just a suggestion and can be changed based on implementation feedback */
+
+abbr[title], acronym[title] { text-decoration: dotted underline; }
+ins, u { text-decoration: underline; }
+del, s, strike { text-decoration: line-through; }
+
+q::before { content: open-quote; }
+q::after { content: close-quote; }
+
+br { display-outside: newline; } /* this also has bidi implications */
+nobr { white-space: nowrap; }
+wbr { display-outside: break-opportunity; } /* this also has bidi implications */
+nobr wbr { white-space: normal; }
+
+br[clear=left i] { clear: left; }
+br[clear=right i] { clear: right; }
+br[clear=all i], br[clear=both i] { clear: both; }
+
+
+/*
+ * 15.3.3. Sections and headings
+ * <https://html.spec.whatwg.org/multipage/rendering.html#sections-and-headings>
+ */
+article, aside, h1, h2, h3, h4, h5, h6, hgroup, nav, section {
+    display: block;
+}
+
+h1 { margin-block-start: 0.67em; margin-block-end: 0.67em; font-size: 2.00em; font-weight: bold; }
+h2 { margin-block-start: 0.83em; margin-block-end: 0.83em; font-size: 1.50em; font-weight: bold; }
+h3 { margin-block-start: 1.00em; margin-block-end: 1.00em; font-size: 1.17em; font-weight: bold; }
+h4 { margin-block-start: 1.33em; margin-block-end: 1.33em; font-size: 1.00em; font-weight: bold; }
+h5 { margin-block-start: 1.67em; margin-block-end: 1.67em; font-size: 0.83em; font-weight: bold; }
+h6 { margin-block-start: 2.33em; margin-block-end: 2.33em; font-size: 0.67em; font-weight: bold; }
