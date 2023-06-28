@@ -30,14 +30,16 @@ impl<'bx> InlineFormattingContext<'bx> {
         instance.perform_inner()
     }
 
-    fn perform_inner(&mut self) {
-        let layout_box = &mut self.base.layout_box;
+    fn layout_box(&mut self) -> &mut LayoutBox {
+        self.base.layout_box
+    }
 
-        let mut children = std::mem::replace(&mut layout_box.children, Vec::new());
+    fn perform_inner(&mut self) {
+        let mut children = std::mem::replace(&mut self.layout_box().children, Vec::new());
 
         let mut max_container_height: f64 = 0.0;
 
-        let content_position_origin = layout_box.dimensions.content_position;
+        let content_position_origin = self.layout_box().dimensions.content_position;
 
         for child in &mut children {
             child.dimensions.set_margin_position(Point2D::new(
@@ -45,7 +47,7 @@ impl<'bx> InlineFormattingContext<'bx> {
                 content_position_origin.y,
             ));
 
-            child.run_layout(Some(layout_box));
+            child.run_layout(Some(&mut self.base));
 
             let child_size = child.dimensions.size_margin_box();
 
@@ -53,14 +55,14 @@ impl<'bx> InlineFormattingContext<'bx> {
             max_container_height = max_container_height.max(child_size.height);
         }
 
-        if let CssLength::Auto = layout_box.computed_style.height() {
-            layout_box.dimensions.height = CssReferencePixels::new(max_container_height);
+        if let CssLength::Auto = self.layout_box().computed_style.height() {
+            self.layout_box().dimensions.height = CssReferencePixels::new(max_container_height);
         }
 
-        if let CssLength::Auto = layout_box.computed_style.width() {
-            layout_box.dimensions.width = CssReferencePixels::new(self.x_offset);
+        if let CssLength::Auto = self.layout_box().computed_style.width() {
+            self.layout_box().dimensions.width = CssReferencePixels::new(self.x_offset);
         }
 
-        layout_box.children = children;
+        self.layout_box().children = children;
     }
 }

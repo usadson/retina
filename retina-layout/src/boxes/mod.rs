@@ -19,6 +19,7 @@ use retina_style::{CssReferencePixels, CssDecimal};
 
 use crate::formatting_context::{
     BlockFormattingContext,
+    FormattingContext,
     FormattingContextKind,
     InlineFormattingContext,
 };
@@ -93,7 +94,7 @@ impl LayoutBox {
         DumpableNode::dump(self);
     }
 
-    fn run_anonymous_layout(&mut self, parent: &mut LayoutBox) {
+    fn run_anonymous_layout(&mut self, parent: &mut FormattingContext) {
         let Some(text) = self.node.as_text() else {
             warn!("Anonymous layout with a non-Text DOM node: {:#?}", self.node);
             return;
@@ -115,7 +116,7 @@ impl LayoutBox {
         self.dimensions.height = CssReferencePixels::new(size.height as CssDecimal);
     }
 
-    pub fn run_layout(&mut self, parent: Option<&mut LayoutBox>) {
+    pub fn run_layout(&mut self, parent: Option<&mut FormattingContext>) {
         if let LayoutBoxKind::Anonymous = self.kind {
             if let Some(parent) = parent {
                 self.run_anonymous_layout(parent);
