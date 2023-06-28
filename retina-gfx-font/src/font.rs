@@ -37,7 +37,11 @@ impl Font {
         let mut brush = self.brush();
 
         let bounds = brush.glyph_bounds(
-            Section::builder().add_text(Text::new(text).with_scale(size))
+            Section::builder()
+                .add_text(
+                    Text::new(text)
+                        .with_scale(size * 1.5)
+                )
         ).unwrap_or_default();
 
         Size2D::new(
