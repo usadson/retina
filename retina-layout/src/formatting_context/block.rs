@@ -10,7 +10,10 @@ use retina_style::{
 
 use crate::LayoutBox;
 
-use super::FormattingContext;
+use super::{
+    FormattingContext,
+    FormattingContextWhitespaceState,
+};
 
 pub struct BlockFormattingContext<'bx> {
     base: FormattingContext<'bx>,
@@ -21,8 +24,8 @@ impl<'bx> BlockFormattingContext<'bx> {
     pub fn perform(layout_box: &'bx mut LayoutBox) {
         let mut instance = Self {
             base: FormattingContext {
-                ended_with_whitespace: false,
                 layout_box,
+                whitespace_state: FormattingContextWhitespaceState::Initial,
             },
             y_offset: 0.0,
         };

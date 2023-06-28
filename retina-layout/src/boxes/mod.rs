@@ -9,6 +9,8 @@ mod dimensions;
 mod edge;
 mod line;
 
+use std::borrow::Cow;
+
 pub use dimensions::LayoutBoxDimensions;
 pub use edge::LayoutEdge;
 pub use line::LineBox;
@@ -21,7 +23,7 @@ use crate::formatting_context::{
     BlockFormattingContext,
     FormattingContext,
     FormattingContextKind,
-    InlineFormattingContext,
+    InlineFormattingContext, FormattingContextWhitespaceState,
 };
 
 use super::DomNode;
@@ -100,17 +102,21 @@ impl LayoutBox {
             return;
         };
 
-        let text = text.data_as_str().trim();
-        if text.is_empty() {
-            self.dimensions.width = CssReferencePixels::new(0.0);
-            self.dimensions.height = CssReferencePixels::new(0.0);
-            return;
+        let mut text = Cow::Borrowed(text.data_as_str());
+        if self.computed_style.white_space().collapses() {
+            text = crate::white_space::collapse_white_space(text, parent.whitespace_state);
+        }
+
+        if text.ends_with(' ') {
+            parent.whitespace_state = FormattingContextWhitespaceState::EndedWithWhitespace;
+        } else {
+            parent.whitespace_state = FormattingContextWhitespaceState::NoWhitespace;
         }
 
         // TODO this should participate in a inline formatting context.
         _ = parent;
 
-        let size = self.font.calculate_size(self.font_size.value() as _, text);
+        let size = self.font.calculate_size(self.font_size.value() as _, &text);
         info!("Anonymous layout of \"{text}\" is: {} x {}", size.width, size.height);
         self.dimensions.width = CssReferencePixels::new(size.width as CssDecimal);
         self.dimensions.height = CssReferencePixels::new(size.height as CssDecimal);

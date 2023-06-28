@@ -499,6 +499,10 @@ impl PropertyMap {
         self.padding_top.unwrap_or(CssLength::Pixels(0.0))
     }
 
+    pub fn white_space(&self) -> CssWhiteSpace {
+        self.white_space.unwrap_or(CssWhiteSpace::Normal)
+    }
+
     pub fn width(&self) -> CssLength {
         self.width.unwrap_or(CssLength::Auto)
     }

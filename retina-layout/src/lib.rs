@@ -17,6 +17,7 @@
 mod boxes;
 mod formatting_context;
 mod generate;
+pub(crate) mod white_space;
 
 pub use boxes::{
     LayoutBox,

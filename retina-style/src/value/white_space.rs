@@ -31,3 +31,15 @@ pub enum CssWhiteSpace {
     /// `break-spaces`,
     BreakSpaces,
 }
+
+impl CssWhiteSpace {
+    /// Determines whether the `white-space` collapses whitespace or not.
+    ///
+    /// # References
+    /// * [CSS Text Module Level 3 § 4.1.1. Phase I: Collapsing and Transformation][spec]
+    ///
+    /// [spec]: https://drafts.csswg.org/css-text/#collapse
+    pub const fn collapses(&self) -> bool {
+        matches!(self, Self::Normal | Self::Nowrap | Self::PreLine)
+    }
+}
