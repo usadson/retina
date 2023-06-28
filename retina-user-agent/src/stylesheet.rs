@@ -36,7 +36,7 @@ mod tests {
     #[test]
     fn parse_basic() {
         let stylesheet = Stylesheet::parse(CascadeOrigin::UserAgent, USER_AGENT_STYLESHEET_CODE);
-        assert_eq!(stylesheet.rules().len(), 7);
+        assert_eq!(stylesheet.rules().len(), 34);
 
         let style_rule = stylesheet.rules()[1].try_as_style().expect("not a style rule");
         assert_eq!(
