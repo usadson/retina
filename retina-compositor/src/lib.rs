@@ -1,11 +1,15 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use std::sync::OnceLock;
+
 use retina_gfx::{canvas::CanvasPainter, euclid::{Rect, Point2D, Size2D, UnknownUnit}};
 use retina_layout::LayoutBox;
 use retina_style::{CssColor, CssDecimal, CssLineStyle};
 use retina_style_computation::BorderProperties;
+use tracing::instrument;
 
+#[derive(Debug)]
 pub struct Compositor {
 
 }
@@ -16,6 +20,7 @@ impl Compositor {
         }
     }
 
+    #[instrument(skip_all)]
     fn calculate_border_rect_bottom(
         &self,
         mut position: Point2D<CssDecimal, UnknownUnit>,
@@ -36,6 +41,7 @@ impl Compositor {
         Rect::new(position, size)
     }
 
+    #[instrument(skip_all)]
     fn calculate_border_rect_left(
         &self,
         position: Point2D<CssDecimal, UnknownUnit>,
@@ -52,6 +58,7 @@ impl Compositor {
         Rect::new(position, size)
     }
 
+    #[instrument(skip_all)]
     fn calculate_border_rect_right(
         &self,
         mut position: Point2D<CssDecimal, UnknownUnit>,
@@ -72,6 +79,7 @@ impl Compositor {
         Rect::new(position, size)
     }
 
+    #[instrument(skip_all)]
     fn calculate_border_rect_top(
         &self,
         position: Point2D<CssDecimal, UnknownUnit>,
@@ -88,18 +96,24 @@ impl Compositor {
         Rect::new(position, size)
     }
 
+    #[instrument(skip_all)]
     pub fn paint(&self, layout_box: &LayoutBox, painter: &mut CanvasPainter) {
-        _ = layout_box;
+        let _guard = CompositorTracingGuard::new();
+        self.paint_box(layout_box, painter);
+    }
 
+    #[instrument(skip(painter))]
+    fn paint_box(&self, layout_box: &LayoutBox, painter: &mut CanvasPainter) {
         self.paint_background(layout_box, painter);
         self.paint_border(layout_box, painter);
         self.paint_text(layout_box, painter);
 
         for child in layout_box.children() {
-            self.paint(child, painter);
+            self.paint_box(child, painter);
         }
     }
 
+    #[instrument(skip_all)]
     fn paint_background(&self, layout_box: &LayoutBox, painter: &mut CanvasPainter) {
         let position = layout_box.dimensions().position_padding_box();
 
@@ -120,6 +134,7 @@ impl Compositor {
         }
     }
 
+    #[instrument(skip_all)]
     fn paint_border(&self, layout_box: &LayoutBox, painter: &mut CanvasPainter) {
         let position = layout_box.dimensions().position_border_box();
 
@@ -148,6 +163,7 @@ impl Compositor {
         );
     }
 
+    #[instrument(skip_all)]
     fn paint_border_part(
         &self,
         border: BorderProperties,
@@ -163,6 +179,7 @@ impl Compositor {
         }
     }
 
+    #[instrument(skip_all)]
     fn paint_text(
         &self,
         layout_box: &LayoutBox,
@@ -196,5 +213,42 @@ impl Compositor {
                 );
             }
         }
+    }
+}
+
+struct CompositorTracingGuard {
+    _chrome_guard: tracing_chrome::FlushGuard,
+    _tracing_subscriber_guard: tracing::subscriber::DefaultGuard,
+}
+
+impl CompositorTracingGuard {
+    const ENABLED: OnceLock<bool> = OnceLock::new();
+
+    pub fn new() -> Option<Self> {
+        if !Self::is_enabled() {
+            return None;
+        }
+
+        use tracing_chrome::ChromeLayerBuilder;
+        use tracing_subscriber::prelude::*;
+
+        let (chrome_layer, _chrome_guard) = ChromeLayerBuilder::new().build();
+
+        let _tracing_subscriber_guard = tracing_subscriber::registry()
+            .with(chrome_layer)
+            .set_default();
+
+        Some(Self {
+            _chrome_guard,
+            _tracing_subscriber_guard,
+        })
+    }
+
+    #[inline]
+    pub fn is_enabled() -> bool {
+        *Self::ENABLED.get_or_init(|| {
+            std::env::var("RETINA_TRACE")
+                .is_ok_and(|val| val.trim().eq_ignore_ascii_case("1"))
+        })
     }
 }
