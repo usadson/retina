@@ -15,7 +15,7 @@ pub use dimensions::LayoutBoxDimensions;
 pub use edge::LayoutEdge;
 pub use line::LineBox;
 use log::warn;
-use retina_common::DumpableNode;
+use retina_common::{DumpableNode, Color};
 use retina_gfx_font::FontHandle;
 use retina_style::{CssReferencePixels, CssDecimal};
 
@@ -60,6 +60,19 @@ impl LayoutBox {
             children: Vec::new(),
             font,
             font_size,
+        }
+    }
+
+    /// Get the background-color, applicable for root boxes.
+    pub fn background_color_as_root(&self) -> Color {
+        debug_assert_eq!(self.kind, LayoutBoxKind::Root);
+
+        let css_color = self.children[0].computed_style().background_color();
+
+        match css_color {
+            retina_style::CssColor::Color(color) => {
+                color.with_alpha(1.0)
+            }
         }
     }
 
@@ -171,7 +184,7 @@ impl DumpableNode for LayoutBox {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum LayoutBoxKind {
     Root,
     Normal,

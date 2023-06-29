@@ -4,8 +4,12 @@
 use log::info;
 use retina_gfx::{
     euclid::{Point2D, Rect, Size2D},
+    VirtualKeyCode,
     WindowApplication,
-    WindowRenderPass, window::Window, WindowEventProxy, WindowKeyPressEvent, VirtualKeyCode,
+    WindowRenderPass,
+    window::Window,
+    WindowEventProxy,
+    WindowKeyPressEvent,
 };
 use retina_gfx_font::FontProvider;
 use retina_page::*;
@@ -63,8 +67,9 @@ impl Application {
                 self.title = Some(String::new());
             }
 
-            PageMessage::PaintReceived { texture_view, .. } => {
+            PageMessage::PaintReceived { texture_view, background_color, .. } => {
                 self.texture_view = Some(texture_view);
+                window.set_background_color(background_color);
                 window.request_repaint();
             }
 

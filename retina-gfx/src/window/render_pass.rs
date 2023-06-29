@@ -2,6 +2,7 @@
 // All Rights Reserved.
 
 use euclid::Rect;
+use retina_common::Color;
 use wgpu::util::DeviceExt;
 
 use crate::vertex::textured_vertex;
@@ -40,7 +41,8 @@ impl<'painter> WindowRenderPass<'painter> {
         }
     }
 
-    pub(crate) fn clear(&mut self) {
+    pub(crate) fn clear(&mut self, color: Color) {
+        log::info!("Clearing with {color:?}");
         let _ = self.encoder.begin_render_pass(
             &wgpu::RenderPassDescriptor {
                 label: Some("Render pass"),
@@ -51,10 +53,10 @@ impl<'painter> WindowRenderPass<'painter> {
                         ops: wgpu::Operations {
                             load: wgpu::LoadOp::Clear(
                                 wgpu::Color {
-                                    r: 0.4,
-                                    g: 0.4,
-                                    b: 0.4,
-                                    a: 1.0,
+                                    r: color.red(),
+                                    g: color.green(),
+                                    b: color.blue(),
+                                    a: color.alpha(),
                                 },
                             ),
                             store: true,

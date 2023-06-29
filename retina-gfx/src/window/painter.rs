@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use retina_common::Color;
 use winit::dpi::LogicalSize;
 
 use crate::{
@@ -75,7 +76,11 @@ impl WindowPainter {
         self.swap_chain.on_resize(size);
     }
 
-    pub(crate) fn paint<EventType>(&mut self, app: &mut dyn WindowApplication<EventType>)
+    pub(crate) fn paint<EventType>(
+        &mut self,
+        app: &mut dyn WindowApplication<EventType>,
+        clear_color: Color,
+    )
             where EventType: 'static {
         let surface_texture = self.surface.get_current_texture().expect("Get next frame");
         let surface_texture_view = surface_texture
@@ -84,7 +89,7 @@ impl WindowPainter {
 
         let mut render_pass = WindowRenderPass::new(self, &surface_texture_view);
 
-        render_pass.clear();
+        render_pass.clear(clear_color);
 
         app.on_paint(&mut render_pass);
 

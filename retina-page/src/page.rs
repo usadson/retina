@@ -7,7 +7,7 @@ use log::{error, info, warn};
 use retina_compositor::Compositor;
 use retina_dom::{HtmlElementKind, LinkType, Node, event::queue::EventQueue};
 use retina_fetch::{Fetch, Request};
-use retina_gfx::{canvas::CanvasPaintingContext, Color};
+use retina_gfx::canvas::CanvasPaintingContext;
 use retina_gfx_font::FontProvider;
 use retina_layout::{LayoutBox, LayoutGenerator};
 use retina_scrittura::BrowsingContext;
@@ -314,7 +314,7 @@ impl Page {
         // > The initial value for the 'color' property is expected to be black.
         // > The initial value for the 'background-color' property is expected
         // > to be 'transparent'. The canvas's background is expected to be white.
-        let mut painter = self.canvas.begin(Color::WHITE);
+        let mut painter = self.canvas.begin(layout_root.background_color_as_root());
 
         self.compositor.paint(layout_root, &mut painter);
 
@@ -323,6 +323,7 @@ impl Page {
         self.message_sender.send(PageMessage::PaintReceived {
             texture_view: self.canvas.create_view(),
             texture_size: self.canvas.size(),
+            background_color: layout_root.background_color_as_root(),
         })?;
 
         let time_taken = begin_time.elapsed();

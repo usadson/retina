@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_gfx::euclid::Size2D;
+use retina_gfx::{euclid::Size2D, Color};
 use retina_style::Stylesheet;
 
 use crate::PageCommand;
@@ -12,6 +12,7 @@ pub enum PageMessage {
     PaintReceived {
         texture_view: wgpu::TextureView,
         texture_size: Size2D<u32, u32>,
+        background_color: Color,
     },
 
     Progress {

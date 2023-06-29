@@ -13,6 +13,7 @@ use std::time::{Instant, Duration};
 
 use euclid::Size2D;
 use log::info;
+use retina_common::Color;
 use winit::dpi::PhysicalSize;
 
 use self::{
@@ -37,6 +38,7 @@ pub struct Window<EventType = ()>
     window_size: Size2D<u32, u32>,
 
     start_time: Instant,
+    background_color: Color,
 }
 
 //
@@ -82,6 +84,8 @@ impl<EventType> Window<EventType>
             state: WindowState::new(),
             window_size,
             start_time: Instant::now(),
+
+            background_color: Color::WHITE,
         })
     }
 
@@ -134,7 +138,7 @@ impl<EventType> Window<EventType>
 
                 winit::event::Event::RedrawRequested { .. } => {
                     info!("Redraw requested!");
-                    self.painter.paint(app.as_mut());
+                    self.painter.paint(app.as_mut(), self.background_color);
                 }
 
                 _ => {
@@ -142,6 +146,10 @@ impl<EventType> Window<EventType>
                 }
             }
         })
+    }
+
+    pub fn set_background_color(&mut self, value: Color) {
+        self.background_color = value;
     }
 
     pub fn set_title(&self, title: &str) {
