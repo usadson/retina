@@ -9,8 +9,11 @@ pub(crate) mod render_pass;
 pub(crate) mod state;
 pub(crate) mod swap_chain;
 
+use std::time::{Instant, Duration};
+
 use euclid::Size2D;
 use log::info;
+use winit::dpi::PhysicalSize;
 
 use self::{
     event_proxy::WindowEventProxy,
@@ -19,6 +22,8 @@ use self::{
 };
 
 use crate::{GfxResult, WindowApplication, Context};
+
+const MINIMUM_DURATION_BEFORE_RESIZES_ARE_ACCEPTED: Duration = Duration::from_millis(250);
 
 pub struct Window<EventType = ()>
         where EventType: 'static {
@@ -30,6 +35,8 @@ pub struct Window<EventType = ()>
     state: WindowState,
 
     window_size: Size2D<u32, u32>,
+
+    start_time: Instant,
 }
 
 //
@@ -52,8 +59,11 @@ impl<EventType> Window<EventType>
         let event_loop = winit::event_loop::EventLoopBuilder::with_user_event().build();
         let event_proxy = WindowEventProxy { proxy: event_loop.create_proxy() };
 
+        let initial_window_size: Size2D<u32, ()> = Size2D::new(800, 600);
+
         let window = winit::window::WindowBuilder::new()
             .with_title("Retina")
+            .with_inner_size(PhysicalSize::new(initial_window_size.width, initial_window_size.height))
             .build(&event_loop)
             .unwrap();
 
@@ -71,6 +81,7 @@ impl<EventType> Window<EventType>
 
             state: WindowState::new(),
             window_size,
+            start_time: Instant::now(),
         })
     }
 
@@ -95,10 +106,15 @@ impl<EventType> Window<EventType>
                     event: winit::event::WindowEvent::Resized(new_size),
                     ..
                 } => {
+                    if self.start_time.elapsed() < MINIMUM_DURATION_BEFORE_RESIZES_ARE_ACCEPTED {
+                        return;
+                    }
+
                     let logical_size = new_size.to_logical(1.0);
                     let euclid_size = Size2D::new(logical_size.width, logical_size.height);
 
                     if !euclid_size.is_empty() && self.window_size != euclid_size {
+
                         self.window_size = euclid_size;
                         self.painter.on_resize(logical_size);
                         app.on_resize(euclid_size);
