@@ -234,7 +234,6 @@ impl<'canvas> CanvasPainter<'canvas> {
         render_pass.draw_indexed(0..self.color_paint.num_indices, 0, 0..1);
 
         drop(render_pass);
-        self.submit();
     }
 
     pub fn paint_text<PositionUnit, Size, FontType>(
@@ -267,8 +266,6 @@ impl<'canvas> CanvasPainter<'canvas> {
                 self.canvas.size.height,
             )
             .expect("Draw queued");
-
-        self.submit();
     }
 
     fn submit(&mut self) {
