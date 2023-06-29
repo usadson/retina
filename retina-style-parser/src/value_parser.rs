@@ -46,6 +46,23 @@ pub(crate) fn parse_display<'i, 't>(
     })
 }
 
+pub(crate) fn parse_float<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssFloatValue, ParseError<'i>> {
+    let token = input.expect_ident()?;
+
+    let float = CssFloatValue::iter()
+        .find(|float| float.as_ref().eq_ignore_ascii_case(&token));
+
+    match float {
+        Some(float) => Ok(float),
+        None => {
+            let token = token.clone();
+            Err(input.new_custom_error(RetinaStyleParseError::FloatUnknownKeyword(token)))
+        }
+    }
+}
+
 pub(crate) fn parse_font_families<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<Vec<CssFontFamilyName>, ParseError<'i>> {
@@ -246,6 +263,7 @@ fn parse_specific_value<'i, 't>(
     property: Property,
 ) -> Option<Result<Value, ParseError<'i>>> {
     match property {
+        Property::Float => Some(parse_float(input).map(|float| Value::Float(float))),
         Property::Font => Some(parse_font_shorthand(input).map(|shorthand| Value::FontShorthand(shorthand))),
         Property::FontFamily => Some(parse_font_families(input).map(|families| Value::FontFamily(families))),
         Property::FontStyle => Some(parse_font_style(input).map(|style| Value::FontStyle(style))),

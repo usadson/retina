@@ -91,6 +91,7 @@ pub struct PropertyMap {
 
     pub color: Option<CssColor>,
     pub display: Option<CssDisplay>,
+    pub float: Option<CssFloatValue>,
     pub font_size: Option<CssLength>,
     pub font_family_list: Option<Vec<CssFontFamilyName>>,
     pub font_style: Option<CssFontStyle>,
@@ -279,6 +280,13 @@ impl PropertyMap {
 
             Property::Display => if let Value::Display(display) = value {
                 self.display = Some(display);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::Float => if let Value::Float(float) = value {
+                self.float = Some(float);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue
