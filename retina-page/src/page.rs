@@ -139,9 +139,23 @@ impl Page {
 
         match command {
             PageCommand::ResizeCanvas { size } => {
-                self.canvas.resize(size);
-                self.generate_layout_tree().await?;
-                self.paint()?;
+                if self.canvas.size() == size {
+                    warn!("Resize Command while size is already the same as the given new size");
+                } else {
+                    self.canvas.resize(size);
+
+                    if let Some(layout_root) = &mut self.layout_root {
+                        layout_root.dimensions_mut().set_margin_size(
+                            CssReferencePixels::new(size.width as _),
+                            CssReferencePixels::new(size.height as _)
+                        );
+                        layout_root.run_layout(None);
+                    } else {
+                        self.generate_layout_tree().await?;
+                    }
+
+                    self.paint()?;
+                }
             }
 
             PageCommand::OpenDomTreeView => {

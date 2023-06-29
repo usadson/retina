@@ -75,6 +75,10 @@ impl LayoutBox {
         self.dimensions
     }
 
+    pub fn dimensions_mut(&mut self) -> &mut LayoutBoxDimensions {
+        &mut self.dimensions
+    }
+
     pub const fn font(&self) -> &FontHandle {
         &self.font
     }

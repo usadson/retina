@@ -55,6 +55,17 @@ impl LayoutBoxDimensions {
         self.set_content_position(position);
     }
 
+    pub fn set_margin_size(&mut self, mut width: CssReferencePixels, mut height: CssReferencePixels) {
+        width -= self.margin.left + self.border.left + self.padding.left;
+        width -= self.margin.right + self.border.right + self.padding.right;
+
+        height -= self.margin.top + self.border.top + self.padding.top;
+        height -= self.margin.bottom + self.border.bottom + self.padding.bottom;
+
+        self.width = width;
+        self.height = height;
+    }
+
     pub fn size_content_box(&self) -> Size2D<CssDecimal> {
         Size2D::new(
             self.width.value(),
