@@ -10,5 +10,5 @@ retina-gfx = { path = "../retina-gfx" }
 font-kit = "*"
 euclid = "*"
 log = "*"
-wgpu = "*"
+wgpu = { version = "*", features = ["trace"] }
 wgpu_glyph = "*"

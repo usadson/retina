@@ -10,4 +10,7 @@ retina-layout = { path = "../retina-layout" }
 retina-style = { path = "../retina-style" }
 retina-style-computation = { path = "../retina-style-computation" }
 
-wgpu = "*"
+tracing = "*"
+tracing-chrome = "*"
+tracing-subscriber = "*"
+wgpu = { version = "*", features = ["trace"] }

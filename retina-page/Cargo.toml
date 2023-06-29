@@ -20,4 +20,4 @@ retina-user-agent = { path = "../retina-user-agent" }
 log = "*"
 tokio = { version = "*", features = ["full"] }
 url = "*"
-wgpu = "*"
+wgpu = { version = "*", features = ["trace"] }

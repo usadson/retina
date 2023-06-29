@@ -11,6 +11,7 @@ futures = "*"
 bytemuck = "*"
 euclid = "*"
 log = "*"
+tracing = "*"
 winit = "0.28.6"
-wgpu = "*"
+wgpu = { version = "*", features = ["trace"] }
 wgpu_glyph = "*"
