@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::sync::{mpsc::{Receiver as SyncReceiver, SyncSender}, Arc};
+use std::{sync::{mpsc::{Receiver as SyncReceiver, SyncSender}, Arc}, time::Instant};
 
 use log::{error, info, warn};
 use retina_compositor::Compositor;
@@ -308,6 +308,8 @@ impl Page {
             return Ok(());
         };
 
+        let begin_time = Instant::now();
+
         // <https://html.spec.whatwg.org/multipage/rendering.html#phrasing-content-3:'background-color'>
         // > The initial value for the 'color' property is expected to be black.
         // > The initial value for the 'background-color' property is expected
@@ -322,6 +324,11 @@ impl Page {
             texture_view: self.canvas.create_view(),
             texture_size: self.canvas.size(),
         })?;
+
+        let time_taken = begin_time.elapsed();
+        if time_taken.as_millis() > 200 {
+            warn!("Page paint took {} milliseconds!", time_taken.as_millis());
+        }
 
         Ok(())
     }
