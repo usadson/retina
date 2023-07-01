@@ -270,17 +270,54 @@ impl<'canvas> CanvasPainter<'canvas> {
             .expect("Draw queued");
     }
 
-    fn submit(&mut self) {
+    fn submit(&mut self) -> wgpu::SubmissionIndex {
         let encoder = self.canvas.context.device().create_command_encoder(&wgpu::CommandEncoderDescriptor {
             ..Default::default()
         });
         let encoder = std::mem::replace(&mut self.encoder, encoder);
 
         self.canvas.staging_belt.finish();
-        self.canvas.context.queue().submit(Some(encoder.finish()));
+        let submission_index = self.canvas.context.queue().submit(Some(encoder.finish()));
+
+        // self.canvas.staging_belt.recall();
+        submission_index
     }
 
     pub fn submit_and_present(mut self) {
-        self.submit()
+        let submission_index = self.submit();
+        while self.canvas.context.device()
+                .poll(wgpu::Maintain::WaitForSubmissionIndex(submission_index.clone())) {
+            std::thread::yield_now();
+        }
+    }
+
+    pub fn submit_and_present_async(mut self) -> SubmissionFuture {
+        let submission_index = self.submit();
+        SubmissionFuture {
+            context: self.canvas.context.clone(),
+            submission_index,
+        }
+    }
+}
+
+pub struct SubmissionFuture {
+    context: Context,
+    submission_index: wgpu::SubmissionIndex,
+}
+
+impl std::future::Future for SubmissionFuture {
+    type Output = ();
+
+    fn poll(
+        self: std::pin::Pin<&mut Self>,
+        _: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Self::Output> {
+        let maintain = wgpu::Maintain::WaitForSubmissionIndex(self.submission_index.clone());
+        log::info!("Polling ready!");
+        if self.context.device().poll(maintain) {
+            std::task::Poll::Ready(())
+        } else {
+            std::task::Poll::Pending
+        }
     }
 }

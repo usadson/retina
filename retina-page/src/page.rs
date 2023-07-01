@@ -81,7 +81,7 @@ impl Page {
                     self.layout_root = None;
                     self.style_sheets.get_or_insert(Default::default()).push(stylesheet);
                     self.generate_layout_tree().await?;
-                    self.paint()?;
+                    self.paint().await?;
 
                     self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
                 }
@@ -154,7 +154,7 @@ impl Page {
                         self.generate_layout_tree().await?;
                     }
 
-                    self.paint()?;
+                    self.paint().await?;
                 }
             }
 
@@ -188,7 +188,7 @@ impl Page {
 
         self.generate_layout_tree().await?;
 
-        self.paint()?;
+        self.paint().await?;
 
         Ok(())
     }
@@ -303,7 +303,7 @@ impl Page {
         });
     }
 
-    pub(crate) fn paint(&mut self) -> Result<(), ErrorKind> {
+    pub(crate) async fn paint(&mut self) -> Result<(), ErrorKind> {
         let Some(layout_root) = self.layout_root.as_ref() else {
             return Ok(());
         };
@@ -318,7 +318,8 @@ impl Page {
 
         self.compositor.paint(layout_root, &mut painter);
 
-        painter.submit_and_present();
+        painter.submit_and_present_async().await;
+        info!("Composited!");
 
         self.message_sender.send(PageMessage::PaintReceived {
             texture_view: self.canvas.create_view(),

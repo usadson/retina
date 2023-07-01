@@ -55,6 +55,10 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
 
         initial_containing_block.children.push(html_box);
 
+        initial_containing_block.dimensions_mut().set_margin_size(
+            viewport_width,
+            viewport_height,
+        );
         initial_containing_block.run_layout(None);
 
         // initial_containing_block.dump();
