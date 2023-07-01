@@ -29,7 +29,7 @@ use crate::formatting_context::{
 use super::DomNode;
 use retina_style_computation::PropertyMap;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct LayoutBox {
     pub(crate) kind: LayoutBoxKind,
     pub(crate) formatting_context: FormattingContextKind,

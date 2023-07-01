@@ -72,6 +72,12 @@ impl Deref for Node {
     }
 }
 
+impl PartialEq for Node {
+    fn eq(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.inner, &other.inner)
+    }
+}
+
 #[derive(Debug)]
 pub enum NodeKind {
     Comment(Comment),
