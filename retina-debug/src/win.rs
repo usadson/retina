@@ -51,8 +51,7 @@ pub(crate) fn open_dom_tree_view(descriptor: DomTreeViewDescriptor) {
     let tree_view = TreeView::new(&window, TreeViewOpts {
         position: (0, 0),
         size: (800, 600),
-        horz_resize: Horz::Resize,
-        vert_resize: Vert::Resize,
+        resize_behavior: (Horz::Resize, Vert::Resize),
         tree_view_ex_style: co::TVS_EX::DOUBLEBUFFER,
 
         ..Default::default()
