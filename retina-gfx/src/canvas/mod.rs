@@ -8,7 +8,7 @@
 
 use std::num::NonZeroU64;
 
-use euclid::default::{Transform3D, Vector3D};
+use euclid::{default::{Transform3D, Vector3D}, Point2D, Size2D, Rect};
 use retina_common::Color;
 use tracing::instrument;
 use wgpu::Extent3d;
@@ -141,6 +141,27 @@ impl<'canvas> CanvasPainter<'canvas> {
             canvas_width,
             canvas_height,
         }
+    }
+
+    #[inline]
+    pub const fn canvas_width(&self) -> f32 {
+        self.canvas_width
+    }
+
+    #[inline]
+    pub const fn canvas_height(&self) -> f32 {
+        self.canvas_height
+    }
+
+    pub const fn canvas_rect(&self) -> Rect<f32, euclid::UnknownUnit> {
+        euclid::Rect::new(
+            Point2D::new(0.0, 0.0),
+            Size2D::new(self.canvas_width, self.canvas_height)
+        )
+    }
+
+    pub fn is_rect_inside<Unit>(&self, rect: euclid::Rect<f32, Unit>) -> bool {
+        self.canvas_rect().intersects(&rect.cast_unit())
     }
 
     pub fn clear(&mut self, clear_color: Color) {

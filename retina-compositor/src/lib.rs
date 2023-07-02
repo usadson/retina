@@ -104,9 +104,11 @@ impl Compositor {
 
     #[instrument(skip(painter))]
     fn paint_box(&self, layout_box: &LayoutBox, painter: &mut CanvasPainter) {
-        self.paint_background(layout_box, painter);
-        self.paint_border(layout_box, painter);
-        self.paint_text(layout_box, painter);
+        if painter.is_rect_inside(layout_box.dimensions().rect_border_box().cast()) {
+            self.paint_background(layout_box, painter);
+            self.paint_border(layout_box, painter);
+            self.paint_text(layout_box, painter);
+        }
 
         for child in layout_box.children() {
             self.paint_box(child, painter);
