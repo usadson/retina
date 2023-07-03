@@ -615,3 +615,6 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/rust,windows,linux,macos,visualstudio,visualstudiocode,clion
+
+!retina-gfx-gui/src/win32
+!retina-gfx-gui/src/win32/mod.rs
