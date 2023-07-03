@@ -1,11 +1,11 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use euclid::Rect;
+use euclid::{default::Size2D, Rect};
 use retina_common::Color;
 use wgpu::util::DeviceExt;
 
-use crate::vertex::textured_vertex;
+use crate::{vertex::textured_vertex, math};
 
 use super::painter::WindowPainter;
 
@@ -17,6 +17,8 @@ pub struct WindowRenderPass<'painter> {
     surface_texture_view: &'painter wgpu::TextureView,
 
     texture_paint: TexturePaint,
+
+    viewport_size: Size2D<f32>,
 }
 
 impl<'painter> WindowRenderPass<'painter> {
@@ -31,6 +33,10 @@ impl<'painter> WindowRenderPass<'painter> {
         );
 
         let texture_paint = TexturePaint::new(painter.context.device());
+        let viewport_size = Size2D::new(
+            painter.swap_chain.size.width as f32,
+            painter.swap_chain.size.height as f32,
+        );
 
         Self {
             painter,
