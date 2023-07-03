@@ -3,7 +3,7 @@
 
 use log::info;
 use retina_gfx::{
-    euclid::{Point2D, Rect, Size2D},
+    euclid::{Point2D, default::Rect, Size2D},
     VirtualKeyCode,
     WindowApplication,
     WindowRenderPass,
@@ -19,6 +19,7 @@ use crate::event::RetinaEvent;
 
 pub struct Application {
     page_send_half: PageHandleSendHalf,
+    texture_size: Size2D<u32, retina_gfx::euclid::UnknownUnit>,
     texture_view: Option<wgpu::TextureView>,
     title: Option<String>,
 }
@@ -48,6 +49,7 @@ impl Application {
 
         Self {
             page_send_half,
+            texture_size: Default::default(),
             texture_view: None,
             title: None,
         }
@@ -67,8 +69,9 @@ impl Application {
                 self.title = Some(String::new());
             }
 
-            PageMessage::PaintReceived { texture_view, background_color, .. } => {
+            PageMessage::PaintReceived { texture_view, background_color, texture_size } => {
                 self.texture_view = Some(texture_view);
+                self.texture_size = texture_size.cast_unit();
                 window.set_background_color(background_color);
                 window.request_repaint();
             }
@@ -105,7 +108,7 @@ impl WindowApplication<RetinaEvent> for Application {
                 texture_view,
                 Rect::new(
                     Point2D::new(0.0, 0.0),
-                    Size2D::new(0.0, 0.0)
+                    self.texture_size.cast(),
                 ),
             );
         }

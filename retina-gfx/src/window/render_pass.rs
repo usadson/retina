@@ -78,8 +78,26 @@ impl<'painter> WindowRenderPass<'painter> {
         self.painter.context.device()
     }
 
-    pub fn paint_texture(&mut self, texture_view: &wgpu::TextureView, rect: Rect<f32, f32>) {
-        _ = rect; // TODO
+    pub fn paint_texture<U>(&mut self, texture_view: &wgpu::TextureView, rect: Rect<f32, U>) {
+        log::info!("Painting texture sized {} x {} on a canvas with size {} x {}",
+            rect.width(),
+            rect.height(),
+            self.viewport_size.width,
+            self.viewport_size.height
+        );
+        let transformation = math::project(self.viewport_size, rect.cast());
+        let uniform: &[u8] = bytemuck::cast_slice(&transformation);
+
+        {
+            let mut uniform_buffer_view = self.painter.swap_chain.staging_belt.write_buffer(
+                &mut self.encoder,
+                &self.texture_paint.uniform_buffer,
+                0,
+                std::num::NonZeroU64::new(uniform.len() as _).unwrap(),
+                self.painter.context.device(),
+            );
+            uniform_buffer_view.copy_from_slice(uniform);
+        }
 
         let sampler = self.device().create_sampler(&wgpu::SamplerDescriptor {
             address_mode_u: wgpu::AddressMode::ClampToEdge,
@@ -102,7 +120,11 @@ impl<'painter> WindowRenderPass<'painter> {
                     wgpu::BindGroupEntry {
                         binding: 1,
                         resource: wgpu::BindingResource::Sampler(&sampler),
-                    }
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 2,
+                        resource: self.texture_paint.uniform_buffer.as_entire_binding(),
+                    },
                 ],
                 label: Some("diffuse_bind_group"),
             }
@@ -145,6 +167,7 @@ struct TexturePaint {
     index_buffer: wgpu::Buffer,
     num_indices: u32,
     texture_bind_group_layout: wgpu::BindGroupLayout,
+    uniform_buffer: wgpu::Buffer,
 }
 
 impl TexturePaint {
@@ -169,6 +192,16 @@ impl TexturePaint {
                     ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                     count: None,
                 },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 2,
+                    visibility: wgpu::ShaderStages::VERTEX,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                }
             ],
             label: Some("texture_bind_group_layout"),
         });
@@ -242,12 +275,27 @@ impl TexturePaint {
         });
         let num_indices = textured_vertex::INDICES.len() as u32;
 
+        let uniform_buffer = device.create_buffer_init(
+            &wgpu::util::BufferInitDescriptor {
+                label: Some("texture_paint Uniform Buffer"),
+                contents: bytemuck::cast_slice(&[
+                    // transform
+                    1.0, 0.0, 0.0, 0.0,
+                    0.0, 1.0, 0.0, 0.0,
+                    0.0, 0.0, 1.0, 0.0,
+                    0.0, 0.0, 0.0, 1.0,
+                ]),
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            }
+        );
+
         Self {
             render_pipeline,
             vertex_buffer,
             index_buffer,
             num_indices,
             texture_bind_group_layout,
+            uniform_buffer,
         }
     }
 }
