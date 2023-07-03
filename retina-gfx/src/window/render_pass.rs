@@ -38,11 +38,11 @@ impl<'painter> WindowRenderPass<'painter> {
             surface_texture_view,
 
             texture_paint,
+            viewport_size,
         }
     }
 
     pub(crate) fn clear(&mut self, color: Color) {
-        log::info!("Clearing with {color:?}");
         let _ = self.encoder.begin_render_pass(
             &wgpu::RenderPassDescriptor {
                 label: Some("Render pass"),
