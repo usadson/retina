@@ -5,13 +5,13 @@ use retina_common::Color;
 use winit::dpi::LogicalSize;
 
 use crate::{
+    Artwork,
     Context,
-    WindowApplication,
+    WindowApplication, Painter,
 };
 
 use super::{
     GfxResult,
-    render_pass::WindowRenderPass,
     swap_chain::WindowSwapChain,
 };
 
@@ -19,7 +19,12 @@ pub struct WindowPainter {
     pub context: Context,
     pub(crate) surface: wgpu::Surface,
 
+    /// Invalid texture to render to.
+    #[allow(dead_code)]
+    pub(crate) invalid_texture: wgpu::Texture,
+
     pub(crate) swap_chain: WindowSwapChain,
+    pub(crate) artwork: Artwork,
 }
 
 impl WindowPainter {
@@ -49,13 +54,29 @@ impl WindowPainter {
 
         let context = Context::new(instance, device, queue);
 
+        let invalid_texture = context.device().create_texture(&wgpu::TextureDescriptor {
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            label: None,
+            mip_level_count: 1,
+            sample_count: 1,
+            size: wgpu::Extent3d { width: 2, height: 2, depth_or_array_layers: 1 },
+            usage: wgpu::TextureUsages::TEXTURE_BINDING,
+            view_formats: &[wgpu::TextureFormat::Bgra8UnormSrgb],
+        });
+
         let swap_chain = WindowSwapChain::new(context.clone(), &surface, window.inner_size().to_logical(1.0))?;
+
+        let artwork = Artwork::new(&context, invalid_texture.create_view(&wgpu::TextureViewDescriptor::default()));
 
         Ok(Self {
             context,
             surface,
 
+            invalid_texture,
+
             swap_chain,
+            artwork,
         })
     }
 
@@ -83,17 +104,31 @@ impl WindowPainter {
     )
             where EventType: 'static {
         let surface_texture = self.surface.get_current_texture().expect("Get next frame");
-        let surface_texture_view = surface_texture
-            .texture
-            .create_view(&wgpu::TextureViewDescriptor::default());
 
-        let mut render_pass = WindowRenderPass::new(self, &surface_texture_view);
+        self.artwork.texture_changed(
+            surface_texture
+                .texture
+                .create_view(&wgpu::TextureViewDescriptor::default())
+        );
 
-        render_pass.clear(clear_color);
+        let command_encoder = self.context.device().create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("Window Painter Command Encoder"),
+        });
 
-        app.on_paint(&mut render_pass);
+        let mut painter = Painter::new(
+            &mut self.artwork,
+            command_encoder,
+            euclid::default::Size2D::new(
+                self.swap_chain.size.width,
+                self.swap_chain.size.height,
+            )
+        );
 
-        render_pass.submit();
+        painter.clear(clear_color);
+
+        app.on_paint(&mut painter);
+
+        painter.submit_fast();
         surface_texture.present();
 
         // Recall unused staging buffers

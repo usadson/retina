@@ -4,7 +4,7 @@
 use euclid::Size2D;
 use winit::event::{ModifiersState, VirtualKeyCode};
 
-use super::{render_pass::WindowRenderPass, Window};
+use crate::{Painter, Window};
 
 pub trait WindowApplication<EventType>
         where EventType: 'static {
@@ -17,7 +17,7 @@ pub trait WindowApplication<EventType>
         _ = event;
     }
 
-    fn on_paint(&mut self, render_pass: &mut WindowRenderPass) {
+    fn on_paint(&mut self, render_pass: &mut Painter) {
         _ = render_pass;
     }
 

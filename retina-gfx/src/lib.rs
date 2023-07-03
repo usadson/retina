@@ -3,8 +3,10 @@
 
 pub mod canvas;
 pub mod context;
-pub mod math;
-pub mod paint;
+mod future;
+pub(crate) mod math;
+mod material;
+mod painter;
 pub mod vertex;
 pub mod window;
 
@@ -13,10 +15,23 @@ pub(crate) type GfxResult<T> = Result<T, Box<dyn std::error::Error>>;
 pub use retina_common::Color;
 pub use self::{
     context::Context,
+    future::SubmissionFuture,
+    painter::Painter,
     window::{
         event_proxy::WindowEventProxy,
-        render_pass::WindowRenderPass,
-        interface::{WindowApplication, WindowKeyPressEvent},
+        interface::{
+            WindowApplication,
+            WindowKeyPressEvent,
+        },
+        Window,
+    },
+};
+
+pub(crate) use self::{
+    painter::Artwork,
+    material::{
+        ColorMaterialRenderer,
+        TextureMaterialRenderer,
     },
 };
 

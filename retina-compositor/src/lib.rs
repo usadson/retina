@@ -3,7 +3,7 @@
 
 use std::sync::OnceLock;
 
-use retina_gfx::{canvas::CanvasPainter, euclid::{Rect, Point2D, Size2D, UnknownUnit}};
+use retina_gfx::{Painter, euclid::{Rect, Point2D, Size2D, UnknownUnit}};
 use retina_layout::LayoutBox;
 use retina_style::{CssColor, CssDecimal, CssLineStyle};
 use retina_style_computation::BorderProperties;
@@ -97,14 +97,14 @@ impl Compositor {
     }
 
     #[instrument(skip_all)]
-    pub fn paint(&self, layout_box: &LayoutBox, painter: &mut CanvasPainter) {
+    pub fn paint(&self, layout_box: &LayoutBox, painter: &mut Painter) {
         let _guard = CompositorTracingGuard::new();
         self.paint_box(layout_box, painter);
     }
 
     #[instrument(skip(painter))]
-    fn paint_box(&self, layout_box: &LayoutBox, painter: &mut CanvasPainter) {
-        if painter.is_rect_inside(layout_box.dimensions().rect_border_box().cast()) {
+    fn paint_box(&self, layout_box: &LayoutBox, painter: &mut Painter) {
+        if painter.is_rect_inside_viewport(layout_box.dimensions().rect_border_box().cast()) {
             self.paint_background(layout_box, painter);
             self.paint_border(layout_box, painter);
             self.paint_text(layout_box, painter);
@@ -116,7 +116,7 @@ impl Compositor {
     }
 
     #[instrument(skip_all)]
-    fn paint_background(&self, layout_box: &LayoutBox, painter: &mut CanvasPainter) {
+    fn paint_background(&self, layout_box: &LayoutBox, painter: &mut Painter) {
         let position = layout_box.dimensions().position_padding_box();
 
         let size = layout_box.dimensions().size_padding_box();
@@ -137,7 +137,7 @@ impl Compositor {
     }
 
     #[instrument(skip_all)]
-    fn paint_border(&self, layout_box: &LayoutBox, painter: &mut CanvasPainter) {
+    fn paint_border(&self, layout_box: &LayoutBox, painter: &mut Painter) {
         let position = layout_box.dimensions().position_border_box();
 
         self.paint_border_part(
@@ -170,7 +170,7 @@ impl Compositor {
         &self,
         border: BorderProperties,
         rect: Rect<CssDecimal, UnknownUnit>,
-        painter: &mut CanvasPainter,
+        painter: &mut Painter,
     ) {
         let CssLineStyle::Solid = border.style else {
             return;
@@ -185,7 +185,7 @@ impl Compositor {
     fn paint_text(
         &self,
         layout_box: &LayoutBox,
-        painter: &mut CanvasPainter,
+        painter: &mut Painter,
     ) {
         let Some(text) = layout_box.node.as_text() else { return };
 

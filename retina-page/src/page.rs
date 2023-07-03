@@ -318,8 +318,7 @@ impl Page {
 
         self.compositor.paint(layout_root, &mut painter);
 
-        painter.submit_and_present_async().await;
-        info!("Composited!");
+        painter.submit_async().await;
 
         self.message_sender.send(PageMessage::PaintReceived {
             texture_view: self.canvas.create_view(),

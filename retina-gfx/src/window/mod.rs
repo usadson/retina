@@ -5,7 +5,6 @@ pub(crate) mod event_proxy;
 pub(crate) mod keyboard;
 pub(crate) mod interface;
 pub(crate) mod painter;
-pub(crate) mod render_pass;
 pub(crate) mod state;
 pub(crate) mod swap_chain;
 

@@ -5,7 +5,7 @@ use wgpu::util::DeviceExt;
 
 use crate::vertex::colored_vertex::{ColoredVertex, INDICES, VERTICES};
 
-pub struct ColorPaint {
+pub(crate) struct ColorMaterialRenderer {
     pub(crate) render_pipeline: wgpu::RenderPipeline,
     pub(crate) vertex_buffer: wgpu::Buffer,
     pub(crate) index_buffer: wgpu::Buffer,
@@ -14,7 +14,7 @@ pub struct ColorPaint {
     pub(crate) color_bind_group: wgpu::BindGroup,
 }
 
-impl ColorPaint {
+impl ColorMaterialRenderer {
     pub fn new(device: &wgpu::Device) -> Self {
         let color_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             entries: &[

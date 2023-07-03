@@ -4,9 +4,9 @@
 use log::info;
 use retina_gfx::{
     euclid::{Point2D, default::Rect, Size2D},
+    Painter,
     VirtualKeyCode,
     WindowApplication,
-    WindowRenderPass,
     window::Window,
     WindowEventProxy,
     WindowKeyPressEvent,
@@ -102,14 +102,14 @@ impl WindowApplication<RetinaEvent> for Application {
         }
     }
 
-    fn on_paint(&mut self, render_pass: &mut WindowRenderPass) {
+    fn on_paint(&mut self, render_pass: &mut Painter) {
         if let Some(texture_view) = &self.texture_view {
-            render_pass.paint_texture(
-                texture_view,
+            render_pass.paint_rect_textured(
                 Rect::new(
                     Point2D::new(0.0, 0.0),
                     self.texture_size.cast(),
                 ),
+                texture_view,
             );
         }
     }
