@@ -8,12 +8,13 @@
 
 use std::num::NonZeroU64;
 
-use euclid::{default::{Transform3D, Vector3D}, Point2D, Size2D, Rect};
+use euclid::{default::Size2D, Point2D, Rect};
 use retina_common::Color;
 use tracing::instrument;
 use wgpu::Extent3d;
 
 use crate::{
+    math,
     Context,
     paint::color_paint::ColorPaint,
 };
@@ -192,20 +193,7 @@ impl<'canvas> CanvasPainter<'canvas> {
 
     #[instrument(skip_all)]
     pub fn paint_rect_colored<Unit>(&mut self, rect: euclid::Rect<f64, Unit>, color: Color) {
-        let model = Transform3D::identity()
-            .then_scale(rect.size.width as f32, rect.size.height as f32, 1.0)
-            .then_translate(Vector3D::new(rect.origin.x as f32, self.canvas_height - rect.size.height as f32 - rect.origin.y as f32, 0.0));
-
-        let projection = Transform3D::ortho(
-            0.0,
-            self.canvas_width as f32,
-            0.0,
-            self.canvas_height as f32,
-            -1.0,
-            1.0
-        );
-
-        let transformation = model.then(&projection).to_arrays();
+        let transformation = math::project(Size2D::new(self.canvas_width, self.canvas_height), rect);
 
         let uniform: [[f32; 4]; 5] = [
             [
