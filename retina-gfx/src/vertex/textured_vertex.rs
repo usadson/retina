@@ -4,17 +4,17 @@
 pub(crate) const VERTICES: &[TexturedVertex] = &[
     // Top left
     TexturedVertex {
-        position: [-1.0, 1.0],
+        position: [0.0, 1.0],
         tex_coords: [0.0, 0.0],
     },
     // Bottom left
     TexturedVertex {
-        position: [-1.0, -1.0],
+        position: [0.0, 0.0],
         tex_coords: [0.0, 1.0],
     },
     // Bottom right
     TexturedVertex {
-        position: [1.0, -1.0],
+        position: [1.0, 0.0],
         tex_coords: [1.0, 1.0],
     },
     // Top right
