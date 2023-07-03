@@ -1,18 +1,23 @@
 [package]
-name = "retina-gfx"
+name = "retina-gfx-gui"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 
 [dependencies]
 retina-common = { path = "../retina-common" }
+retina-gfx = { path = "../retina-gfx" }
 
-futures = "*"
-bytemuck = "*"
 euclid = "*"
 log = "*"
-raw-window-handle = "*"
-tracing = "*"
 winit = "0.28.6"
+thiserror = "*"
+tracing = "*"
+raw-window-handle = "*"
 wgpu = { version = "*", features = ["trace"] }
 wgpu_glyph = "*"
+
+[target.'cfg(windows)'.dependencies]
+winsafe = { version = "*", features = [
+    "gui"
+] }

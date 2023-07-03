@@ -7,9 +7,11 @@ license.workspace = true
 [dependencies]
 retina-gfx = { path = "../retina-gfx" }
 retina-gfx-font = { path = "../retina-gfx-font" }
+retina-gfx-gui = { path = "../retina-gfx-gui" }
 retina-page = { path = "../retina-page" }
 
 env_logger = "*"
 log = "*"
+raw-window-handle = "*"
 url = "*"
 wgpu = { version = "*", features = ["trace"] }

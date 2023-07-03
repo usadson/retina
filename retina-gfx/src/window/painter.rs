@@ -7,7 +7,7 @@ use winit::dpi::LogicalSize;
 use crate::{
     Artwork,
     Context,
-    WindowApplication, Painter,
+    WindowApplication, Painter, WindowSurface,
 };
 
 use super::{
@@ -28,8 +28,9 @@ pub struct WindowPainter {
 }
 
 impl WindowPainter {
-    pub(crate) fn new(
-        window: &winit::window::Window,
+    pub fn new(
+        window: WindowSurface,
+        window_size: LogicalSize<u32>,
     ) -> GfxResult<Self> {
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::default());
 
@@ -65,7 +66,7 @@ impl WindowPainter {
             view_formats: &[wgpu::TextureFormat::Bgra8UnormSrgb],
         });
 
-        let swap_chain = WindowSwapChain::new(context.clone(), &surface, window.inner_size().to_logical(1.0))?;
+        let swap_chain = WindowSwapChain::new(context.clone(), &surface, window_size)?;
 
         let artwork = Artwork::new(&context, invalid_texture.create_view(&wgpu::TextureViewDescriptor::default()));
 

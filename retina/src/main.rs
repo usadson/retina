@@ -5,7 +5,7 @@ mod app;
 mod event;
 
 use app::Application;
-pub(crate) use event::RetinaEvent;
+use retina_gfx::{Window, WindowPainter, WindowSurface};
 
 fn main() {
     if cfg!(debug_assertions) {
@@ -16,10 +16,32 @@ fn main() {
         env_logger::init();
     }
 
-    let mut window = retina_gfx::window::Window::<RetinaEvent>::new()
-        .expect("failed to create window");
+    let mut gui_manager = None;
+
+    let mut window = Window::builder()
+        .with_title("Retina")
+        .build_with(|window| -> Option<WindowPainter> {
+            match retina_gfx_gui::attach(window) {
+                Ok(manager) => {
+                    let painter = WindowPainter::new(
+                        WindowSurface {
+                            display: manager.raw_display_handle(),
+                            window: manager.raw_window_handle(),
+                        },
+                        window.inner_size().to_logical(1.0),
+                    ).expect("failed to create WindowPainter");
+
+                    gui_manager = Some(manager);
+                    Some(painter)
+                }
+                Err(e) => {
+                    log::warn!("Cannot attach GUI: {e}");
+                    None
+                }
+            }
+        }).expect("failed to create window");
 
     let app = Box::new(Application::new(&mut window));
 
-    window.run(app)
+    window.run(app).unwrap()
 }

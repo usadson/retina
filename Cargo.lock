@@ -2667,8 +2667,10 @@ version = "0.2.0"
 dependencies = [
  "env_logger",
  "log",
+ "raw-window-handle",
  "retina-gfx",
  "retina-gfx-font",
+ "retina-gfx-gui",
  "retina-page",
  "url",
  "wgpu",
@@ -2736,6 +2738,7 @@ dependencies = [
  "euclid",
  "futures",
  "log",
+ "raw-window-handle",
  "retina-common",
  "tracing",
  "wgpu",
@@ -2754,6 +2757,23 @@ dependencies = [
  "retina-gfx",
  "wgpu",
  "wgpu_glyph",
+]
+
+[[package]]
+name = "retina-gfx-gui"
+version = "0.2.0"
+dependencies = [
+ "euclid",
+ "log",
+ "raw-window-handle",
+ "retina-common",
+ "retina-gfx",
+ "thiserror",
+ "tracing",
+ "wgpu",
+ "wgpu_glyph",
+ "winit",
+ "winsafe",
 ]
 
 [[package]]

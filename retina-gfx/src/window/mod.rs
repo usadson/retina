@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+pub(crate) mod builder;
 pub(crate) mod event_proxy;
 pub(crate) mod keyboard;
 pub(crate) mod interface;
@@ -13,7 +14,6 @@ use std::time::{Instant, Duration};
 use euclid::Size2D;
 use log::info;
 use retina_common::Color;
-use winit::dpi::PhysicalSize;
 
 use self::{
     event_proxy::WindowEventProxy,
@@ -54,45 +54,15 @@ impl<EventType> Window<EventType>
         self.event_proxy.clone()
     }
 
-    /// Create a new [`Window`] instance.
-    pub fn new() -> GfxResult<Self> {
-        // Open window and create a surface
-        let event_loop = winit::event_loop::EventLoopBuilder::with_user_event().build();
-        let event_proxy = WindowEventProxy { proxy: event_loop.create_proxy() };
-
-        let initial_window_size: Size2D<u32, ()> = Size2D::new(800, 600);
-
-        let window = winit::window::WindowBuilder::new()
-            .with_title("Retina")
-            .with_inner_size(PhysicalSize::new(initial_window_size.width, initial_window_size.height))
-            .build(&event_loop)
-            .unwrap();
-
-        let window_size = window.inner_size();
-        let window_size = Size2D::new(window_size.width, window_size.height);
-
-        let painter = WindowPainter::new(&window)?;
-
-        Ok(Self {
-            event_loop: Some(event_loop),
-            event_proxy,
-            window,
-
-            painter,
-
-            state: WindowState::new(),
-            window_size,
-            start_time: Instant::now(),
-
-            background_color: Color::WHITE,
-        })
+    pub fn builder() -> builder::WindowBuilder<EventType> {
+        builder::WindowBuilder::new()
     }
 
     pub fn request_repaint(&self) {
         self.window.request_redraw();
     }
 
-    pub fn run(mut self, mut app: Box<dyn WindowApplication<EventType>>) {
+    pub fn run(mut self, mut app: Box<dyn WindowApplication<EventType>>) -> GfxResult<()> {
         // Render loop
         self.window.request_redraw();
 
