@@ -3,7 +3,7 @@
 
 /// The [Request Initiator][spec] specifies which component started the request.
 ///
-/// [spec]: https://fetch.spec.whatwg.org/#concept-request-destination
+/// [spec]: https://fetch.spec.whatwg.org/#concept-request-initiator
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub enum RequestInitiator {
     Download,
