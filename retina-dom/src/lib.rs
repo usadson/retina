@@ -195,6 +195,17 @@ impl NodeKind {
         }
     }
 
+    pub fn for_each_child_node_recursive_handle(&self, callback: &mut dyn FnMut(&Node)) {
+        if let Some(as_parent) = self.as_parent_node() {
+            let children = as_parent.children();
+            let children: &Vec<Node> = children.as_ref();
+            for child in children {
+                callback(child);
+                child.for_each_child_node_recursive_handle(callback);
+            }
+        }
+    }
+
     pub const fn is_comment(&self) -> bool {
         matches!(self, Self::Comment(..))
     }
