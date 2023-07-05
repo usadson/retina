@@ -7,6 +7,7 @@ mod future;
 pub(crate) mod math;
 mod material;
 mod painter;
+mod texture;
 pub mod vertex;
 pub mod window;
 
@@ -18,6 +19,7 @@ pub use self::{
     context::Context,
     future::SubmissionFuture,
     painter::Painter,
+    texture::Texture,
     window::{
         event_proxy::WindowEventProxy,
         interface::{

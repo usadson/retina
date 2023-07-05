@@ -2923,6 +2923,7 @@ dependencies = [
  "bytemuck",
  "euclid",
  "futures",
+ "image",
  "log",
  "raw-window-handle",
  "retina-common",

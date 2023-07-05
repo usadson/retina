@@ -7,8 +7,6 @@
 use std::ops::Deref;
 
 use html5ever::{QualName, local_name};
-use log::warn;
-use retina_fetch::Fetch;
 use crate::html::LazyLoadingKind;
 
 use crate::{

@@ -10,6 +10,7 @@ retina-common = { path = "../retina-common" }
 futures = "*"
 bytemuck = "*"
 euclid = "*"
+image = "*"
 log = "*"
 raw-window-handle = "*"
 tracing = "*"
