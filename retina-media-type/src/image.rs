@@ -197,7 +197,10 @@ pub fn sniff_in_an_image_context<'mime, R>(resource: &mut R, media_type: &Mime) 
     // pattern matching algorithm with the resource header as the byte sequence
     // to be matched.
 
-    if let Some(image_kind) = match_image_type_pattern_by_pattern(resource) {
+    let image_kind_by_pattern = match_image_type_pattern_by_pattern(resource);
+    resource.rewind().unwrap();
+
+    if let Some(image_kind) = image_kind_by_pattern {
         return Some(image_kind);
     }
 
