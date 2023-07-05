@@ -20,7 +20,7 @@ pub(crate) mod response;
 pub(crate) mod status_code;
 
 pub use destination::RequestDestination;
-pub use error::{Error, InternalError};
+pub use error::{Error, InternalError, NetworkError};
 pub use fetch::Fetch;
 pub use initiator::RequestInitiator;
 pub use promise::FetchPromise;

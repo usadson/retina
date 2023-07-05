@@ -7,6 +7,7 @@ use crate::FetchResponse;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum InternalError {
+    HyperError,
     SynchronizationFault,
 }
 

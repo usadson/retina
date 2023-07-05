@@ -2908,6 +2908,7 @@ dependencies = [
  "futures-core",
  "hyper",
  "hyper-tls",
+ "log",
  "mime",
  "retina-user-agent",
  "rstest",

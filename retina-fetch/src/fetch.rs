@@ -7,10 +7,13 @@ use tokio::{runtime::Runtime, sync::mpsc::channel};
 use url::Url;
 
 use crate::{
+    Error,
     FetchPromise,
     FetchResponse,
+    InternalError,
+    NetworkError,
     Request,
-    Response, Error, error::NetworkError,
+    Response,
 };
 
 type HyperConnector = hyper_tls::HttpsConnector<hyper::client::HttpConnector>;
@@ -69,8 +72,16 @@ impl Fetch {
             let hyper_request = hyper::Request::builder()
                 .uri(request.url.as_str())
                 .method(&request.method)
-                .body(hyper::Body::empty())
-                .unwrap();
+                .body(hyper::Body::empty());
+
+            let hyper_request = match hyper_request {
+                Ok(request) => request,
+                Err(e) => {
+                    log::warn!("Failed to build request: {e}");
+                    sender.send(Err(Error::InternalError(InternalError::HyperError))).await.unwrap();
+                    return;
+                }
+            };
 
             let response = match client.request(hyper_request).await {
                 Ok(response) => Ok((request, response).into()),
