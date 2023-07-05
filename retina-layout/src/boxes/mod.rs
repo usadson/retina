@@ -71,6 +71,10 @@ impl LayoutBox {
 
         match css_color {
             retina_style::CssColor::Color(color) => {
+                if color == Color::TRANSPARENT {
+                    return Color::WHITE;
+                }
+
                 color.with_alpha(1.0)
             }
         }
