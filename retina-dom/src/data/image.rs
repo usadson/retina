@@ -1,28 +1,46 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::sync::{Arc, RwLock};
+use std::{sync::{Arc, RwLock}, any::Any};
 
 use image::DynamicImage;
-use log::warn;
+use log::{warn, info};
 use retina_fetch::{Fetch, Request, Url, RequestInitiator, RequestDestination};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ImageData {
     state: Arc<RwLock<ImageDataState>>,
-    internal: Arc<RwLock<ImageDataInternal>>,
+    internal: Arc<RwLock<Option<DynamicImage>>>,
+    graphics: Arc<RwLock<Box<dyn Any + Send + Sync>>>,
 }
 
 impl ImageData {
     pub(crate) fn new() -> Self {
         Self {
             state: Arc::new(ImageDataState::Initial.into()),
-            internal: Arc::new(ImageDataInternal::default().into()),
+            internal: Arc::new(None.into()),
+            graphics: Arc::new(RwLock::new(Box::new(()))),
         }
     }
 
+    pub fn image(&self) -> &Arc<RwLock<Option<DynamicImage>>> {
+        &self.internal
+    }
+
+    pub fn graphics(&self) -> &Arc<RwLock<Box<dyn Any + Send + Sync>>> {
+        &self.graphics
+    }
+
+    /// When the user agent is to [update the image data][spec] of an `img`
+    /// element, it must run the following steps.
+    ///
+    /// ## TODO
+    /// Enqueue a task when running in parallel.
+    ///
+    /// [spec]: https://html.spec.whatwg.org/multipage/images.html#updating-the-image-data
     pub async fn update(
         &self,
+        base_url: Url,
         fetch: Fetch,
         src: &str,
     ) {
@@ -30,7 +48,8 @@ impl ImageData {
 
         // 12. Parse selected source, relative to the element's node document,
         //     and let urlString be the resulting URL string.
-        let Ok(url) = Url::parse(src.trim()) else {
+        let Ok(url) = Url::options().base_url(Some(&base_url)).parse(src.trim()) else {
+            warn!("Invalid image URL: {src}");
             *self.state.write().unwrap() = ImageDataState::InvalidUrl;
             return;
         };
@@ -75,7 +94,8 @@ impl ImageData {
             }
         };
 
-        self.internal.write().unwrap().image = Some(image);
+        info!("Image: {src} successfully loaded & decoded!");
+        *self.internal.write().unwrap() = Some(image);
     }
 
     #[inline]
@@ -92,11 +112,6 @@ impl ImageData {
             Err(..) => true,
         }
     }
-}
-
-#[derive(Debug, Default)]
-struct ImageDataInternal {
-    image: Option<DynamicImage>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
