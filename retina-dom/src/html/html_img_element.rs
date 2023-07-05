@@ -57,23 +57,8 @@ impl HtmlImgElement {
             .get(&local_name!("src"))
     }
 
-    /// When the user agent is to [update the image data][spec] of an `img`
-    /// element, it must run the following steps.
-    ///
-    /// ## TODO
-    /// Enqueue a task when running in parallel.
-    ///
-    /// [spec]: https://html.spec.whatwg.org/multipage/images.html#updating-the-image-data
-    pub async fn update_the_image_data(
-        &self,
-        fetch: Fetch,
-    ) {
-        if self.image_data.update_was_already_started() {
-            warn!("<img> update_the_image_data was already started!");
-            return;
-        }
-
-        self.image_data.update(fetch, self.src()).await;
+    pub fn data(&self) -> ImageData {
+        self.image_data.clone()
     }
 }
 
