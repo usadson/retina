@@ -25,6 +25,7 @@ hyper = { version = "*", features = [
 ] }
 
 hyper-tls = "*"
+mime = "*"
 url = "*"
 
 [dev-dependencies]

@@ -39,8 +39,26 @@ impl Response {
         }
     }
 
+    pub fn content_type(&self) -> mime::Mime {
+        let Some(content_type) = self.inner.headers().get(hyper::header::CONTENT_TYPE) else {
+            return mime::APPLICATION_OCTET_STREAM;
+        };
+
+        let Ok(content_type) = content_type.to_str() else {
+            return mime::APPLICATION_OCTET_STREAM;
+        };
+
+        content_type.parse().unwrap_or(mime::APPLICATION_OCTET_STREAM)
+    }
+
     pub async fn body(&mut self) -> Box<dyn BufRead + '_> {
         Box::new(hyper::body::aggregate(self.inner.body_mut()).await.unwrap().reader())
+    }
+
+    /// TODO: this function is not needed if the BufRead can be somehow
+    /// [`Seek`][std::io::Seek].
+    pub async fn body_bytes(&mut self) -> Bytes {
+        hyper::body::to_bytes(self.inner.body_mut()).await.unwrap()
     }
 
     /// Get the [`Request`] that created this [`Response`].

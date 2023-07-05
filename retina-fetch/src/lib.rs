@@ -28,4 +28,10 @@ pub use request::Request;
 pub use response::Response;
 pub use status_code::{StatusCode, StatusCodeClass};
 
+pub use mime;
+pub use url::{
+    self,
+    Url,
+};
+
 pub type FetchResponse = Result<Response, Error>;
