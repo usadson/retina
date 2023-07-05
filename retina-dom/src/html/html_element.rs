@@ -1,6 +1,8 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use std::ops::Deref;
+
 use html5ever::QualName;
 
 use crate::Element;
@@ -15,6 +17,14 @@ impl HtmlElement {
         Self {
             element: Element::new(qualified_name),
         }
+    }
+}
+
+impl Deref for HtmlElement {
+    type Target = Element;
+
+    fn deref(&self) -> &Self::Target {
+        &self.element
     }
 }
 

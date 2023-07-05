@@ -6,8 +6,12 @@ license.workspace = true
 
 [dependencies]
 retina-common = { path = "../retina-common" }
+retina-fetch = { path = "../retina-fetch" }
+retina-media-type = { path = "../retina-media-type" }
 
 log = "*"
 html5ever = "*"
+image = "*"
 strum = { version = "*", features = ["derive"] }
+tokio = { version = "*", features = ["full"] }
 tendril = "*"

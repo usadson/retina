@@ -9,6 +9,7 @@
 pub mod attribute;
 pub mod character_data;
 pub mod comment;
+pub mod data;
 pub mod document;
 pub mod element;
 pub mod element_kind;
@@ -25,6 +26,7 @@ use std::{ops::Deref, sync::{Arc, Weak}};
 pub use attribute::AttributeList;
 pub use character_data::CharacterData;
 pub use comment::Comment;
+pub use data::*;
 pub use document::Document;
 pub use element::Element;
 pub use html::*;

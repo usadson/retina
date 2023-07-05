@@ -14,6 +14,7 @@ use log::warn;
 use crate::Comment;
 use crate::Document;
 use crate::HtmlElementKind;
+use crate::HtmlImgElement;
 use crate::HtmlLinkElement;
 use crate::HtmlStyleElement;
 use crate::HtmlUnknownElement;
@@ -219,6 +220,7 @@ fn create_html_element_with_name(
     qualified_name: QualName,
 ) -> HtmlElementKind {
     match &qualified_name.local {
+        &local_name!("img") => HtmlElementKind::Img(HtmlImgElement::new(qualified_name)),
         &local_name!("link") => HtmlElementKind::Link(HtmlLinkElement::new(qualified_name)),
         &local_name!("style") => HtmlElementKind::Style(HtmlStyleElement::new(qualified_name)),
 
@@ -228,9 +230,7 @@ fn create_html_element_with_name(
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        Parser,
-    };
+    use super::Parser;
 
     #[test]
     fn parse_simple() {
