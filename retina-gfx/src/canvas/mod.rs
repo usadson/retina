@@ -76,6 +76,10 @@ impl CanvasPaintingContext {
         painter
     }
 
+    pub const fn context(&self) -> &Context {
+        &self.context
+    }
+
     pub fn create_view(&self) -> wgpu::TextureView {
         self.surface.create_view(&Default::default())
     }
