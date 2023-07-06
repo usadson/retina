@@ -4,6 +4,8 @@
 use retina_dom::NodeKind;
 
 use retina_style::{
+    MediaQuery,
+    MediaType,
     Rule,
     Stylesheet,
     StyleRule,
@@ -56,20 +58,36 @@ impl<'stylesheets> StyleCollector<'stylesheets> {
         let mut collected_styles = CollectedStyles::new();
 
         for sheet in self.stylesheets {
-            for rule in sheet.rules() {
-                if let Rule::Style(rule) = rule {
+            self.collect_for_style_sheet(node, sheet, &mut collected_styles);
+        }
+
+        collected_styles
+    }
+
+    fn collect_for_style_sheet(
+        &self,
+        node: &NodeKind,
+        stylesheet: &'stylesheets Stylesheet,
+        collected_styles: &mut CollectedStyles<'stylesheets>
+    ) {
+        for rule in stylesheet.rules() {
+            match rule {
+                Rule::AtMedia(media) => {
+                    if media.media_query_list[0] != MediaQuery::Type(MediaType::Print) {
+                        self.collect_for_style_sheet(node, &media.stylesheet, collected_styles);
+                    }
+                }
+
+                Rule::Style(rule) => {
                     if let Some(selector) = rule.selector_list.most_specific_match(node) {
                         collected_styles.applicable_rules.push(ApplicableRule {
                             rule,
                             specificity: selector.calculate_specificity()
                         });
-                        continue;
                     }
                 }
             }
         }
-
-        collected_styles
     }
 }
 
