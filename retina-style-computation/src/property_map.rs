@@ -73,6 +73,7 @@ impl TryFrom<Value> for BorderProperties {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct PropertyMap {
     pub background_color: Option<CssColor>,
+    pub background_image: Option<CssImage>,
 
     pub border_bottom: BorderProperties,
     pub border_left: BorderProperties,
@@ -113,6 +114,13 @@ impl PropertyMap {
 
             Property::BackgroundColor => if let Value::Color(color) = value {
                 self.background_color = Some(color);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::BackgroundImage => if let Value::Image(image) = value {
+                self.background_image = Some(image);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue

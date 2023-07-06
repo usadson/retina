@@ -12,6 +12,7 @@ pub enum Property {
     Invalid,
 
     BackgroundColor,
+    BackgroundImage,
 
     Border,
     BorderColor,
