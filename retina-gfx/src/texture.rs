@@ -56,16 +56,25 @@ impl Texture {
             image.as_bytes(),
         );
 
+        let texture_view = texture.create_view(&wgpu::TextureViewDescriptor {
+            ..Default::default()
+        });
+
         Self {
             size: Size2D::new(width, height),
             internal: Arc::new(TextureImpl {
                 texture,
+                texture_view,
             })
         }
     }
 
-    pub(crate) fn data(&self) -> &wgpu::Texture {
+    pub fn data(&self) -> &wgpu::Texture {
         &self.internal.texture
+    }
+
+    pub fn view(&self) -> &wgpu::TextureView {
+        &self.internal.texture_view
     }
 
     pub fn width(&self) -> u32 {
@@ -84,4 +93,5 @@ impl Texture {
 #[derive(Debug)]
 struct TextureImpl {
     texture: wgpu::Texture,
+    texture_view: wgpu::TextureView,
 }
