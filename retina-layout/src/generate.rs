@@ -3,9 +3,10 @@
 
 use euclid::default::Point2D;
 use log::warn;
-use retina_dom::Node;
+use retina_dom::{Node, ImageData};
+use retina_fetch::{Fetch, Url};
 use retina_gfx_font::{FontProvider, FontDescriptor, FontWeight, FontHandle, FamilyName};
-use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength, CssDisplayBox, CssFontFamilyName, CssGenericFontFamilyName, CssFontWeight, CssLineStyle};
+use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength, CssDisplayBox, CssFontFamilyName, CssGenericFontFamilyName, CssFontWeight, CssLineStyle, CssImage};
 use retina_style_computation::{PropertyMap, StyleCollector, Cascade, BorderProperties};
 
 use crate::{
@@ -22,6 +23,8 @@ pub struct LayoutGenerator<'stylesheets> {
     viewport_width: CssReferencePixels,
     viewport_height: CssReferencePixels,
     font_provider: FontProvider,
+    document_url: &'stylesheets Url,
+    fetch: Fetch,
 }
 
 impl<'stylesheets> LayoutGenerator<'stylesheets> {
@@ -32,12 +35,16 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         viewport_width: CssReferencePixels,
         viewport_height: CssReferencePixels,
         font_provider: FontProvider,
+        document_url: &'stylesheets Url,
+        fetch: Fetch,
     ) -> LayoutBox {
         let instance = Self {
             stylesheets,
             viewport_width,
             viewport_height,
             font_provider,
+            document_url,
+            fetch,
         };
 
         let html_element = Node::clone(
@@ -336,6 +343,19 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
                 return None;
             }
         };
+
+        if let Some(CssImage::Url(background_image_url)) = layout_box.computed_style.background_image.clone() {
+            let data = ImageData::new();
+            {
+                let data = data.clone();
+                let fetch = self.fetch.clone();
+                let base_url = self.document_url.clone();
+                tokio::task::spawn(async move {
+                    data.update(base_url, fetch, &background_image_url).await;
+                });
+            }
+            layout_box.background_image = Some(data);
+        }
 
         if let Some(node) = layout_box.node.as_parent_node() {
             for child in node.children().iter() {

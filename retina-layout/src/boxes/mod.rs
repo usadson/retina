@@ -16,6 +16,7 @@ pub use edge::LayoutEdge;
 pub use line::LineBox;
 use log::warn;
 use retina_common::{DumpableNode, Color};
+use retina_dom::ImageData;
 use retina_gfx_font::FontHandle;
 use retina_style::{CssReferencePixels, CssDecimal};
 
@@ -39,6 +40,7 @@ pub struct LayoutBox {
     pub(crate) children: Vec<LayoutBox>,
     pub(crate) font: FontHandle,
     pub(crate) font_size: CssReferencePixels,
+    pub(crate) background_image: Option<ImageData>,
 }
 
 impl LayoutBox {
@@ -60,6 +62,7 @@ impl LayoutBox {
             children: Vec::new(),
             font,
             font_size,
+            background_image: None,
         }
     }
 
@@ -78,6 +81,10 @@ impl LayoutBox {
                 color.with_alpha(1.0)
             }
         }
+    }
+
+    pub fn background_image(&self) -> Option<&ImageData> {
+        self.background_image.as_ref()
     }
 
     pub fn children(&self) -> &[LayoutBox] {
