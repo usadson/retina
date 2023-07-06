@@ -1,11 +1,11 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::{sync::{mpsc::{Receiver as SyncReceiver, SyncSender}, Arc}, time::Instant};
+use std::{sync::{mpsc::{Receiver as SyncReceiver, SyncSender}, Arc}, time::{Instant, Duration}};
 
 use log::{error, info, warn};
 use retina_compositor::Compositor;
-use retina_dom::{HtmlElementKind, LinkType, Node, event::queue::EventQueue, ImageData};
+use retina_dom::{HtmlElementKind, LinkType, Node, event::queue::EventQueue, ImageData, image::ImageDataState};
 use retina_fetch::{Fetch, Request};
 use retina_gfx::{canvas::CanvasPaintingContext, Context};
 use retina_gfx_font::FontProvider;
@@ -123,19 +123,25 @@ impl Page {
     }
 
     pub(crate) async fn generate_layout_tree(&mut self) -> Result<(), ErrorKind> {
-        self.layout_root = Some(
-            LayoutGenerator::generate(
-                Node::clone(self.document.as_ref().unwrap()),
-                &self.style_sheets.as_ref().unwrap(),
-                CssReferencePixels::new(self.canvas.size().width as _),
-                CssReferencePixels::new(self.canvas.size().height as _),
-                self.font_provider.clone(),
-            )
+        let document_url = self.url.clone();
+        let fetch = self.fetch.clone();
+
+        let layout_root = LayoutGenerator::generate(
+            Node::clone(self.document.as_ref().unwrap()),
+            &self.style_sheets.as_ref().unwrap(),
+            CssReferencePixels::new(self.canvas.size().width as _),
+            CssReferencePixels::new(self.canvas.size().height as _),
+            self.font_provider.clone(),
+            &document_url,
+            fetch,
         );
 
         self.message_sender.send(PageMessage::Progress {
             progress: PageProgress::LayoutGenerated,
         })?;
+
+        self.load_background_images_in_background(&layout_root);
+        self.layout_root = Some(layout_root);
 
         Ok(())
     }
@@ -191,6 +197,31 @@ impl Page {
         Ok(())
     }
 
+    pub(crate) fn load_background_images_in_background(&self, layout_box: &LayoutBox) {
+        for child in layout_box.children() {
+            self.load_background_images_in_background(child);
+        }
+
+        let Some(background_image) = layout_box.background_image().cloned() else {
+            return
+        };
+
+        let gfx_context = self.canvas.context().clone();
+        let task_message_sender = self.page_task_message_sender.clone();
+        tokio::task::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(30)).await;
+            assert!(background_image.state() != ImageDataState::Initial);
+
+            while background_image.state() == ImageDataState::Running {
+                tokio::task::yield_now().await;
+            }
+
+            if Self::load_image_in_background_update_graphics(gfx_context, background_image, "background-image").await {
+                _ = task_message_sender.send(PageTaskMessage::ImageLoaded).await;
+            }
+        });
+    }
+
     pub(crate) fn load_images_in_background(&self) {
         let Some(document) = self.document.clone() else {
             return;
@@ -232,7 +263,10 @@ impl Page {
 
     async fn load_image_in_background_update_data(base_url: Url, gfx_context: Context, fetch: Fetch, source: String, data: ImageData) -> bool {
         data.update(base_url, fetch, &source).await;
+        Self::load_image_in_background_update_graphics(gfx_context, data, &source).await
+    }
 
+    async fn load_image_in_background_update_graphics(gfx_context: Context, data: ImageData, source: &str) -> bool {
         let image = data.image().read().unwrap();
         let Some(image) = image.as_ref() else {
             warn!("Failed to decode image! URL: {source}");
