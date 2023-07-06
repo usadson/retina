@@ -49,6 +49,7 @@ impl Artwork {
 pub struct Painter<'art> {
     artwork: &'art mut Artwork,
     viewport_size: Size2D<u32>,
+    viewport_position: Point2D<f64>,
 
     command_encoder: wgpu::CommandEncoder,
 }
@@ -62,8 +63,16 @@ impl<'art> Painter<'art> {
         Self {
             artwork,
             viewport_size,
+            viewport_position: Point2D::new(0.0, 0.0),
 
             command_encoder,
+        }
+    }
+
+    pub(crate) fn with_viewport_position(self, position: Point2D<f64>) -> Self {
+        Self {
+            viewport_position: position,
+            ..self
         }
     }
 
@@ -77,10 +86,10 @@ impl<'art> Painter<'art> {
         self.viewport_size
     }
 
-    pub const fn viewport_rect(&self) -> Rect<u32> {
+    pub fn viewport_rect(&self) -> Rect<f64> {
         euclid::Rect::new(
-            Point2D::new(0, 0),
-            self.viewport_size
+            self.viewport_position,
+            self.viewport_size.cast(),
         )
     }
 
@@ -115,8 +124,19 @@ impl<'art> Painter<'art> {
         );
     }
 
+    fn offset_rect<Unit>(&self, rect: euclid::Rect<f64, Unit>) -> euclid::Rect<f64, Unit> {
+        euclid::Rect::new(
+            euclid::Point2D::new(
+                rect.origin.x - self.viewport_position.x,
+                rect.origin.y - self.viewport_position.y,
+            ),
+            rect.size,
+        )
+    }
+
     #[instrument(skip_all)]
     pub fn paint_rect_colored<Unit>(&mut self, rect: euclid::Rect<f64, Unit>, color: Color) {
+        let rect = self.offset_rect(rect);
         let transformation = math::project(self.viewport_size.cast(), rect);
 
         let uniform: [[f32; 4]; 5] = [
@@ -172,6 +192,7 @@ impl<'art> Painter<'art> {
     }
 
     pub fn paint_rect_textured<Unit>(&mut self, rect: euclid::Rect<f64, Unit>, texture_view: &wgpu::TextureView) {
+        let rect = self.offset_rect(rect);
         let transformation = math::project(self.viewport_size.cast(), rect);
         let uniform: &[u8] = bytemuck::cast_slice(&transformation);
 
@@ -250,10 +271,14 @@ impl<'art> Painter<'art> {
         size: Size,
     )
             where Size: Into<f32>, FontType: Sync + wgpu_glyph::ab_glyph::Font {
+
         let color = [color.red() as f32, color.green() as f32, color.red() as f32, color.alpha() as f32];
 
         glyph_brush.queue(wgpu_glyph::Section {
-            screen_position: (position.x, position.y),
+            screen_position: (
+                position.x - self.viewport_position.x as f32,
+                position.y - self.viewport_position.y as f32,
+            ),
             bounds: (self.viewport_size.width as f32, self.viewport_size.height as f32),
             text: vec![wgpu_glyph::Text::new(text)
                 .with_color(color)

@@ -6,6 +6,7 @@
 //! definition of a CSS canvas, where the canvas is just the area where there
 //! can be painted to, for example the viewport of a page.
 
+use euclid::default::Point2D;
 use retina_common::Color;
 use wgpu::Extent3d;
 
@@ -66,12 +67,13 @@ impl CanvasPaintingContext {
         }
     }
 
-    pub fn begin(&mut self, clear_color: Color) -> Painter<'_> {
+    pub fn begin(&mut self, clear_color: Color, viewport_position: Point2D<f64>) -> Painter<'_> {
         let encoder = self.context.device().create_command_encoder(&wgpu::CommandEncoderDescriptor {
             ..Default::default()
         });
 
-        let mut painter = Painter::new(&mut self.artwork, encoder, self.size.cast_unit());
+        let mut painter = Painter::new(&mut self.artwork, encoder, self.size.cast_unit())
+            .with_viewport_position(viewport_position);
         painter.clear(clear_color);
         painter
     }
