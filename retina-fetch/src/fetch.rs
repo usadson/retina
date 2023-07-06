@@ -60,6 +60,10 @@ impl Fetch {
     pub fn fetch(&self, request: Request) -> FetchPromise {
         let request = Arc::new(request);
 
+        if request.url.scheme() == "file" {
+            return self.fetch_file(request);
+        }
+
         let task_client = self.client.clone();
         let task_request = Arc::clone(&request);
 
@@ -127,12 +131,10 @@ impl Fetch {
         )
     }
 
-    fn fetch_document_file(&self, url: Url) -> FetchPromise {
-        let request = Arc::new(Request::get_document(url));
-        let task_request = Arc::clone(&request);
-
+    fn fetch_file(&self, request: Arc<Request>) -> FetchPromise {
         let (sender, receiver) = channel(1);
 
+        let task_request = Arc::clone(&request);
         self.runtime.spawn(async move {
             let request = task_request;
             let mut path = request.url.path();
@@ -158,6 +160,10 @@ impl Fetch {
             request,
             receiver,
         }
+    }
+
+    fn fetch_document_file(&self, url: Url) -> FetchPromise {
+        self.fetch_file(Arc::new(Request::get_document(url)))
     }
 }
 
