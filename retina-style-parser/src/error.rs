@@ -26,7 +26,11 @@ pub enum RetinaStyleParseError<'i> {
     LineStyleUnexpectedEof,
     LineStyleUnknownKeyword,
 
+    MediaPreludeUnknownType(CowRcStr<'i>),
+
     UnexpectedEofBasicColorKeyword,
+
+    UnknownAtRule(CowRcStr<'i>),
 
     UnknownBasicColorKeyword,
     UnknownSelector(Token<'i>),

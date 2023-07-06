@@ -60,8 +60,13 @@ pub fn parse_style_attribute<'input>(
 pub fn parse_stylesheet(cascade_origin: CascadeOrigin, input: &str) -> Stylesheet {
     let mut input = ParserInput::new(input);
     let mut parser = Parser::new(&mut input);
+
+    parse_stylesheet_contents(cascade_origin, &mut parser)
+}
+
+pub(crate) fn parse_stylesheet_contents(cascade_origin: CascadeOrigin, parser: &mut Parser) -> Stylesheet {
     let mut rule_parser = RuleParser::new(cascade_origin);
-    let mut stylesheet_parser = StyleSheetParser::new(&mut parser, &mut rule_parser);
+    let mut stylesheet_parser = StyleSheetParser::new(parser, &mut rule_parser);
 
     let mut stylesheet = Stylesheet::new();
 

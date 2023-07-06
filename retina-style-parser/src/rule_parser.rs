@@ -3,22 +3,29 @@
 
 use cssparser::{
     Parser,
-    RuleBodyParser,
+    RuleBodyParser, ParseError, ParseErrorKind,
 };
 
 use log::warn;
 
 use retina_style::{
+    AtMediaRule,
     CascadeOrigin,
+    MediaQuery,
+    MediaType,
     Rule,
-    StyleRule,
     SelectorList,
+    StyleRule,
 };
 
 use super::{
     RetinaStyleParseError,
     declaration_parser::DeclarationParser,
 };
+
+pub enum AtRulePrelude {
+    Media(Vec<MediaQuery>),
+}
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) struct RuleParser {
@@ -31,13 +38,81 @@ impl RuleParser {
             cascade_origin
         }
     }
+
+    fn parse_at_media_block<'i, 't>(
+        &mut self,
+        media_query_list: Vec<MediaQuery>,
+        input: &mut Parser<'i, 't>
+    ) -> Result<Rule, ParseError<'i, RetinaStyleParseError<'i>>> {
+        Ok(Rule::AtMedia(AtMediaRule {
+            media_query_list,
+            stylesheet: crate::parse_stylesheet_contents(self.cascade_origin, input),
+        }))
+    }
+
+    fn parse_at_media_prelude<'i, 't>(
+        &mut self,
+        input: &mut Parser<'i, 't>
+    ) -> Result<AtRulePrelude, ParseError<'i, RetinaStyleParseError<'i>>> {
+        let location = input.current_source_location();
+
+        let ty = input.expect_ident().map_err(|e| ParseError {
+            location,
+            kind: ParseErrorKind::Basic(e.kind),
+        })?;
+
+        if ty.eq_ignore_ascii_case("all") {
+            let query = MediaQuery::Type(MediaType::All);
+            return Ok(AtRulePrelude::Media(vec![query]));
+        }
+
+        if ty.eq_ignore_ascii_case("print") {
+            let query = MediaQuery::Type(MediaType::Print);
+            return Ok(AtRulePrelude::Media(vec![query]));
+        }
+
+        if ty.eq_ignore_ascii_case("screen") {
+            let query = MediaQuery::Type(MediaType::Screen);
+            return Ok(AtRulePrelude::Media(vec![query]));
+        }
+
+        Err(ParseError {
+            location,
+            kind: ParseErrorKind::Custom(RetinaStyleParseError::MediaPreludeUnknownType(ty.clone())),
+        })
+    }
 }
 
 impl<'i> cssparser::AtRuleParser<'i> for RuleParser {
-    type Prelude = ();
+    type Prelude = AtRulePrelude;
     type AtRule = Rule;
     type Error = RetinaStyleParseError<'i>;
-    // ignored / errors upon
+
+    fn parse_prelude<'t>(
+        &mut self,
+        name: cssparser::CowRcStr<'i>,
+        input: &mut Parser<'i, 't>,
+    ) -> Result<Self::Prelude, cssparser::ParseError<'i, Self::Error>> {
+        if name.eq_ignore_ascii_case("media") {
+            self.parse_at_media_prelude(input)
+        } else {
+            Err(ParseError {
+                location: input.current_source_location(),
+                kind: ParseErrorKind::Custom(RetinaStyleParseError::UnknownAtRule(name)),
+            })
+        }
+    }
+
+    fn parse_block<'t>(
+        &mut self,
+        prelude: Self::Prelude,
+        _start: &cssparser::ParserState,
+        input: &mut Parser<'i, 't>,
+    ) -> Result<Self::AtRule, ParseError<'i, Self::Error>> {
+        match prelude {
+            AtRulePrelude::Media(media) => self.parse_at_media_block(media, input),
+        }
+    }
 }
 
 impl<'i> cssparser::QualifiedRuleParser<'i> for RuleParser {
