@@ -5,9 +5,9 @@ use std::{sync::{mpsc::{Receiver as SyncReceiver, SyncSender}, Arc}, time::Insta
 
 use log::{error, info, warn};
 use retina_compositor::Compositor;
-use retina_dom::{HtmlElementKind, LinkType, Node, event::queue::EventQueue};
+use retina_dom::{HtmlElementKind, LinkType, Node, event::queue::EventQueue, ImageData};
 use retina_fetch::{Fetch, Request};
-use retina_gfx::canvas::CanvasPaintingContext;
+use retina_gfx::{canvas::CanvasPaintingContext, Context};
 use retina_gfx_font::FontProvider;
 use retina_layout::{LayoutBox, LayoutGenerator};
 use retina_scrittura::BrowsingContext;
@@ -77,6 +77,12 @@ impl Page {
                     break;
                 }
 
+                PageTaskMessage::ImageLoaded => {
+                    info!("Image loaded!");
+                    self.relayout().await?;
+                    self.paint().await?;
+                }
+
                 PageTaskMessage::StylesheetLoaded { stylesheet } => {
                     self.layout_root = None;
                     self.style_sheets.get_or_insert(Default::default()).push(stylesheet);
@@ -144,16 +150,7 @@ impl Page {
                 } else {
                     self.canvas.resize(size);
 
-                    if let Some(layout_root) = &mut self.layout_root {
-                        layout_root.dimensions_mut().set_margin_size(
-                            CssReferencePixels::new(size.width as _),
-                            CssReferencePixels::new(size.height as _)
-                        );
-                        layout_root.run_layout(None);
-                    } else {
-                        self.generate_layout_tree().await?;
-                    }
-
+                    self.relayout().await?;
                     self.paint().await?;
                 }
             }
@@ -181,6 +178,7 @@ impl Page {
         info!("Loading page: {:?}", self.url);
         self.load_page().await?;
         self.load_stylesheets_in_background();
+        self.load_images_in_background();
         self.find_title();
 
         self.parse_stylesheets().await?;
@@ -191,6 +189,62 @@ impl Page {
         self.paint().await?;
 
         Ok(())
+    }
+
+    pub(crate) fn load_images_in_background(&self) {
+        let Some(document) = self.document.clone() else {
+            return;
+        };
+
+        let fetch = self.fetch.clone();
+        let gfx_context = self.canvas.context().clone();
+        let task_message_sender = self.page_task_message_sender.clone();
+        let base_url = self.url.clone();
+        tokio::task::spawn(async move {
+            document.for_each_child_node_recursive_handle(&mut |node| {
+                let Some(html_element) = node.as_html_element_kind() else { return };
+                let HtmlElementKind::Img(..) = html_element else { return };
+
+                let node = node.clone();
+                let fetch = fetch.clone();
+                let gfx_context = gfx_context.clone();
+                let task_message_sender = task_message_sender.clone();
+                let base_url = base_url.clone();
+                tokio::task::spawn(async move {
+                    if Self::load_image_in_background(base_url, gfx_context, fetch, node).await {
+                        _ = task_message_sender.send(PageTaskMessage::ImageLoaded).await;
+                    }
+                });
+            });
+        });
+    }
+
+    async fn load_image_in_background(base_url: Url, gfx_context: Context, fetch: Fetch, node: Node) -> bool {
+        let (source, data) = {
+            let Some(html_element) = node.as_html_element_kind() else { return false };
+            let HtmlElementKind::Img(img) = html_element else { return false };
+
+            (img.src().to_string(), img.data())
+        };
+
+        Self::load_image_in_background_update_data(base_url, gfx_context, fetch, source, data).await
+    }
+
+    async fn load_image_in_background_update_data(base_url: Url, gfx_context: Context, fetch: Fetch, source: String, data: ImageData) -> bool {
+        data.update(base_url, fetch, &source).await;
+
+        let image = data.image().read().unwrap();
+        let Some(image) = image.as_ref() else {
+            warn!("Failed to decode image! URL: {source}");
+            return false;
+        };
+
+        let texture = retina_gfx::Texture::create_from_image(&gfx_context, image);
+        *data.graphics().write().unwrap() = Box::new(texture);
+
+        info!("Loaded image: {source}");
+
+        true
     }
 
     pub(crate) async fn load_page(&mut self) -> Result<(), ErrorKind> {
@@ -355,6 +409,20 @@ impl Page {
         self.message_sender.send(PageMessage::Progress {
             progress: PageProgress::ParsedCss,
         })?;
+
+        Ok(())
+    }
+
+    async fn relayout(&mut self) -> Result<(), ErrorKind> {
+        if let Some(layout_root) = &mut self.layout_root {
+            layout_root.dimensions_mut().set_margin_size(
+                CssReferencePixels::new(self.canvas.size().width as _),
+                CssReferencePixels::new(self.canvas.size().height as _)
+            );
+            layout_root.run_layout(None);
+        } else {
+            self.generate_layout_tree().await?;
+        }
 
         Ok(())
     }

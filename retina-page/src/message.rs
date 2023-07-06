@@ -52,6 +52,9 @@ pub(crate) enum PageTaskMessage {
     /// The browser (probably) closed.
     CommandPipelineClosed,
 
+    /// A new image was loaded.
+    ImageLoaded,
+
     StylesheetLoaded {
         stylesheet: Stylesheet,
     },
