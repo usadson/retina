@@ -16,7 +16,7 @@ use retina_style_parser::CssParsable;
 use tokio::{sync::mpsc::{Receiver as AsyncReceiver, Sender as AsyncSender}, runtime::Runtime};
 use url::Url;
 
-use crate::{PageCommand, PageMessage, PageProgress, message::PageTaskMessage};
+use crate::{PageCommand, PageMessage, PageProgress, message::PageTaskMessage, scroller::Scroller};
 
 pub(crate) struct Page {
     pub(crate) runtime: Arc<Runtime>,
@@ -28,6 +28,7 @@ pub(crate) struct Page {
     pub(crate) style_sheets: Option<Vec<Stylesheet>>,
     pub(crate) layout_root: Option<LayoutBox>,
 
+    pub(crate) scroller: Scroller,
     pub(crate) canvas: CanvasPaintingContext,
     pub(crate) font_provider: FontProvider,
     pub(crate) compositor: Compositor,
@@ -136,6 +137,8 @@ impl Page {
             fetch,
         );
 
+        self.scroller.did_content_resize(layout_root.dimensions().size_margin_box());
+
         self.message_sender.send(PageMessage::Progress {
             progress: PageProgress::LayoutGenerated,
         })?;
@@ -155,6 +158,7 @@ impl Page {
                     warn!("Resize Command while size is already the same as the given new size");
                 } else {
                     self.canvas.resize(size);
+                    self.scroller.did_viewport_resize(size.cast().cast_unit());
 
                     self.relayout().await?;
                     self.paint().await?;
@@ -169,6 +173,7 @@ impl Page {
             }
 
             PageCommand::OpenLayoutTreeView => {
+                println!("Stylesheets: {:#?}", self.style_sheets);
                 if let Some(layout_root) = &self.layout_root {
                     layout_root.dump();
                 }
@@ -402,7 +407,7 @@ impl Page {
         // > The initial value for the 'color' property is expected to be black.
         // > The initial value for the 'background-color' property is expected
         // > to be 'transparent'. The canvas's background is expected to be white.
-        let mut painter = self.canvas.begin(layout_root.background_color_as_root());
+        let mut painter = self.canvas.begin(layout_root.background_color_as_root(), self.scroller.viewport_position());
 
         self.compositor.paint(layout_root, &mut painter);
 
@@ -454,6 +459,7 @@ impl Page {
                 CssReferencePixels::new(self.canvas.size().height as _)
             );
             layout_root.run_layout(None);
+            self.scroller.did_content_resize(layout_root.dimensions().size_margin_box());
         } else {
             self.generate_layout_tree().await?;
         }

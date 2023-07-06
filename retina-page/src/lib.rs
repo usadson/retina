@@ -5,6 +5,7 @@ pub(crate) mod command;
 pub(crate) mod handle;
 pub(crate) mod message;
 pub(crate) mod page;
+pub(crate) mod scroller;
 
 pub use command::PageCommand;
 pub use handle::{PageHandle, PageHandleCommunicationError, PageHandleReceiveHalf, PageHandleSendHalf};
@@ -61,6 +62,7 @@ pub fn spawn(
                 style_sheets: None,
                 layout_root: None,
 
+                scroller: Default::default(),
                 canvas,
                 font_provider,
                 compositor: Compositor::new(),
