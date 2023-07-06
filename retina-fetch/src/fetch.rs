@@ -3,6 +3,7 @@
 
 use std::{sync::Arc, path::Path};
 
+use retina_user_agent::url_scheme::about;
 use tokio::{runtime::Runtime, sync::mpsc::channel};
 use url::Url;
 
@@ -60,11 +61,11 @@ impl Fetch {
     pub fn fetch(&self, request: Request) -> FetchPromise {
         let request = Arc::new(request);
 
-        if request.url.scheme() == "file" {
-            return self.fetch_file(request);
+        match request.url.scheme() {
+            "file" => self.fetch_file(request),
+            "http" | "https" => self.fetch_http(request),
+            _ => self.fetch_unknown_scheme(request),
         }
-
-        self.fetch_http(request)
     }
 
     pub fn fetch_document(&self, url: Url) -> FetchPromise {
@@ -80,8 +81,6 @@ impl Fetch {
     }
 
     fn fetch_document_about(&self, url: Url) -> FetchPromise {
-        use retina_user_agent::url_scheme::about;
-
         let body = match url.path() {
             // https://fetch.spec.whatwg.org/#scheme-fetch
             "blank" => "",
@@ -165,6 +164,29 @@ impl Fetch {
             request,
             receiver,
         }
+    }
+
+    fn fetch_unknown_scheme(&self, request: Arc<Request>) -> FetchPromise {
+        if request.destination == crate::RequestDestination::Document {
+            self.fetch_unknown_scheme_document(request)
+        } else {
+            self.fetch_unknown_scheme_asset(request)
+        }
+    }
+
+    /// Asset in the sense of non-documents
+    fn fetch_unknown_scheme_asset(&self, request: Arc<Request>) -> FetchPromise {
+        self.create_instantaneous_response(
+            Arc::clone(&request),
+            Ok(Response::new_about(request, "")),
+        )
+    }
+
+    fn fetch_unknown_scheme_document(&self, request: Arc<Request>) -> FetchPromise {
+        self.create_instantaneous_response(
+            Arc::clone(&request),
+            Ok(Response::new_about(request, about::URL_SCHEME_UNKNOWN)),
+        )
     }
 
     fn fetch_document_file(&self, url: Url) -> FetchPromise {
