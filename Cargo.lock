@@ -2974,10 +2974,12 @@ dependencies = [
  "log",
  "retina-common",
  "retina-dom",
+ "retina-fetch",
  "retina-gfx-font",
  "retina-style",
  "retina-style-computation",
  "rstest",
+ "tokio",
 ]
 
 [[package]]

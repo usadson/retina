@@ -68,6 +68,11 @@ impl<'art> Painter<'art> {
     }
 
     #[inline]
+    pub const fn artwork(&self) -> &Artwork {
+        &*self.artwork
+    }
+
+    #[inline]
     pub const fn viewport_size(&self) -> Size2D<u32> {
         self.viewport_size
     }

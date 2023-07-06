@@ -3,7 +3,7 @@
 
 use std::sync::OnceLock;
 
-use retina_dom::HtmlElementKind;
+use retina_dom::{HtmlElementKind, ImageData};
 use retina_gfx::{Painter, euclid::{Rect, Point2D, Size2D, UnknownUnit}, Texture};
 use retina_layout::LayoutBox;
 use retina_style::{CssColor, CssDecimal, CssLineStyle};
@@ -128,15 +128,52 @@ impl Compositor {
             return;
         }
 
+        let rect = Rect::new(position, size);
+        self.paint_background_color(painter, layout_box, rect);
+
+        if let Some(background_image) = layout_box.background_image() {
+            self.paint_background_image(layout_box, painter, background_image, rect);
+        }
+    }
+
+    #[instrument(skip_all)]
+    #[inline]
+    fn paint_background_color(
+        &self,
+        painter: &mut Painter,
+        layout_box: &LayoutBox,
+        rect: Rect<CssDecimal, UnknownUnit>
+    ) {
         match layout_box.computed_style().background_color() {
             CssColor::Color(background_color) => {
                 if background_color.alpha() <= 0.0 {
                     return;
                 }
 
-                painter.paint_rect_colored(Rect::new(position, size), background_color);
+                painter.paint_rect_colored(rect, background_color);
             }
         }
+    }
+
+    #[instrument(skip_all)]
+    fn paint_background_image(
+        &self,
+        layout_box: &LayoutBox,
+        painter: &mut Painter,
+        image_data: &ImageData,
+        rect: Rect<CssDecimal, UnknownUnit>
+    ) {
+        let Ok(graphics) = image_data.graphics().read() else { return };
+
+        let Some(texture) = graphics.downcast_ref::<Texture>() else {
+            log::warn!("background-image Graphics wasn't an instance of `Texture`, state: {:?}", image_data.state());
+            return;
+        };
+
+        // TODO background-repeat, background-size, etc.
+        _ = layout_box;
+
+        painter.paint_rect_textured(rect, texture.view());
     }
 
     #[instrument(skip_all)]

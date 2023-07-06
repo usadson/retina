@@ -14,8 +14,14 @@ pub struct ImageData {
     graphics: Arc<RwLock<Box<dyn Any + Send + Sync>>>,
 }
 
+impl PartialEq for ImageData {
+    fn eq(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.state, &other.state)
+    }
+}
+
 impl ImageData {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             state: Arc::new(ImageDataState::Initial.into()),
             internal: Arc::new(None.into()),
@@ -29,6 +35,10 @@ impl ImageData {
 
     pub fn graphics(&self) -> &Arc<RwLock<Box<dyn Any + Send + Sync>>> {
         &self.graphics
+    }
+
+    pub fn state(&self) -> ImageDataState {
+        *self.state.read().unwrap()
     }
 
     /// When the user agent is to [update the image data][spec] of an `img`
@@ -95,6 +105,7 @@ impl ImageData {
         };
 
         info!("Image: {src} successfully loaded & decoded!");
+        *self.state.write().unwrap() = ImageDataState::Ready;
         *self.internal.write().unwrap() = Some(image);
     }
 
@@ -103,6 +114,7 @@ impl ImageData {
         match self.state.read() {
             Ok(state) => match *state {
                 ImageDataState::Initial => false,
+                ImageDataState::Ready => true,
                 ImageDataState::Running => true,
                 ImageDataState::InvalidUrl => true,
                 ImageDataState::LoadFailed => true,
@@ -115,8 +127,9 @@ impl ImageData {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-enum ImageDataState {
+pub enum ImageDataState {
     Initial,
+    Ready,
     Running,
     InvalidUrl,
     LoadFailed,
