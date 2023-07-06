@@ -64,41 +64,7 @@ impl Fetch {
             return self.fetch_file(request);
         }
 
-        let task_client = self.client.clone();
-        let task_request = Arc::clone(&request);
-
-        let (sender, receiver) = channel(1);
-
-        self.runtime.spawn(async move {
-            let client = task_client;
-            let request = task_request;
-
-            let hyper_request = hyper::Request::builder()
-                .uri(request.url.as_str())
-                .method(&request.method)
-                .body(hyper::Body::empty());
-
-            let hyper_request = match hyper_request {
-                Ok(request) => request,
-                Err(e) => {
-                    log::warn!("Failed to build request: {e}");
-                    sender.send(Err(Error::InternalError(InternalError::HyperError))).await.unwrap();
-                    return;
-                }
-            };
-
-            let response = match client.request(hyper_request).await {
-                Ok(response) => Ok((request, response).into()),
-                Err(e) => Err(e.into()),
-            };
-
-            sender.send(response).await.unwrap();
-        });
-
-        FetchPromise {
-            request,
-            receiver,
-        }
+        self.fetch_http(request)
     }
 
     pub fn fetch_document(&self, url: Url) -> FetchPromise {
@@ -154,6 +120,45 @@ impl Fetch {
 
             let file = tokio_util::codec::FramedRead::new(file, decoder);
             sender.send(Ok(Response::new_file(request, file))).await.unwrap();
+        });
+
+        FetchPromise {
+            request,
+            receiver,
+        }
+    }
+
+    /// Fetch using the HTTP protocol, this also includes the TLS-wrapped HTTPS.
+    fn fetch_http(&self, request: Arc<Request>) -> FetchPromise {
+        let task_client = self.client.clone();
+        let task_request = Arc::clone(&request);
+
+        let (sender, receiver) = channel(1);
+
+        self.runtime.spawn(async move {
+            let client = task_client;
+            let request = task_request;
+
+            let hyper_request = hyper::Request::builder()
+                .uri(request.url.as_str())
+                .method(&request.method)
+                .body(hyper::Body::empty());
+
+            let hyper_request = match hyper_request {
+                Ok(request) => request,
+                Err(e) => {
+                    log::warn!("Failed to build request: {e}");
+                    sender.send(Err(Error::InternalError(InternalError::HyperError))).await.unwrap();
+                    return;
+                }
+            };
+
+            let response = match client.request(hyper_request).await {
+                Ok(response) => Ok((request, response).into()),
+                Err(e) => Err(e.into()),
+            };
+
+            sender.send(response).await.unwrap();
         });
 
         FetchPromise {
