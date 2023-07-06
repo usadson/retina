@@ -145,6 +145,41 @@ pub(crate) fn parse_font_style<'i, 't>(
         })
 }
 
+pub(crate) fn parse_image<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssImage, ParseError<'i>> {
+    let location = input.current_source_location();
+    let token = input.next()?;
+
+    match token {
+        Token::UnquotedUrl(url) => Ok(CssImage::Url(url.to_string())),
+        Token::Function(function_name) => {
+            if function_name.eq_ignore_ascii_case("url") || function_name.eq_ignore_ascii_case("src") {
+                let url = input.parse_nested_block(|parser| {
+                    parser.expect_string_cloned().map_err(Into::into)
+                })?;
+                Ok(CssImage::Url(url.to_string()))
+            } else {
+                Err(ParseError {
+                    location,
+                    kind: ParseErrorKind::Custom(
+                        RetinaStyleParseError::ImageUnexpectedFunction(
+                            function_name.to_owned()
+                        )
+                    )
+                })
+            }
+        }
+
+        _ => Err(ParseError {
+            location,
+            kind: ParseErrorKind::Custom(
+                RetinaStyleParseError::ImageUnexpectedToken(token.clone())
+            )
+        })
+    }
+}
+
 pub(crate) fn parse_length<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<CssLength, ParseError<'i>> {
@@ -240,6 +275,10 @@ pub(crate) fn parse_single_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<V
 
     if let Ok(display) = input.try_parse(parse_display) {
         return Ok(Value::Display(display));
+    }
+
+    if let Ok(image) = input.try_parse(parse_image) {
+        return Ok(Value::Image(image));
     }
 
     if let Ok(length) = input.try_parse(parse_length) {

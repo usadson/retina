@@ -5,6 +5,7 @@ pub mod color;
 pub mod display;
 pub mod float;
 pub mod font;
+pub mod image;
 pub mod length;
 pub mod line_style;
 pub mod reference_pixels;
@@ -12,14 +13,17 @@ pub mod white_space;
 
 pub type CssDecimal = f64;
 
-pub use color::{CssColor, CssNamedColor};
-pub use display::{CssDisplay, CssDisplayBox, CssDisplayInside, CssDisplayInternal, CssDisplayOutside};
-pub use float::CssFloatValue;
-pub use font::{CssFontFamilyName, CssFontShorthand, CssFontStyle, CssFontWeight, CssGenericFontFamilyName};
-pub use length::CssLength;
-pub use line_style::CssLineStyle;
-pub use reference_pixels::CssReferencePixels;
-pub use white_space::CssWhiteSpace;
+pub use self::{
+    color::{CssColor, CssNamedColor},
+    display::{CssDisplay, CssDisplayBox, CssDisplayInside, CssDisplayInternal, CssDisplayOutside},
+    float::CssFloatValue,
+    font::{CssFontFamilyName, CssFontShorthand, CssFontStyle, CssFontWeight, CssGenericFontFamilyName},
+    image::CssImage,
+    length::CssLength,
+    line_style::CssLineStyle,
+    reference_pixels::CssReferencePixels,
+    white_space::CssWhiteSpace,
+};
 
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct CssBorderLonghand {
@@ -39,6 +43,7 @@ pub enum Value {
     FontShorthand(CssFontShorthand),
     FontStyle(CssFontStyle),
     FontWeight(CssFontWeight),
+    Image(CssImage),
     Length(CssLength),
     LineStyle(CssLineStyle),
     WhiteSpace(CssWhiteSpace),
