@@ -4,13 +4,13 @@
 use crate::{
     cascade_origin::CascadeOrigin,
     Declaration,
-    SelectorList,
+    SelectorList, Stylesheet, MediaQuery,
 };
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Rule {
     /// `@rule`
-    At,
+    AtMedia(AtMediaRule),
     Style(StyleRule),
 }
 
@@ -30,4 +30,10 @@ pub struct StyleRule {
     pub cascade_origin: CascadeOrigin,
     pub selector_list: SelectorList,
     pub declarations: Vec<Declaration>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct AtMediaRule {
+    pub media_query_list: Vec<MediaQuery>,
+    pub stylesheet: Stylesheet,
 }
