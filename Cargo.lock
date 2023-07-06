@@ -2868,6 +2868,8 @@ dependencies = [
 name = "retina-compositor"
 version = "0.2.0"
 dependencies = [
+ "log",
+ "retina-dom",
  "retina-gfx",
  "retina-layout",
  "retina-style",

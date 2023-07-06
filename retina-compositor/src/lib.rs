@@ -3,7 +3,8 @@
 
 use std::sync::OnceLock;
 
-use retina_gfx::{Painter, euclid::{Rect, Point2D, Size2D, UnknownUnit}};
+use retina_dom::HtmlElementKind;
+use retina_gfx::{Painter, euclid::{Rect, Point2D, Size2D, UnknownUnit}, Texture};
 use retina_layout::LayoutBox;
 use retina_style::{CssColor, CssDecimal, CssLineStyle};
 use retina_style_computation::BorderProperties;
@@ -110,6 +111,8 @@ impl Compositor {
             self.paint_text(layout_box, painter);
         }
 
+        self.paint_replaced_content(layout_box, painter);
+
         for child in layout_box.children() {
             self.paint_box(child, painter);
         }
@@ -179,6 +182,32 @@ impl Compositor {
         match border.color {
             CssColor::Color(color) => painter.paint_rect_colored(rect, color),
         }
+    }
+
+    #[instrument(skip_all)]
+    fn paint_replaced_content(
+        &self,
+        layout_box: &LayoutBox,
+        painter: &mut Painter,
+    ) {
+        let Some(HtmlElementKind::Img(img)) = layout_box.node.as_html_element_kind() else {
+            return;
+        };
+
+        let Ok(graphics) = img.data_ref().graphics().read() else {
+            log::warn!("No graphics was available for image");
+            return;
+        };
+
+        let Some(texture) = graphics.downcast_ref::<Texture>() else {
+            log::warn!("Graphics wasn't an instance of `Texture`");
+            return;
+        };
+
+        let size = Size2D::new(texture.width() as _, texture.height() as _);
+        let rect = Rect::new(layout_box.dimensions().position_content_box(), size);
+
+        painter.paint_rect_textured(rect, texture.view());
     }
 
     #[instrument(skip_all)]
