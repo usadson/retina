@@ -58,6 +58,10 @@ impl HtmlImgElement {
     pub fn data(&self) -> ImageData {
         self.image_data.clone()
     }
+
+    pub fn data_ref(&self) -> &ImageData {
+        &self.image_data
+    }
 }
 
 impl AsRef<Element> for HtmlImgElement {
