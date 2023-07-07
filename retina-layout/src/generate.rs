@@ -238,7 +238,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
                         CssGenericFontFamilyName::Fantasy => FamilyName::Fantasy,
                         CssGenericFontFamilyName::Monospace => FamilyName::Monospace,
                         CssGenericFontFamilyName::SansSerif => FamilyName::SansSerif,
-                        CssGenericFontFamilyName::Serif => FamilyName::SansSerif,
+                        CssGenericFontFamilyName::Serif => FamilyName::Serif,
                         _ => continue,
                     }
                 };
