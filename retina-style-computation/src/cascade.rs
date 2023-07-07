@@ -91,6 +91,10 @@ impl<'stylesheets> Cascade for CollectedStyles<'stylesheets> {
     ) -> PropertyMap {
         let mut property_map = PropertyMap::new();
 
+        if let Some(parent) = parent {
+            inherit_properties(&mut property_map, parent);
+        }
+
         // Declarations from origins earlier in this list win over declarations
         // from later origins.
 
@@ -121,10 +125,6 @@ impl<'stylesheets> Cascade for CollectedStyles<'stylesheets> {
 
         // 1. Transition declarations [css-transitions-1]
         // TODO
-
-        if let Some(parent) = parent {
-            inherit_properties(&mut property_map, parent);
-        }
 
         property_map
     }
