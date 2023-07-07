@@ -212,7 +212,6 @@ impl Page {
         self.find_title();
 
         self.parse_stylesheets().await?;
-        info!("Stylesheets: {:#?}", self.style_sheets.as_ref().unwrap());
 
         self.generate_layout_tree().await?;
 
