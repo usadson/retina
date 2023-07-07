@@ -88,6 +88,12 @@ impl WindowApplication<RetinaEvent> for Application {
         }
     }
 
+    fn on_mouse_wheel(&mut self, delta: retina_gfx::MouseScrollDelta) {
+        _ = self.page_send_half.send_command(PageCommand::Scroll{
+            delta
+        });
+    }
+
     fn on_key_press(&mut self, event: WindowKeyPressEvent) {
         if event.key() == VirtualKeyCode::F1 {
             _ = self.page_send_half.send_command(PageCommand::OpenLayoutTreeView);

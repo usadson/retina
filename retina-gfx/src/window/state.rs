@@ -29,6 +29,7 @@ impl WindowState {
             where EventType: 'static {
         match event {
             DeviceEvent::Key(event) => self.keyboard_state.on_input(event, app),
+            DeviceEvent::MouseWheel { delta } => app.on_mouse_wheel(delta),
             _ => (),
         }
     }

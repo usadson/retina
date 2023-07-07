@@ -180,6 +180,25 @@ impl Page {
             }
 
             PageCommand::Reload => self.load().await?,
+
+            PageCommand::Scroll { delta } => {
+                if let Some(layout_root) = &self.layout_root {
+                    let scroll_result = match delta {
+                        retina_gfx::MouseScrollDelta::LineDelta(x, y) => {
+                            self.scroller.scroll_lines(x, y, layout_root.font_size().value())
+                        }
+                        retina_gfx::MouseScrollDelta::PixelDelta(pos) => {
+                            self.scroller.scroll_pixels(pos.x, pos.y)
+                        }
+                    };
+
+                    info!("Scroll position: {:?} => {:?}", self.scroller.viewport_position(), scroll_result);
+
+                    if scroll_result.was_changed() {
+                        self.paint().await.unwrap();
+                    }
+                }
+            }
         }
 
         Ok(())

@@ -2,7 +2,11 @@
 // All Rights Reserved.
 
 use euclid::Size2D;
-use winit::event::{ModifiersState, VirtualKeyCode};
+use winit::event::{
+    ModifiersState,
+    MouseScrollDelta,
+    VirtualKeyCode,
+};
 
 use crate::{Painter, Window};
 
@@ -11,6 +15,10 @@ pub trait WindowApplication<EventType>
     fn on_event(&mut self, event: EventType, window: &mut Window<EventType>) {
         _ = event;
         _ = window;
+    }
+
+    fn on_mouse_wheel(&mut self, delta: MouseScrollDelta) {
+        _ = delta;
     }
 
     fn on_key_press(&mut self, event: WindowKeyPressEvent) {

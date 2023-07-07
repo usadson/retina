@@ -39,7 +39,10 @@ pub(crate) use self::{
     },
 };
 
-pub use winit::event::VirtualKeyCode;
+pub use winit::event::{
+    MouseScrollDelta,
+    VirtualKeyCode,
+};
 
 pub use euclid;
 
