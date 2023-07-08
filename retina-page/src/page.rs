@@ -76,6 +76,7 @@ impl Page {
         self.title = self.url.to_string();
 
         self.load().await?;
+        self.clean_dirty_state().await?;
 
         self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
 
