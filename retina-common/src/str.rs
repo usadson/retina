@@ -11,6 +11,14 @@ pub trait StrExt {
     /// assert_eq!(string.index_of_substring(world), Some(7));
     /// ```
     fn index_of_substring(&self, other: &str) -> Option<usize>;
+
+    fn slice_from_substring(&self, other: &str) -> Option<&str>;
+
+    fn slice_after_substring(&self, other: &str) -> Option<&str>;
+
+    fn as_end_ptr(&self) -> *const u8;
+
+    fn try_include_following_space(&self, other: &str) -> Option<&str>;
 }
 
 impl StrExt for str {
@@ -30,5 +38,46 @@ impl StrExt for str {
         }
 
         Some(other_begin - self_begin)
+    }
+
+    fn as_end_ptr(&self) -> *const u8 {
+        (self.as_ptr() as usize + self.len()) as _
+    }
+
+    fn slice_after_substring(&self, other: &str) -> Option<&str> {
+        let other_index = self.index_of_substring(other)?;
+        let after_index = other_index + other.len();
+
+        if after_index < other.len() {
+            Some(&self[after_index..])
+        } else {
+            None
+        }
+    }
+
+    fn slice_from_substring(&self, other: &str) -> Option<&str> {
+        let other_index = self.index_of_substring(other)?;
+
+        if other_index + other.len() < self.len() {
+            Some(&self[other_index..])
+        } else {
+            None
+        }
+    }
+
+    fn try_include_following_space(&self, word: &str) -> Option<&str> {
+        let Some(word_and_after) = self.slice_from_substring(word) else {
+            return None;
+        };
+
+        let Some(after_word_char) = word_and_after.chars().nth(word.len()) else {
+            return None;
+        };
+
+        if after_word_char.is_ascii_whitespace() {
+            Some(&word_and_after[0..word.len() + 1])
+        } else {
+            None
+        }
     }
 }
