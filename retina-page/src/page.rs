@@ -505,6 +505,7 @@ impl Page {
         self.dirty_state.mark_painted();
 
         let Some(layout_root) = self.layout_root.as_ref() else {
+            warn!("Painted without a layout root!");
             return Ok(());
         };
 
