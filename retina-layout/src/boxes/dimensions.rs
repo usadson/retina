@@ -19,6 +19,38 @@ pub struct LayoutBoxDimensions {
 }
 
 impl LayoutBoxDimensions {
+    pub fn combined_bottom_edges(&self) -> CssReferencePixels {
+        self.margin().bottom()
+            + self.border().bottom()
+            + self.padding().bottom()
+    }
+
+    pub fn combined_horizontal_edges(&self) -> CssReferencePixels {
+        self.combined_left_edges() + self.combined_right_edges()
+    }
+
+    pub fn combined_left_edges(&self) -> CssReferencePixels {
+        self.margin().left()
+            + self.border().left()
+            + self.padding().left()
+    }
+
+    pub fn combined_right_edges(&self) -> CssReferencePixels {
+        self.margin().right()
+            + self.border().right()
+            + self.padding().right()
+    }
+
+    pub fn combined_top_edges(&self) -> CssReferencePixels {
+        self.margin().top()
+            + self.border().top()
+            + self.padding().top()
+    }
+
+    pub fn combined_vertical_edges(&self) -> CssReferencePixels {
+        self.combined_top_edges() + self.combined_bottom_edges()
+    }
+
     pub fn position_border_box(&self) -> Point2D<CssDecimal> {
         Point2D::new(
             self.content_position.x - self.padding.left.value() - self.border.left.value(),
