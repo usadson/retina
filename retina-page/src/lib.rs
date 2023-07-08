@@ -60,6 +60,7 @@ pub fn spawn(
                 message_sender,
 
                 url,
+                queued_redirect_url: None,
                 title: String::new(),
                 document: None,
                 style_sheets: None,

@@ -23,6 +23,7 @@ pub(crate) struct Page {
     pub(crate) message_sender: SyncSender<PageMessage>,
 
     pub(crate) url: Url,
+    pub(crate) queued_redirect_url: Option<Url>,
     pub(crate) title: String,
     pub(crate) document: Option<Node>,
     pub(crate) style_sheets: Option<Vec<Stylesheet>>,
@@ -105,6 +106,11 @@ impl Page {
                 DirtyPhase::Paint => self.paint().await?,
                 DirtyPhase::Ready => break,
             }
+        }
+
+        if let Some(redirect_url) = self.queued_redirect_url.take() {
+            self.url = redirect_url;
+            self.load().await?;
         }
 
         Ok(())
@@ -400,6 +406,8 @@ impl Page {
         self.message_sender.send(PageMessage::Progress {
             progress: PageProgress::Fetched,
         })?;
+
+        self.queued_redirect_url = document.redirect_url();
 
         let mut reader = document.body().await;
 
