@@ -12,6 +12,9 @@ pub struct Scroller {
 
 impl Scroller {
     fn adjust_position_if_needed(&mut self) {
+        self.position.x = self.position.x.max(0.0);
+        self.position.y = self.position.y.max(0.0);
+
         if self.viewport_size.height >= self.content_size.height {
             return;
         }
