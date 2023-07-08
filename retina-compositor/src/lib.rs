@@ -253,12 +253,6 @@ impl Compositor {
         layout_box: &LayoutBox,
         painter: &mut Painter,
     ) {
-        let Some(text) = layout_box.node.as_text() else { return };
-
-        let text = text.data().trim();
-        if text.is_empty() { return };
-
-        let position = layout_box.dimensions().position_content_box().cast();
         let size = layout_box.font_size().as_abs().value() as f32;
         if size <= 0.0 {
             return;
@@ -272,13 +266,16 @@ impl Compositor {
 
                 let mut brush = layout_box.font().brush();
 
-                painter.paint_text(
-                    &mut brush,
-                    text,
-                    color,
-                    position,
-                    size,
-                );
+                for line_box_fragment in layout_box.line_box_fragments() {
+                    painter.paint_text(
+                        &mut brush,
+                        line_box_fragment.text(),
+                        color,
+                        line_box_fragment.position().cast(),
+                        size,
+                    );
+                }
+
             }
         }
     }
