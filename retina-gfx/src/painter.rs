@@ -279,7 +279,6 @@ impl<'art> Painter<'art> {
                 position.x - self.viewport_position.x as f32,
                 position.y - self.viewport_position.y as f32,
             ),
-            bounds: (self.viewport_size.width as f32, self.viewport_size.height as f32),
             text: vec![wgpu_glyph::Text::new(text)
                 .with_color(color)
                 .with_scale(size.into() * 1.5)],
