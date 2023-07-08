@@ -293,6 +293,9 @@ impl Page {
 
     pub(crate) async fn load(&mut self) -> Result<(), ErrorKind> {
         info!("Loading page: {:?}", self.url);
+
+        _ = self.scroller.scroll_to_top();
+
         self.load_page().await?;
         self.load_stylesheets_in_background();
         self.load_images_in_background();
