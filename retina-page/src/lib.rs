@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+pub(crate) mod dirty_state;
 pub(crate) mod command;
 pub(crate) mod handle;
 pub(crate) mod message;
@@ -12,6 +13,7 @@ pub use handle::{PageHandle, PageHandleCommunicationError, PageHandleReceiveHalf
 pub use message::{PageMessage, PageProgress};
 
 use page::Page;
+use dirty_state::DirtyState;
 use retina_compositor::Compositor;
 use retina_gfx::{canvas::CanvasPaintingContext, euclid::Size2D};
 use retina_gfx_font::FontProvider;
@@ -71,6 +73,7 @@ pub fn spawn(
                 page_task_message_sender,
                 browsing_context: None,
                 event_queue: None,
+                dirty_state: DirtyState::new(),
             };
 
             page.start(command_receiver, page_task_message_receiver).await.unwrap()

@@ -16,7 +16,7 @@ use retina_style_parser::CssParsable;
 use tokio::{sync::mpsc::{Receiver as AsyncReceiver, Sender as AsyncSender}, runtime::Runtime};
 use url::Url;
 
-use crate::{PageCommand, PageMessage, PageProgress, message::PageTaskMessage, scroller::{Scroller, ScrollResult}, PageCommandAction};
+use crate::{PageCommand, PageMessage, PageProgress, message::PageTaskMessage, scroller::{Scroller, ScrollResult}, PageCommandAction, dirty_state::{DirtyState, DirtyPhase}};
 
 pub(crate) struct Page {
     pub(crate) runtime: Arc<Runtime>,
@@ -36,6 +36,7 @@ pub(crate) struct Page {
     pub(crate) page_task_message_sender: AsyncSender<PageTaskMessage>,
     pub(crate) browsing_context: Option<BrowsingContext>,
     pub(crate) event_queue: Option<EventQueue>,
+    pub(crate) dirty_state: DirtyState,
 }
 
 enum ActionResult {
@@ -50,6 +51,12 @@ impl From<ScrollResult> for ActionResult {
             ScrollResult::Changed => Self::Repaint,
         }
     }
+}
+
+enum PageTaskMessageListenResult {
+    Ok,
+    PipelineClosed,
+    Timeout,
 }
 
 type ErrorKind = Box<dyn std::error::Error>;
@@ -72,44 +79,32 @@ impl Page {
 
         self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
 
-        while let Some(task_message) = page_task_message_receiver.recv().await {
-            match task_message {
-                PageTaskMessage::Command { command } => {
-                    self.handle_command(command).await?;
+        loop {
+            match self.listen_for_page_task_message(&mut page_task_message_receiver).await? {
+                PageTaskMessageListenResult::Ok => (),
+                PageTaskMessageListenResult::PipelineClosed => break,
+                PageTaskMessageListenResult::Timeout => self.clean_dirty_state().await?,
+            }
 
-                    // If there are commands sent consecutively, handle them before sending
-                    // `PageProgress::Ready`.
-                    // while let Ok(command) = self.command_receiver.try_recv() {
-                    //     self.handle_command(command).await?;
-                    // }
-                    // TODO
-
-                    self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
-                }
-
-                PageTaskMessage::CommandPipelineClosed => {
-                    error!("Command pipeline closed");
-                    break;
-                }
-
-                PageTaskMessage::ImageLoaded => {
-                    info!("Image loaded!");
-                    self.relayout().await?;
-                    self.paint().await?;
-                }
-
-                PageTaskMessage::StylesheetLoaded { stylesheet } => {
-                    self.layout_root = None;
-                    self.style_sheets.get_or_insert(Default::default()).push(stylesheet);
-                    self.generate_layout_tree().await?;
-                    self.paint().await?;
-
-                    self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
-                }
+            if self.dirty_state.must_act_now() {
+                self.clean_dirty_state().await?;
             }
         }
 
         error!("Task pipeline dead!");
+
+        Ok(())
+    }
+
+    async fn clean_dirty_state(&mut self) -> Result<(), ErrorKind> {
+        loop {
+            match self.dirty_state.phase() {
+                DirtyPhase::GenerateLayoutTree => self.generate_layout_tree().await?,
+                DirtyPhase::Layout => self.relayout().await?,
+                DirtyPhase::Paint => self.paint().await?,
+                DirtyPhase::Ready => break,
+            }
+        }
 
         Ok(())
     }
@@ -138,6 +133,8 @@ impl Page {
     }
 
     pub(crate) async fn generate_layout_tree(&mut self) -> Result<(), ErrorKind> {
+        self.dirty_state.mark_layout_tree_generated();
+
         let document_url = self.url.clone();
         let fetch = self.fetch.clone();
 
@@ -163,7 +160,7 @@ impl Page {
         Ok(())
     }
 
-    pub(crate) async fn handle_action(&mut self, action: PageCommandAction) -> Result<(), ErrorKind> {
+    pub(crate) fn handle_action(&mut self, action: PageCommandAction) -> Result<(), ErrorKind> {
         let result = match action {
             PageCommandAction::PageDown => self.scroller.page_down().into(),
             PageCommandAction::PageUp => self.scroller.page_up().into(),
@@ -173,7 +170,9 @@ impl Page {
 
         match result {
             ActionResult::Unchanged => (),
-            ActionResult::Repaint => self.paint().await?,
+            ActionResult::Repaint => {
+                self.dirty_state.request(DirtyPhase::Paint);
+            }
         }
 
         Ok(())
@@ -183,7 +182,7 @@ impl Page {
         info!("Received command: {command:#?}");
 
         match command {
-            PageCommand::Action(action) => self.handle_action(action).await?,
+            PageCommand::Action(action) => self.handle_action(action)?,
 
             PageCommand::ResizeCanvas { size } => {
                 if self.canvas.size() == size {
@@ -192,8 +191,7 @@ impl Page {
                     self.canvas.resize(size);
                     self.scroller.did_viewport_resize(size.cast().cast_unit());
 
-                    self.relayout().await?;
-                    self.paint().await?;
+                    self.dirty_state.request(DirtyPhase::Layout);
                 }
             }
 
@@ -205,7 +203,6 @@ impl Page {
             }
 
             PageCommand::OpenLayoutTreeView => {
-                println!("Stylesheets: {:#?}", self.style_sheets);
                 if let Some(layout_root) = &self.layout_root {
                     layout_root.dump();
                 }
@@ -224,16 +221,73 @@ impl Page {
                         }
                     };
 
-                    info!("Scroll position: {:?} => {:?}", self.scroller.viewport_position(), scroll_result);
-
                     if scroll_result.was_changed() {
-                        self.paint().await.unwrap();
+                        self.dirty_state.request(DirtyPhase::Paint);
                     }
                 }
             }
         }
 
         Ok(())
+    }
+
+    async fn handle_task_message(
+        &mut self,
+        task_message: PageTaskMessage,
+    ) -> Result<PageTaskMessageListenResult, ErrorKind> {
+        match task_message {
+            PageTaskMessage::Command { command } => {
+                self.handle_command(command).await?;
+
+                // If there are commands sent consecutively, handle them before sending
+                // `PageProgress::Ready`.
+                // while let Ok(command) = self.command_receiver.try_recv() {
+                //     self.handle_command(command).await?;
+                // }
+                // TODO
+
+                self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
+            }
+
+            PageTaskMessage::CommandPipelineClosed => {
+                error!("Command pipeline closed");
+                return Ok(PageTaskMessageListenResult::PipelineClosed);
+            }
+
+            PageTaskMessage::ImageLoaded => {
+                info!("Image loaded!");
+                self.dirty_state.request(DirtyPhase::GenerateLayoutTree);
+            }
+
+            PageTaskMessage::StylesheetLoaded { stylesheet } => {
+                self.layout_root = None;
+                self.style_sheets.get_or_insert(Default::default()).push(stylesheet);
+                self.dirty_state.request(DirtyPhase::GenerateLayoutTree);
+
+                self.message_sender.send(PageMessage::Progress { progress: PageProgress::Ready })?;
+            }
+        }
+
+        Ok(PageTaskMessageListenResult::Ok)
+    }
+
+    async fn listen_for_page_task_message(
+        &mut self,
+        page_task_message_receiver: &mut AsyncReceiver<PageTaskMessage>
+    ) -> Result<PageTaskMessageListenResult, ErrorKind> {
+        let task_message = tokio::time::timeout(Duration::from_millis(1), async {
+            page_task_message_receiver.recv()
+        }).await;
+
+        let Ok(task_message) = task_message else {
+            return Ok(PageTaskMessageListenResult::Timeout)
+        };
+
+        let Some(task_message) = task_message.await else {
+            return Ok(PageTaskMessageListenResult::PipelineClosed);
+        };
+
+        self.handle_task_message(task_message).await
     }
 
     pub(crate) async fn load(&mut self) -> Result<(), ErrorKind> {
@@ -247,7 +301,7 @@ impl Page {
 
         self.generate_layout_tree().await?;
 
-        self.paint().await?;
+        self.dirty_state.request(DirtyPhase::Paint);
 
         Ok(())
     }
@@ -447,6 +501,8 @@ impl Page {
     }
 
     pub(crate) async fn paint(&mut self) -> Result<(), ErrorKind> {
+        self.dirty_state.mark_painted();
+
         let Some(layout_root) = self.layout_root.as_ref() else {
             return Ok(());
         };
@@ -503,6 +559,8 @@ impl Page {
     }
 
     async fn relayout(&mut self) -> Result<(), ErrorKind> {
+        self.dirty_state.mark_layed_out();
+
         if let Some(layout_root) = &mut self.layout_root {
             layout_root.dimensions_mut().set_margin_size(
                 CssReferencePixels::new(self.canvas.size().width as _),
