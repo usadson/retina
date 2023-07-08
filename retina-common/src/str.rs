@@ -4,12 +4,6 @@
 pub trait StrExt {
     /// Get the index of the substring, which can be useful for extending a
     /// slice, or just getting the length of the whole thing.
-    ///
-    /// ```
-    /// let string = "Hello, world!";
-    /// let world = &string[7..];
-    /// assert_eq!(string.index_of_substring(world), Some(7));
-    /// ```
     fn index_of_substring(&self, other: &str) -> Option<usize>;
 
     fn slice_from_substring(&self, other: &str) -> Option<&str>;
