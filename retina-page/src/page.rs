@@ -238,6 +238,14 @@ impl Page {
         Ok(())
     }
 
+    fn handle_load_error(&mut self, load_error: retina_fetch::Error) -> Result<(), ErrorKind> {
+        let document = retina_user_agent::url_scheme::about::NETWORK_ERROR.replace(
+            "<!--RETINA_ERROR_INFO-->",
+            &format!("{:#?}", load_error)
+        );
+        self.load_page_with_document(retina_dom::Parser::parse(&document))
+    }
+
     async fn handle_task_message(
         &mut self,
         task_message: PageTaskMessage,
@@ -401,7 +409,12 @@ impl Page {
     }
 
     pub(crate) async fn load_page(&mut self) -> Result<(), ErrorKind> {
-        let mut document = self.fetch.fetch_document(self.url.clone()).await?;
+        let mut document = match self.fetch.fetch_document(self.url.clone()).await {
+            Ok(response) => response,
+            Err(e) => {
+                return self.handle_load_error(e);
+            }
+        };
 
         self.message_sender.send(PageMessage::Progress {
             progress: PageProgress::Fetched,
@@ -412,6 +425,11 @@ impl Page {
         let mut reader = document.body().await;
 
         let document = retina_dom::Parser::parse_with_reader(&mut reader);
+
+        self.load_page_with_document(document)
+    }
+
+    fn load_page_with_document(&mut self, document: Node) -> Result<(), ErrorKind> {
         self.document = Some(document.clone());
 
         self.message_sender.send(PageMessage::Progress {
