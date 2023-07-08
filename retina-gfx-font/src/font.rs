@@ -21,6 +21,9 @@ type Brush = GlyphBrush<(), FontVec>;
 pub struct Font {
     pub(crate) descriptor: FontDescriptor,
     pub(crate) brush: Arc<RwLock<Brush>>,
+
+    /// The width of the space character.
+    pub(crate) space_width: f32,
 }
 
 impl Font {
@@ -58,5 +61,11 @@ impl Font {
     #[inline]
     pub const fn descriptor(&self) -> &FontDescriptor {
         &self.descriptor
+    }
+
+    /// The width of the space character.
+    #[inline]
+    pub const fn width_of_space_character(&self) -> f32 {
+        self.space_width
     }
 }

@@ -8,6 +8,7 @@ use std::{
 
 use log::error;
 use retina_common::LoadTime;
+use wgpu_glyph::{GlyphCruncher, Section, Text};
 
 use crate::{
     FamilyName,
@@ -65,14 +66,21 @@ impl FontProvider {
             }
         };
 
-        let brush = wgpu_glyph::GlyphBrushBuilder::using_font(font)
+        let mut brush = wgpu_glyph::GlyphBrushBuilder::using_font(font)
             .build(self.gfx_context.device(), wgpu::TextureFormat::Bgra8UnormSrgb);
+        let space_width = brush.glyph_bounds(
+                Section::builder().add_text(Text::new(" "))
+            )
+            .unwrap_or_default()
+            .width();
+
         let brush = Arc::new(RwLock::new(brush));
 
         let mut families = self.families.write().expect("FontProvider failed to write to `families`");
         families.entry(descriptor.name.clone()).or_insert(Default::default()).entries.push(Arc::new(Font {
             descriptor,
             brush,
+            space_width,
         }));
 
         true
