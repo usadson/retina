@@ -15,6 +15,7 @@ use page::Page;
 use retina_compositor::Compositor;
 use retina_gfx::{canvas::CanvasPaintingContext, euclid::Size2D};
 use retina_gfx_font::FontProvider;
+use scroller::Scroller;
 
 use std::{sync::{mpsc::{channel, sync_channel}, Arc}, time::Duration};
 use url::Url;
@@ -62,7 +63,7 @@ pub fn spawn(
                 style_sheets: None,
                 layout_root: None,
 
-                scroller: Default::default(),
+                scroller: Scroller::new(canvas_size.cast().cast_unit()),
                 canvas,
                 font_provider,
                 compositor: Compositor::new(),

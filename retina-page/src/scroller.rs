@@ -11,6 +11,13 @@ pub struct Scroller {
 }
 
 impl Scroller {
+    pub fn new(viewport_size: Size2D<f64>) -> Self {
+        Self {
+            viewport_size,
+            ..Default::default()
+        }
+    }
+
     fn adjust_position_if_needed(&mut self) {
         self.position.x = self.position.x.max(0.0);
         self.position.y = self.position.y.max(0.0);
