@@ -7,7 +7,7 @@ pub(crate) mod message;
 pub(crate) mod page;
 pub(crate) mod scroller;
 
-pub use command::PageCommand;
+pub use command::{PageCommand, PageCommandAction};
 pub use handle::{PageHandle, PageHandleCommunicationError, PageHandleReceiveHalf, PageHandleSendHalf};
 pub use message::{PageMessage, PageProgress};
 

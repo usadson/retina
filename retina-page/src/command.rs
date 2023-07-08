@@ -6,6 +6,8 @@ use retina_gfx::{euclid::Size2D, MouseScrollDelta};
 /// The browser can send commands to the page that the page must act upon.
 #[derive(Clone, Debug, PartialEq)]
 pub enum PageCommand {
+    Action(PageCommandAction),
+
     OpenDomTreeView,
 
     OpenLayoutTreeView,
@@ -19,4 +21,12 @@ pub enum PageCommand {
     Scroll {
         delta: MouseScrollDelta,
     },
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum PageCommandAction {
+    PageUp,
+    PageDown,
+    ScrollToTop,
+    ScrollToBottom,
 }

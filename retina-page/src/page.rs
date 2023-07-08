@@ -16,7 +16,7 @@ use retina_style_parser::CssParsable;
 use tokio::{sync::mpsc::{Receiver as AsyncReceiver, Sender as AsyncSender}, runtime::Runtime};
 use url::Url;
 
-use crate::{PageCommand, PageMessage, PageProgress, message::PageTaskMessage, scroller::Scroller};
+use crate::{PageCommand, PageMessage, PageProgress, message::PageTaskMessage, scroller::{Scroller, ScrollResult}, PageCommandAction};
 
 pub(crate) struct Page {
     pub(crate) runtime: Arc<Runtime>,
@@ -36,6 +36,20 @@ pub(crate) struct Page {
     pub(crate) page_task_message_sender: AsyncSender<PageTaskMessage>,
     pub(crate) browsing_context: Option<BrowsingContext>,
     pub(crate) event_queue: Option<EventQueue>,
+}
+
+enum ActionResult {
+    Unchanged,
+    Repaint,
+}
+
+impl From<ScrollResult> for ActionResult {
+    fn from(value: ScrollResult) -> Self {
+        match value {
+            ScrollResult::Unchanged => Self::Unchanged,
+            ScrollResult::Changed => Self::Repaint,
+        }
+    }
 }
 
 type ErrorKind = Box<dyn std::error::Error>;
@@ -149,10 +163,28 @@ impl Page {
         Ok(())
     }
 
+    pub(crate) async fn handle_action(&mut self, action: PageCommandAction) -> Result<(), ErrorKind> {
+        let result = match action {
+            PageCommandAction::PageDown => self.scroller.page_down().into(),
+            PageCommandAction::PageUp => self.scroller.page_up().into(),
+            PageCommandAction::ScrollToBottom => self.scroller.scroll_to_bottom().into(),
+            PageCommandAction::ScrollToTop => self.scroller.scroll_to_top().into(),
+        };
+
+        match result {
+            ActionResult::Unchanged => (),
+            ActionResult::Repaint => self.paint().await?,
+        }
+
+        Ok(())
+    }
+
     pub(crate) async fn handle_command(&mut self, command: PageCommand) -> Result<(), ErrorKind> {
         info!("Received command: {command:#?}");
 
         match command {
+            PageCommand::Action(action) => self.handle_action(action).await?,
+
             PageCommand::ResizeCanvas { size } => {
                 if self.canvas.size() == size {
                     warn!("Resize Command while size is already the same as the given new size");

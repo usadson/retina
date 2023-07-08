@@ -41,6 +41,18 @@ impl Scroller {
         self.adjust_position_if_needed();
     }
 
+    pub fn page_down(&mut self) -> ScrollResult {
+        self.with_result(|scroller| {
+            scroller.position.y += scroller.viewport_size.height;
+        })
+    }
+
+    pub fn page_up(&mut self) -> ScrollResult {
+        self.with_result(|scroller| {
+            scroller.position.y -= scroller.viewport_size.height;
+        })
+    }
+
     pub fn scroll_lines(&mut self, x: f32, y: f32, font_size: f64) -> ScrollResult {
         self.scroll_pixels(
             x as f64 * font_size,
@@ -49,9 +61,35 @@ impl Scroller {
     }
 
     pub fn scroll_pixels(&mut self, x: f64, y: f64) -> ScrollResult {
+        self.with_result(|scroller| {
+            scroller.position.x -= x;
+            scroller.position.y -= y;
+        })
+    }
+
+    pub fn scroll_to_bottom(&mut self) -> ScrollResult {
+        if self.content_size.height <= self.viewport_size.height {
+            return ScrollResult::Unchanged;
+        }
+
+        self.with_result(|scroller| {
+            scroller.position.y = scroller.content_size.height - scroller.viewport_size.height;
+        })
+    }
+
+    pub fn scroll_to_top(&mut self) -> ScrollResult {
+        self.with_result(|scroller| scroller.position.y = 0.0)
+    }
+
+    pub const fn viewport_position(&self) -> Point2D<f64> {
+        self.position
+    }
+
+    fn with_result<F>(&mut self, f: F) -> ScrollResult
+            where F: FnOnce(&mut Self) {
         let original_position = self.position;
-        self.position.x -= x;
-        self.position.y -= y;
+
+        f(self);
 
         self.adjust_position_if_needed();
 
@@ -60,10 +98,6 @@ impl Scroller {
         } else {
             ScrollResult::Changed
         }
-    }
-
-    pub const fn viewport_position(&self) -> Point2D<f64> {
-        self.position
     }
 }
 
