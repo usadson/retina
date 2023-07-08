@@ -95,16 +95,18 @@ impl WindowApplication<RetinaEvent> for Application {
     }
 
     fn on_key_press(&mut self, event: WindowKeyPressEvent) {
-        if event.key() == VirtualKeyCode::F1 {
-            _ = self.page_send_half.send_command(PageCommand::OpenLayoutTreeView);
-        }
+        match event.key() {
+            VirtualKeyCode::F1 => _ = self.page_send_half.send_command(PageCommand::OpenLayoutTreeView),
+            VirtualKeyCode::F5 => _ = self.page_send_half.send_command(PageCommand::Reload),
+            VirtualKeyCode::F12 => _ = self.page_send_half.send_command(PageCommand::OpenDomTreeView),
 
-        if event.key() == VirtualKeyCode::F5 {
-            _ = self.page_send_half.send_command(PageCommand::Reload);
-        }
+            VirtualKeyCode::PageDown => _ = self.page_send_half.send_command(PageCommand::Action(PageCommandAction::PageDown)),
+            VirtualKeyCode::PageUp => _ = self.page_send_half.send_command(PageCommand::Action(PageCommandAction::PageUp)),
 
-        if event.key() == VirtualKeyCode::F12 {
-            _ = self.page_send_half.send_command(PageCommand::OpenDomTreeView);
+            VirtualKeyCode::Home => _ = self.page_send_half.send_command(PageCommand::Action(PageCommandAction::ScrollToTop)),
+            VirtualKeyCode::End => _ = self.page_send_half.send_command(PageCommand::Action(PageCommandAction::ScrollToBottom)),
+
+            _ => (),
         }
     }
 
