@@ -31,10 +31,21 @@ impl<'bx> BlockFormattingContext<'bx> {
         self.base.layout_box
     }
 
+    fn calculate_max_size(&mut self) {
+        if self.layout_box().computed_style().width() != CssLength::Auto {
+            self.base.max_width = Some(self.layout_box().dimensions().width());
+        }
+
+        if self.layout_box().computed_style().height() != CssLength::Auto {
+            self.base.max_height = Some(self.layout_box().dimensions().height());
+        }
+    }
+
     fn perform_inner(&mut self) {
         let mut children = std::mem::replace(&mut self.layout_box().children, Vec::new());
 
         let mut max_container_width: f64 = 0.0;
+        self.calculate_max_size();
 
         let content_position_origin = self.layout_box().dimensions.content_position;
 
