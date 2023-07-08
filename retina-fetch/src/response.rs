@@ -5,6 +5,7 @@ use std::{sync::Arc, io::BufRead};
 
 use futures_core::Stream;
 use hyper::body::{Buf, Bytes};
+use log::error;
 use url::Url;
 
 use crate::{Request, StatusCode};
@@ -49,6 +50,26 @@ impl Response {
         };
 
         content_type.parse().unwrap_or(mime::APPLICATION_OCTET_STREAM)
+    }
+
+    pub fn redirect_location(&self) -> Option<&str> {
+        if !self.status().is_redirection() {
+            return None;
+        }
+
+        let location = self.inner.headers().get(hyper::header::LOCATION)?;
+        location.to_str().ok()
+    }
+
+    pub fn redirect_url(&self) -> Option<Url> {
+        let location = self.redirect_location()?;
+        match url::Url::parse(location) {
+            Ok(url) => Some(url),
+            Err(e) => {
+                error!("Redirect status ({:?}) with invalid URL: \"{location}\", error: {e}", self.status());
+                None
+            }
+        }
     }
 
     pub async fn body(&mut self) -> Box<dyn BufRead + '_> {
