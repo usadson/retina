@@ -13,18 +13,22 @@ use std::borrow::Cow;
 
 pub use dimensions::LayoutBoxDimensions;
 pub use edge::LayoutEdge;
-pub use line::LineBox;
 use log::warn;
-use retina_common::{DumpableNode, Color};
+use retina_common::{DumpableNode, Color, StrExt, StrTendril};
 use retina_dom::ImageData;
 use retina_gfx_font::FontHandle;
-use retina_style::{CssReferencePixels, CssDecimal};
+use retina_style::CssReferencePixels;
 
 use crate::formatting_context::{
     BlockFormattingContext,
     FormattingContext,
     FormattingContextKind,
     InlineFormattingContext, FormattingContextWhitespaceState,
+};
+
+pub use self::line::{
+    LineBox,
+    LineBoxFragment,
 };
 
 use super::DomNode;
@@ -41,6 +45,7 @@ pub struct LayoutBox {
     pub(crate) font: FontHandle,
     pub(crate) font_size: CssReferencePixels,
     pub(crate) background_image: Option<ImageData>,
+    pub(crate) line_box_fragments: Vec<LineBoxFragment>,
 }
 
 impl LayoutBox {
@@ -63,6 +68,7 @@ impl LayoutBox {
             font,
             font_size,
             background_image: None,
+            line_box_fragments: Vec::new(),
         }
     }
 
@@ -109,6 +115,11 @@ impl LayoutBox {
 
     pub const fn font_size(&self) -> CssReferencePixels {
         self.font_size
+    }
+
+    #[inline]
+    pub fn line_box_fragments(&self) -> &[LineBoxFragment] {
+        &self.line_box_fragments
     }
 
     pub fn kind(&self) -> &LayoutBoxKind {
