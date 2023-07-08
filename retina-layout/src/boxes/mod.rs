@@ -152,12 +152,98 @@ impl LayoutBox {
             parent.whitespace_state = FormattingContextWhitespaceState::NoWhitespace;
         }
 
-        // TODO this should participate in a inline formatting context.
-        _ = parent;
+        let text = StrTendril::from(text.as_ref());
 
-        let size = self.font.calculate_size(self.font_size.value() as _, &text);
-        self.dimensions.width = CssReferencePixels::new(size.width as CssDecimal);
-        self.dimensions.height = CssReferencePixels::new(size.height as CssDecimal);
+        if parent.max_width.unwrap_or_default().value() <= 0.0 {
+            let size = self.font.calculate_size(self.font_size.value() as _, &text).cast();
+            self.line_box_fragments = vec![
+                LineBoxFragment {
+                    position: self.dimensions().content_position,
+                    text,
+                    size,
+                }
+            ];
+        } else {
+            self.run_anonymous_layout_algorithm(parent, text);
+        }
+
+        self.run_anonymous_layout_calculate_size();
+    }
+
+    fn run_anonymous_layout_algorithm(&mut self, parent: &mut FormattingContext, text: StrTendril) {
+        self.line_box_fragments.clear();
+
+        let max_width = parent.max_width.unwrap();
+
+        let font_size = self.font_size().value() as f32;
+        let mut fragment_begin_index: u32 = 0;
+
+        for word in text.split_ascii_whitespace() {
+            let word = text.try_include_following_space(word).unwrap_or(word);
+
+            let Some(fragment) = self.line_box_fragments.last_mut() else {
+                let word_size = self.font.calculate_size(self.font_size().value() as _, word);
+                debug_assert!(fragment_begin_index == 0);
+
+                self.line_box_fragments.push(LineBoxFragment {
+                    position: self.dimensions.content_position,
+                    text: text.subtendril(0, word.len() as u32),
+                    size: word_size.cast(),
+                });
+                continue;
+            };
+
+            let mut new_fragment_text_length = word.as_end_ptr() as u32 - text.as_ptr() as u32 - fragment_begin_index;
+            if let Some(after_word) = text.slice_after_substring(word) {
+                if after_word.chars().nth(0).as_ref().is_some_and(char::is_ascii_whitespace) {
+                    new_fragment_text_length += 1;
+                }
+            }
+
+            let fragment_text = text.subtendril(
+                fragment_begin_index,
+                new_fragment_text_length,
+            );
+
+            let fragment_size = self.font.calculate_size(font_size, &fragment_text).cast();
+
+            // Does this word already fit on the last fragment?
+            if fragment_size.width < max_width.value() {
+                fragment.size = fragment_size;
+                fragment.text = fragment_text;
+                continue;
+            }
+
+            // No, create a new line box
+            let mut position = self.line_box_fragments.last().unwrap().position;
+            position.y += self.line_box_fragments.last().unwrap().size.height;
+
+            fragment_begin_index += self.line_box_fragments.last().unwrap().text.len32();
+
+            self.line_box_fragments.push(LineBoxFragment {
+                position,
+                text: text.subtendril(fragment_begin_index, word.len() as u32),
+                size: self.font().calculate_size(font_size, word).cast(),
+            });
+        }
+    }
+
+    fn run_anonymous_layout_calculate_size(&mut self) {
+        let max_width = self.line_box_fragments.iter()
+            .map(|width| width.size.width)
+            .max_by(|a, b| a.total_cmp(b))
+            .unwrap_or_default();
+
+        let min_y = self.line_box_fragments.first()
+            .map(|fragment| fragment.position.y)
+            .unwrap_or_default();
+
+        let max_y = self.line_box_fragments.last()
+            .map(|fragment| fragment.position.y + fragment.size.height)
+            .unwrap_or_default();
+
+        self.dimensions.width = CssReferencePixels::new(max_width);
+        self.dimensions.height = CssReferencePixels::new(max_y - min_y);
     }
 
     pub fn run_layout(&mut self, parent: Option<&mut FormattingContext>) {
@@ -166,17 +252,22 @@ impl LayoutBox {
                 self.run_anonymous_layout(parent);
             } else {
                 warn!("Anonymous layout without a parent node.");
+                if cfg!(debug_assertions) {
+                    panic!("Anonyous layout without a parent node")
+                }
             }
 
             return;
         }
 
+        let parent = parent.map(|parent| &*parent);
+
         match self.formatting_context {
-            FormattingContextKind::Block => BlockFormattingContext::perform(self),
+            FormattingContextKind::Block => BlockFormattingContext::perform(self, parent),
             FormattingContextKind::Inline => {
                 // TODO
                 _ = parent;
-                InlineFormattingContext::perform(self)
+                InlineFormattingContext::perform(self, parent)
             }
         }
     }
