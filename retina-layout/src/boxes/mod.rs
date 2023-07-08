@@ -13,11 +13,12 @@ use std::borrow::Cow;
 
 pub use dimensions::LayoutBoxDimensions;
 pub use edge::LayoutEdge;
+use euclid::default::Size2D;
 use log::warn;
 use retina_common::{DumpableNode, Color, StrExt, StrTendril};
-use retina_dom::ImageData;
+use retina_dom::{ImageData, HtmlElementKind};
 use retina_gfx_font::FontHandle;
-use retina_style::CssReferencePixels;
+use retina_style::{CssReferencePixels, CssLength};
 
 use crate::formatting_context::{
     BlockFormattingContext,
@@ -260,6 +261,10 @@ impl LayoutBox {
             return;
         }
 
+        if self.run_replaced_layout() {
+            return;
+        }
+
         let parent = parent.map(|parent| &*parent);
 
         match self.formatting_context {
@@ -269,6 +274,38 @@ impl LayoutBox {
                 _ = parent;
                 InlineFormattingContext::perform(self, parent)
             }
+        }
+    }
+
+    fn run_replaced_layout(&mut self) -> bool {
+        let Some(element) = self.node.as_html_element_kind() else {
+            return false;
+        };
+
+        match element {
+            HtmlElementKind::Img(img) => {
+                let mut image_size = Size2D::default();
+                if let Ok(image) = img.data_ref().image().read() {
+                    if let Some(image) = image.as_ref() {
+                        image_size = Size2D::new(image.width(), image.height());
+                    }
+                }
+
+                self.run_replaced_layout_for_image(image_size);
+                true
+            }
+
+            _ => false,
+        }
+    }
+
+    fn run_replaced_layout_for_image(&mut self, image_size: Size2D<u32>) {
+        if let CssLength::Auto = self.computed_style.width() {
+            self.dimensions.width = CssReferencePixels::new(image_size.width as _);
+        }
+
+        if let CssLength::Auto = self.computed_style.height() {
+            self.dimensions.height = CssReferencePixels::new(image_size.height as _);
         }
     }
 }
