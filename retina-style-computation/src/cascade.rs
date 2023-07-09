@@ -2,7 +2,9 @@
 // All Rights Reserved.
 
 use log::warn;
+use retina_dom::{HtmlElementKind, AttributeList};
 use retina_style::{CascadeOrigin, Rule};
+use retina_style_parser::CssAttributeStrExtensions;
 
 use crate::{CollectedStyles, PropertyMap, collect::ApplicableRule};
 
@@ -59,6 +61,31 @@ fn cascade_styles_from_attribute(
     }
 }
 
+fn cascade_styles_from_presentational_hints(
+    property_map: &mut PropertyMap,
+    element: &HtmlElementKind,
+ ) {
+    let attributes = element.as_dom_element().attributes();
+    match element.as_dom_element().qualified_name().local.as_ref() {
+        "body" => cascade_styles_from_presentational_hints_body(property_map, attributes),
+        _ => (),
+    }
+}
+
+/// <https://html.spec.whatwg.org/multipage/rendering.html#the-page>
+fn cascade_styles_from_presentational_hints_body(
+    property_map: &mut PropertyMap,
+    attributes: &AttributeList,
+ ) {
+    if let Some(background_color) = attributes.find_by_str("bgcolor").and_then(CssAttributeStrExtensions::parse_legacy_color_value) {
+        property_map.background_color = Some(background_color);
+    }
+
+    if let Some(text_color) = attributes.find_by_str("text").and_then(CssAttributeStrExtensions::parse_legacy_color_value) {
+        property_map.color = Some(text_color);
+    }
+}
+
 fn inherit_property<T>(target: &mut Option<T>, source: &Option<T>)
         where T: Clone {
     if target.is_none() {
@@ -105,6 +132,10 @@ impl<'stylesheets> Cascade for CollectedStyles<'stylesheets> {
         cascade_normal_declarations_for_origin(&mut property_map, self.applicable_rules(), CascadeOrigin::User);
 
         // 6. Normal author declarations
+        if let Some(node) = node.and_then(|node| node.as_html_element_kind()) {
+            cascade_styles_from_presentational_hints(&mut property_map, node);
+        }
+
         cascade_normal_declarations_for_origin(&mut property_map, self.applicable_rules(), CascadeOrigin::Author);
 
         if let Some(node) = node {

@@ -9,7 +9,10 @@ mod util;
 mod value_parser;
 
 pub use self::error::RetinaStyleParseError;
-pub use self::util::CssParsable;
+pub use self::util::{
+    CssParsable,
+    CssAttributeStrExtensions,
+};
 
 pub(crate) use self::rule_parser::RuleParser;
 pub(crate) use self::selector_parser::parse_selector_list;
