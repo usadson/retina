@@ -362,8 +362,66 @@ impl PropertyMap {
                 }
             }
 
+            // TODO: margin-block should depend on the writing-mode, direction, etc.
+            Property::MarginBlock => if let Value::Length(length) = value {
+                self.margin_bottom = Some(length.clone());
+                self.margin_top = Some(length);
+                PropertyMapDidApply::Yes
+            } else if let Value::ComponentList(ValueComponentList::TwoLengths([start, end])) = value {
+                self.margin_top = Some(start);
+                self.margin_bottom = Some(end);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            // TODO: margin-block-end should depend on the writing-mode, direction, etc.
+            Property::MarginBlockEnd => if let Value::Length(length) = value {
+                self.margin_bottom = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            // TODO: margin-block-start should depend on the writing-mode, direction, etc.
+            Property::MarginBlockStart => if let Value::Length(length) = value {
+                self.margin_top = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
             Property::MarginBottom => if let Value::Length(length) = value {
                 self.margin_bottom = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            // TODO: margin-inline should depend on the writing-mode, direction, etc.
+            Property::MarginInline => if let Value::Length(length) = value {
+                self.margin_left = Some(length.clone());
+                self.margin_right = Some(length);
+                PropertyMapDidApply::Yes
+            } else if let Value::ComponentList(ValueComponentList::TwoLengths([start, end])) = value {
+                self.margin_left = Some(start);
+                self.margin_right = Some(end);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            // TODO: margin-inline-end should depend on the writing-mode, direction, etc.
+            Property::MarginInlineEnd => if let Value::Length(length) = value {
+                self.margin_right = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            // TODO: margin-inline-start should depend on the writing-mode, direction, etc.
+            Property::MarginInlineStart => if let Value::Length(length) = value {
+                self.margin_left = Some(length);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue

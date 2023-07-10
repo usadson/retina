@@ -54,7 +54,13 @@ pub enum Property {
     Height,
 
     Margin,
+    MarginBlock,
+    MarginBlockEnd,
+    MarginBlockStart,
     MarginBottom,
+    MarginInline,
+    MarginInlineEnd,
+    MarginInlineStart,
     MarginLeft,
     MarginRight,
     MarginTop,
