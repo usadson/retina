@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+pub(crate) mod bridge;
 pub(crate) mod descriptor;
 pub(crate) mod family;
 pub(crate) mod font;

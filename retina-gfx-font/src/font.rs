@@ -6,7 +6,7 @@ use std::sync::{Arc, RwLock, RwLockWriteGuard};
 use euclid::default::Size2D;
 
 use wgpu_glyph::{
-    ab_glyph::FontVec,
+    ab_glyph::FontArc,
     GlyphBrush,
     GlyphCruncher,
     Section,
@@ -15,7 +15,7 @@ use wgpu_glyph::{
 
 use crate::FontDescriptor;
 
-type Brush = GlyphBrush<(), FontVec>;
+type Brush = GlyphBrush<(), FontArc>;
 
 #[derive(Debug)]
 pub struct Font {

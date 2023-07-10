@@ -2943,6 +2943,7 @@ dependencies = [
  "euclid",
  "font-kit",
  "log",
+ "pathfinder_geometry",
  "retina-common",
  "retina-gfx",
  "wgpu",

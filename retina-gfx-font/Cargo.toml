@@ -10,5 +10,6 @@ retina-gfx = { path = "../retina-gfx" }
 font-kit = "*"
 euclid = "*"
 log = "*"
+pathfinder_geometry = "*"
 wgpu = { version = "*", features = ["trace"] }
 wgpu_glyph = "*"

@@ -8,7 +8,7 @@ use std::{
 
 use log::error;
 use retina_common::LoadTime;
-use wgpu_glyph::{GlyphCruncher, Section, Text};
+use wgpu_glyph::{GlyphCruncher, Section, Text, ab_glyph::FontArc};
 
 use crate::{
     FamilyName,
@@ -16,7 +16,7 @@ use crate::{
     FontDescriptor,
     FontFamily,
     FontHandle,
-    FontWeight,
+    FontWeight, bridge::FontKitAbGlyphFontBridge,
 };
 
 use retina_gfx::Context as GfxContext;
@@ -25,6 +25,13 @@ use retina_gfx::Context as GfxContext;
 pub struct FontProvider {
     gfx_context: GfxContext,
     families: Arc<RwLock<HashMap<FamilyName, FontFamily>>>,
+    implementation_kind: FontProviderImplementationKind,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum FontProviderImplementationKind {
+    AbGlyph,
+    FontKit,
 }
 
 unsafe impl Send for FontProvider{}
@@ -34,6 +41,7 @@ impl FontProvider {
         Self {
             gfx_context,
             families: Arc::new(RwLock::new(HashMap::new())),
+            implementation_kind: FontProviderImplementationKind::AbGlyph,
         }
     }
 
@@ -58,14 +66,34 @@ impl FontProvider {
     }
 
     pub fn load(&self, descriptor: FontDescriptor, data: Vec<u8>) -> bool {
-        let font = match wgpu_glyph::ab_glyph::FontVec::try_from_vec(data) {
-            Ok(font) => font,
-            Err(e) => {
-                error!("Failed to load font ({descriptor:?}): {e}");
-                return false;
-            }
-        };
+        match self.implementation_kind {
+            FontProviderImplementationKind::AbGlyph => {
+                let font = match wgpu_glyph::ab_glyph::FontArc::try_from_vec(data) {
+                    Ok(font) => font,
+                    Err(e) => {
+                        error!("Failed to load font ({descriptor:?}): {e}");
+                        return false;
+                    }
+                };
 
+                self.load_ab_glyph(descriptor, font)
+            }
+
+            FontProviderImplementationKind::FontKit => {
+                let font = match font_kit::font::Font::from_bytes(Arc::new(data), 0) {
+                    Ok(font) => font,
+                    Err(e) => {
+                        error!("Failed to load font ({descriptor:?}): {e}");
+                        return false;
+                    }
+                };
+
+                self.load_ab_glyph(descriptor, FontArc::new(FontKitAbGlyphFontBridge::new(font)))
+            }
+        }
+    }
+
+    fn load_ab_glyph(&self, descriptor: FontDescriptor, font: FontArc) -> bool {
         let mut brush = wgpu_glyph::GlyphBrushBuilder::using_font(font)
             .build(self.gfx_context.device(), wgpu::TextureFormat::Bgra8UnormSrgb);
         let space_width = brush.glyph_bounds(
