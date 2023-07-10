@@ -14,6 +14,24 @@ use retina_style::*;
 
 use crate::{ParseError, RetinaStyleParseError, util::convert_color};
 
+pub(crate) fn parse_color<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssColor, ParseError<'i>> {
+    let location = input.current_source_location();
+    let color = Color::parse(input).map_err(|e| e.basic())?;
+
+    if let Some(color) = convert_color(color) {
+        Ok(color)
+    } else {
+        Err(ParseError {
+          kind: ParseErrorKind::Custom(
+                RetinaStyleParseError::ColorUnknownValue(color)
+            ),
+            location,
+        })
+    }
+}
+
 pub(crate) fn parse_display<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<CssDisplay, ParseError<'i>> {
@@ -258,19 +276,8 @@ pub(crate) fn parse_line_style<'i, 't>(
 
 
 pub(crate) fn parse_single_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<Value, ParseError<'i>> {
-    let location = input.current_source_location();
-
-    if let Ok(color) = input.try_parse(Color::parse) {
-        if let Some(color) = convert_color(color) {
-            return Ok(Value::Color(color));
-        }
-
-        return Err(ParseError {
-            kind: ParseErrorKind::Custom(
-                RetinaStyleParseError::ColorUnknownValue(color)
-            ),
-            location,
-        });
+    if let Ok(color) = input.try_parse(parse_color) {
+        return Ok(Value::Color(color));
     }
 
     if let Ok(display) = input.try_parse(parse_display) {
