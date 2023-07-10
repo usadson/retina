@@ -183,6 +183,7 @@ impl LayoutBox {
         let mut fragment_begin_index: u32 = 0;
 
         for word in text.split_ascii_whitespace() {
+            let original_word = word;
             let word = text.try_include_following_space(word).unwrap_or(word);
 
             let Some(fragment) = self.line_box_fragments.last_mut() else {
@@ -226,7 +227,16 @@ impl LayoutBox {
 
             self.line_box_fragments.push(LineBoxFragment {
                 position,
-                text: text.subtendril(fragment_begin_index, word.len() as u32),
+                text: text.try_subtendril(fragment_begin_index, word.len() as u32)
+                    .unwrap_or_else(|_| {
+                        text.try_subtendril(fragment_begin_index, original_word.len() as u32)
+                            .expect(&format!(
+                                "Failed to subtendril: text.len={}, begin_index={fragment_begin_index} length={} end={} with word=\"{word}\"",
+                                text.len(),
+                                word.len(),
+                                fragment_begin_index + word.len() as u32,
+                            ))
+                    }),
                 size: self.font().calculate_size(font_size, word).cast(),
             });
         }
