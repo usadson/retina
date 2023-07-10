@@ -597,7 +597,7 @@ impl Page {
                 CssReferencePixels::new(self.canvas.size().width as _),
                 CssReferencePixels::new(self.canvas.size().height as _)
             );
-            layout_root.run_layout(None);
+            layout_root.run_layout(None, None);
             self.scroller.did_content_resize(layout_root.dimensions().size_margin_box());
         } else {
             self.generate_layout_tree().await?;

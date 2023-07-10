@@ -24,7 +24,7 @@ use crate::{formatting_context::{
     BlockFormattingContext,
     FormattingContext,
     FormattingContextKind,
-    InlineFormattingContext, FormattingContextWhitespaceState,
+    InlineFormattingContext, FormattingContextWhitespaceState, inline::InlineFormattingContextState,
 }, ActualValueMap};
 
 pub use self::line::{
@@ -260,9 +260,16 @@ impl LayoutBox {
         self.dimensions.height = CssReferencePixels::new(max_y - min_y);
     }
 
-    pub fn run_layout(&mut self, parent: Option<&mut FormattingContext>) {
+    pub fn run_layout(
+        &mut self,
+        parent: Option<&mut FormattingContext>,
+        ifc_state: Option<&mut InlineFormattingContextState>,
+    ) {
         if let LayoutBoxKind::Anonymous = self.kind {
             if let Some(parent) = parent {
+                // TODO participate in the IFC state
+                _ = ifc_state;
+
                 self.run_anonymous_layout(parent);
             } else {
                 warn!("Anonymous layout without a parent node.");

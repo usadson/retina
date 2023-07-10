@@ -57,7 +57,7 @@ impl<'bx> BlockFormattingContext<'bx> {
                 )
             );
 
-            child.run_layout(Some(&mut self.base));
+            child.run_layout(Some(&mut self.base), None);
 
             let child_size = child.dimensions.size_margin_box();
 

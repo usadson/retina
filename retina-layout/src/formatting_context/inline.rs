@@ -14,9 +14,23 @@ use super::FormattingContext;
 
 pub struct InlineFormattingContext<'bx> {
     base: FormattingContext<'bx>,
-    x_offset: CssDecimal,
-    line_boxes: Vec<LineBox>,
-    content_position_origin: Point2D<CssDecimal>,
+    state: InlineFormattingContextState,
+}
+
+pub struct InlineFormattingContextState {
+    pub(crate) x_offset: CssDecimal,
+    pub(crate) line_boxes: Vec<LineBox>,
+    pub(crate) content_position_origin: Point2D<CssDecimal>,
+}
+
+impl InlineFormattingContextState {
+    pub fn new(content_position_origin: Point2D<CssDecimal>) -> Self {
+        Self {
+            line_boxes: vec![LineBox::new()],
+            x_offset: 0.0,
+            content_position_origin,
+        }
+    }
 }
 
 impl<'bx> InlineFormattingContext<'bx> {
@@ -25,9 +39,7 @@ impl<'bx> InlineFormattingContext<'bx> {
 
         let mut instance = Self {
             base: FormattingContext::new(parent, layout_box),
-            line_boxes: vec![LineBox::new()],
-            x_offset: 0.0,
-            content_position_origin,
+            state: InlineFormattingContextState::new(content_position_origin),
         };
 
         instance.perform_inner()
@@ -43,16 +55,16 @@ impl<'bx> InlineFormattingContext<'bx> {
         let max_width = self.layout_box().dimensions().width().value();
 
         for child in &mut children {
-            if max_width != 0.0 && self.x_offset > max_width {
-                self.content_position_origin.y += self.line_boxes.last().unwrap().height;
-                self.line_boxes.push(LineBox::new());
-                self.x_offset = 0.0;
+            if max_width != 0.0 && self.state.x_offset > max_width {
+                self.state.content_position_origin.y += self.state.line_boxes.last().unwrap().height;
+                self.state.line_boxes.push(LineBox::new());
+                self.state.x_offset = 0.0;
             }
             self.layout_child(child);
         }
 
         if let CssLength::Auto = self.layout_box().computed_style.height() {
-            let height = self.line_boxes
+            let height = self.state.line_boxes
                 .iter()
                 .map(|bx| bx.height)
                 .sum();
@@ -60,7 +72,7 @@ impl<'bx> InlineFormattingContext<'bx> {
         }
 
         if let CssLength::Auto = self.layout_box().computed_style.width() {
-            self.layout_box().dimensions.width = CssReferencePixels::new(self.x_offset);
+            self.layout_box().dimensions.width = CssReferencePixels::new(self.state.x_offset);
         }
 
         self.layout_box().children = children;
@@ -71,17 +83,21 @@ impl<'bx> InlineFormattingContext<'bx> {
         child: &mut LayoutBox,
     ) {
         child.dimensions.set_margin_position(Point2D::new(
-            self.content_position_origin.x + self.x_offset,
-            self.content_position_origin.y,
+            self.state.content_position_origin.x + self.state.x_offset,
+            self.state.content_position_origin.y,
         ));
 
-        child.run_layout(Some(&mut self.base));
+        child.run_layout(Some(&mut self.base), Some(&mut self.state));
 
         let child_size = child.dimensions.size_margin_box();
 
-        self.x_offset += child_size.width;
+        if let Some(last_fragment) = child.line_box_fragments.last() {
+            self.state.x_offset = last_fragment.position.x - self.state.content_position_origin.x + last_fragment.size.width;
+        } else {
+            self.state.x_offset += child_size.width;
+        }
 
-        let line_box = self.line_boxes.last_mut().unwrap();
+        let line_box = self.state.line_boxes.last_mut().unwrap();
         line_box.height = line_box.height.max(child_size.height);
     }
 }

@@ -67,7 +67,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             viewport_width,
             viewport_height,
         );
-        initial_containing_block.run_layout(None);
+        initial_containing_block.run_layout(None, None);
 
         // initial_containing_block.dump();
         initial_containing_block
