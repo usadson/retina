@@ -3,10 +3,11 @@
 
 use euclid::default::Point2D;
 use log::warn;
+use retina_common::Color;
 use retina_dom::{Node, ImageData};
 use retina_fetch::{Fetch, Url};
 use retina_gfx_font::{FontProvider, FontDescriptor, FontWeight, FontHandle, FamilyName};
-use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength, CssDisplayBox, CssFontFamilyName, CssGenericFontFamilyName, CssFontWeight, CssLineStyle, CssImage};
+use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength, CssDisplayBox, CssFontFamilyName, CssGenericFontFamilyName, CssFontWeight, CssLineStyle, CssImage, CssColor};
 use retina_style_computation::{PropertyMap, StyleCollector, Cascade, BorderProperties};
 
 use crate::{
@@ -15,7 +16,7 @@ use crate::{
     LayoutBox,
     LayoutBoxDimensions,
     LayoutBoxKind,
-    LayoutEdge,
+    LayoutEdge, ActualValueMap,
 };
 
 pub struct LayoutGenerator<'stylesheets> {
@@ -151,6 +152,25 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
     ) -> LayoutBoxDimensions {
         // TODO
         self.calculate_dimensions_for_block_flow(computed_style, parent, font_size)
+    }
+
+    fn compute_actual_values(
+        &self,
+        parent: &LayoutBox,
+        computed_style: &PropertyMap
+    ) -> ActualValueMap {
+        let text_color = match computed_style.color() {
+            CssColor::Color(color) => color,
+            CssColor::CurrentColor => parent.actual_value_map.text_color,
+        };
+
+        ActualValueMap {
+            background_color: match computed_style.background_color() {
+                CssColor::Color(color) => color,
+                CssColor::CurrentColor => text_color,
+            },
+            text_color,
+        }
     }
 
     /// <https://drafts.csswg.org/css-fonts-4/#relative-weights>
@@ -299,6 +319,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         let computed_style = self.resolve_style(&node, Some(parent));
         let font = self.resolve_font(&node, parent, &computed_style);
         let font_size = self.resolve_length(parent.font_size, parent.font_size, computed_style.font_size(), &computed_style);
+        let actual_value_map = self.compute_actual_values(parent, &computed_style);
 
         if node.is_text() {
             let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent, font_size);
@@ -307,11 +328,11 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
 
             return match parent_display {
                 CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => Some(
-                    LayoutBox::new(LayoutBoxKind::Anonymous, FormattingContextKind::Inline, node, computed_style, dimensions, font, font_size)
+                    LayoutBox::new(LayoutBoxKind::Anonymous, FormattingContextKind::Inline, node, computed_style, actual_value_map, dimensions, font, font_size)
                 ),
 
                 CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => Some(
-                    LayoutBox::new(LayoutBoxKind::Anonymous, FormattingContextKind::Inline, node, computed_style, dimensions, font, font_size)
+                    LayoutBox::new(LayoutBoxKind::Anonymous, FormattingContextKind::Inline, node, computed_style, actual_value_map, dimensions, font, font_size)
                 ),
 
                 _ => {
@@ -327,12 +348,12 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             // `display: inline`
             CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => {
                 let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent, font_size);
-                LayoutBox::new(LayoutBoxKind::Normal, FormattingContextKind::Inline, node, computed_style, dimensions, font, font_size)
+                LayoutBox::new(LayoutBoxKind::Normal, FormattingContextKind::Inline, node, computed_style, actual_value_map, dimensions, font, font_size)
             }
 
             CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => {
                 let dimensions = self.calculate_dimensions_for_block_flow(&computed_style, parent, font_size);
-                LayoutBox::new(LayoutBoxKind::Normal, FormattingContextKind::Block, node, computed_style, dimensions, font, font_size)
+                LayoutBox::new(LayoutBoxKind::Normal, FormattingContextKind::Block, node, computed_style, actual_value_map, dimensions, font, font_size)
             }
 
             _ => {
@@ -387,11 +408,17 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
 
         let font_size = self.resolve_length(default_reference_pixels, default_reference_pixels, computed_style.font_size(), &computed_style);
 
+        let actual_value_map = ActualValueMap {
+            text_color: Color::BLACK,
+            background_color: Color::WHITE,
+        };
+
         LayoutBox::new(
             LayoutBoxKind::Root,
             FormattingContextKind::Block,
             root,
             computed_style,
+            actual_value_map,
             self.calculate_dimensions_for_initial_containing_block(),
             font,
             font_size

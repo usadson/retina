@@ -4,7 +4,7 @@
 use std::sync::OnceLock;
 
 use retina_dom::{HtmlElementKind, ImageData};
-use retina_gfx::{Painter, euclid::{Rect, Point2D, Size2D, UnknownUnit}, Texture};
+use retina_gfx::{Painter, euclid::{Rect, Point2D, Size2D, UnknownUnit}, Texture, Color};
 use retina_layout::LayoutBox;
 use retina_style::{CssColor, CssDecimal, CssLineStyle};
 use retina_style_computation::BorderProperties;
@@ -144,15 +144,13 @@ impl Compositor {
         layout_box: &LayoutBox,
         rect: Rect<CssDecimal, UnknownUnit>
     ) {
-        match layout_box.computed_style().background_color() {
-            CssColor::Color(background_color) => {
-                if background_color.alpha() <= 0.0 {
-                    return;
-                }
+        let background_color = layout_box.actual_values().background_color;
 
-                painter.paint_rect_colored(rect, background_color);
-            }
+        if background_color.alpha() <= 0.0 {
+            return;
         }
+
+        painter.paint_rect_colored(rect, background_color);
     }
 
     #[instrument(skip_all)]
@@ -179,28 +177,33 @@ impl Compositor {
     #[instrument(skip_all)]
     fn paint_border(&self, layout_box: &LayoutBox, painter: &mut Painter) {
         let position = layout_box.dimensions().position_border_box();
+        let text_color = layout_box.actual_values().text_color;
 
         self.paint_border_part(
             layout_box.computed_style().border_bottom,
             self.calculate_border_rect_bottom(position, layout_box),
+            text_color,
             painter,
         );
 
         self.paint_border_part(
             layout_box.computed_style().border_left,
             self.calculate_border_rect_left(position, layout_box),
+            text_color,
             painter,
         );
 
         self.paint_border_part(
             layout_box.computed_style().border_right,
             self.calculate_border_rect_right(position, layout_box),
+            text_color,
             painter,
         );
 
         self.paint_border_part(
             layout_box.computed_style().border_top,
             self.calculate_border_rect_top(position, layout_box),
+            text_color,
             painter,
         );
     }
@@ -210,6 +213,7 @@ impl Compositor {
         &self,
         border: BorderProperties,
         rect: Rect<CssDecimal, UnknownUnit>,
+        text_color: Color,
         painter: &mut Painter,
     ) {
         let CssLineStyle::Solid = border.style else {
@@ -218,6 +222,7 @@ impl Compositor {
 
         match border.color {
             CssColor::Color(color) => painter.paint_rect_colored(rect, color),
+            CssColor::CurrentColor => painter.paint_rect_colored(rect, text_color),
         }
     }
 
@@ -258,25 +263,21 @@ impl Compositor {
             return;
         }
 
-        match layout_box.computed_style().color() {
-            CssColor::Color(color) => {
-                if color.alpha() <= 0.0 {
-                    return;
-                }
+        let color = layout_box.actual_values().text_color;
+        if color.alpha() <= 0.0 {
+            return;
+        }
 
-                let mut brush = layout_box.font().brush();
+        let mut brush = layout_box.font().brush();
 
-                for line_box_fragment in layout_box.line_box_fragments() {
-                    painter.paint_text(
-                        &mut brush,
-                        line_box_fragment.text(),
-                        color,
-                        line_box_fragment.position().cast(),
-                        size,
-                    );
-                }
-
-            }
+        for line_box_fragment in layout_box.line_box_fragments() {
+            painter.paint_text(
+                &mut brush,
+                line_box_fragment.text(),
+                color,
+                line_box_fragment.position().cast(),
+                size,
+            );
         }
     }
 }

@@ -20,12 +20,12 @@ use retina_dom::{ImageData, HtmlElementKind};
 use retina_gfx_font::FontHandle;
 use retina_style::{CssReferencePixels, CssLength};
 
-use crate::formatting_context::{
+use crate::{formatting_context::{
     BlockFormattingContext,
     FormattingContext,
     FormattingContextKind,
     InlineFormattingContext, FormattingContextWhitespaceState,
-};
+}, ActualValueMap};
 
 pub use self::line::{
     LineBox,
@@ -41,6 +41,7 @@ pub struct LayoutBox {
     pub(crate) formatting_context: FormattingContextKind,
     pub node: DomNode,
     pub(crate) computed_style: PropertyMap,
+    pub(crate) actual_value_map: ActualValueMap,
     pub(crate) dimensions: LayoutBoxDimensions,
     pub(crate) children: Vec<LayoutBox>,
     pub(crate) font: FontHandle,
@@ -55,6 +56,7 @@ impl LayoutBox {
         formatting_context: FormattingContextKind,
         node: DomNode,
         computed_style: PropertyMap,
+        actual_value_map: ActualValueMap,
         dimensions: LayoutBoxDimensions,
         font: FontHandle,
         font_size: CssReferencePixels,
@@ -64,6 +66,7 @@ impl LayoutBox {
             formatting_context,
             node,
             computed_style,
+            actual_value_map,
             dimensions,
             children: Vec::new(),
             font,
@@ -73,21 +76,21 @@ impl LayoutBox {
         }
     }
 
+    pub const fn actual_values(&self) -> &ActualValueMap {
+        &self.actual_value_map
+    }
+
     /// Get the background-color, applicable for root boxes.
     pub fn background_color_as_root(&self) -> Color {
         debug_assert_eq!(self.kind, LayoutBoxKind::Root);
 
-        let css_color = self.children[0].computed_style().background_color();
+        let color = self.actual_value_map.background_color;
 
-        match css_color {
-            retina_style::CssColor::Color(color) => {
-                if color == Color::TRANSPARENT {
-                    return Color::WHITE;
-                }
-
-                color.with_alpha(1.0)
-            }
+        if color == Color::TRANSPARENT {
+            return Color::WHITE;
         }
+
+        color.with_alpha(1.0)
     }
 
     pub fn background_image(&self) -> Option<&ImageData> {

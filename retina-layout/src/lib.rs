@@ -14,18 +14,21 @@
 //! * [CSS Shapes Module Level 1](https://www.w3.org/TR/css-shapes-1/)
 //! * [CSS Writing Modes Level 3](https://www.w3.org/TR/css-writing-modes-3/)
 
+mod actual_values;
 mod boxes;
 mod formatting_context;
 mod generate;
 pub(crate) mod white_space;
 
-pub use boxes::{
-    LayoutBox,
-    LayoutBoxDimensions,
-    LayoutBoxKind,
-    LayoutEdge,
+pub use self::{
+    actual_values::ActualValueMap,
+    boxes::{
+        LayoutBox,
+        LayoutBoxDimensions,
+        LayoutBoxKind,
+        LayoutEdge,
+    },
+    generate::LayoutGenerator,
 };
-
-pub use generate::LayoutGenerator;
 
 pub(crate) type DomNode = retina_dom::Node;

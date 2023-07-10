@@ -6,6 +6,7 @@ use crate::Value;
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub enum CssColor {
     Color(retina_common::Color),
+    CurrentColor,
 }
 
 pub struct CssNamedColor {
