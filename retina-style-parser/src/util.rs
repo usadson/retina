@@ -199,6 +199,7 @@ pub trait FromCssParser<T> {
 
 pub fn convert_color(value: cssparser::Color) -> Option<CssColor> {
     match value {
+        cssparser::Color::CurrentColor => Some(CssColor::CurrentColor),
         cssparser::Color::Rgba(rgba) => Some(convert_rgba(rgba)),
         _ => None,
     }
