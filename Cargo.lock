@@ -2910,6 +2910,7 @@ dependencies = [
  "env_logger",
  "log",
  "raw-window-handle",
+ "retina-fetch",
  "retina-gfx",
  "retina-gfx-font",
  "retina-gfx-gui",

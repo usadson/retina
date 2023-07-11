@@ -3,6 +3,7 @@
 
 use std::{sync::Arc, path::Path};
 
+use log::warn;
 use retina_user_agent::url_scheme::about;
 use tokio::{runtime::Runtime, sync::mpsc::channel};
 use url::Url;
@@ -167,6 +168,8 @@ impl Fetch {
     }
 
     fn fetch_unknown_scheme(&self, request: Arc<Request>) -> FetchPromise {
+        warn!("Unknown scheme: \"{}\" for URL: {}", request.url().scheme(), request.url().as_str());
+        warn!("{:#?}", request.url());
         if request.destination == crate::RequestDestination::Document {
             self.fetch_unknown_scheme_document(request)
         } else {

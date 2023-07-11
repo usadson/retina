@@ -225,8 +225,7 @@ impl Page {
             }
 
             PageCommand::OpenUrl(input) => {
-                let url_parse_result = Url::options().base_url(Some(&self.url))
-                    .parse(input.as_ref());
+                let url_parse_result = retina_fetch::parse_page_url(&input);
 
                 match url_parse_result {
                     Ok(url) => {

@@ -15,7 +15,6 @@ use retina_gfx::{
 };
 use retina_gfx_font::FontProvider;
 use retina_page::*;
-use url::Url;
 
 use crate::event::RetinaEvent;
 
@@ -32,7 +31,7 @@ impl Application {
         let url = std::env::var("RETINA_URL")
             .unwrap_or("about:not-found".into());
 
-        let url = Url::parse(&url)
+        let url = retina_fetch::parse_page_url(&url)
             .expect("failed to parse URL");
 
         window.set_title(&format!("{} — Retina", url.as_str()));
