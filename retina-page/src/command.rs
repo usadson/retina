@@ -15,6 +15,9 @@ pub enum PageCommand {
     /// Show/dump the stylesheets.
     OpenStyleView,
 
+    // Open the URL in this page.
+    OpenUrl(String),
+
     Reload,
 
     ResizeCanvas {

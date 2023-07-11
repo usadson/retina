@@ -224,6 +224,22 @@ impl Page {
                 }
             }
 
+            PageCommand::OpenUrl(input) => {
+                let url_parse_result = Url::options().base_url(Some(&self.url))
+                    .parse(input.as_ref());
+
+                match url_parse_result {
+                    Ok(url) => {
+                        self.url = url;
+                        self.load().await?;
+                    }
+
+                    Err(e) => {
+                        error!("Cannot open the URL, since the URL: \"{input}\" is invalid: {e}");
+                    }
+                }
+            }
+
             PageCommand::Reload => self.load().await?,
 
             PageCommand::Scroll { delta } => {

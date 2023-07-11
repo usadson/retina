@@ -1,7 +1,9 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use log::info;
+use clipboard::{ClipboardContext, ClipboardProvider};
+
+use log::{info, error};
 use retina_gfx::{
     euclid::{Point2D, default::Rect, Size2D},
     Painter,
@@ -22,6 +24,7 @@ pub struct Application {
     texture_size: Size2D<u32, retina_gfx::euclid::UnknownUnit>,
     texture_view: Option<wgpu::TextureView>,
     title: Option<String>,
+    clipboard: Option<ClipboardContext>,
 }
 
 impl Application {
@@ -47,11 +50,20 @@ impl Application {
 
         spawn_page_event_forward_proxy(page_receive_half, window.create_proxy());
 
+        let clipboard = match ClipboardProvider::new() {
+            Ok(provider) => Some(provider),
+            Err(e) => {
+                error!("Failed to create ClipboardProvider: {e}");
+                None
+            }
+        };
+
         Self {
             page_send_half,
             texture_size: Default::default(),
             texture_view: None,
             title: None,
+            clipboard,
         }
     }
 }
@@ -106,6 +118,17 @@ impl WindowApplication<RetinaEvent> for Application {
 
             VirtualKeyCode::Home => _ = self.page_send_half.send_command(PageCommand::Action(PageCommandAction::ScrollToTop)),
             VirtualKeyCode::End => _ = self.page_send_half.send_command(PageCommand::Action(PageCommandAction::ScrollToBottom)),
+
+            VirtualKeyCode::V if event.with_control() => {
+                let Some(clipboard) = self.clipboard.as_mut() else {
+                    return;
+                };
+
+                match clipboard.get_contents() {
+                    Ok(url) => _ = self.page_send_half.send_command(PageCommand::OpenUrl(url)),
+                    Err(e) => error!("Failed to get clipboard contents: {e}"),
+                }
+            }
 
             _ => (),
         }
