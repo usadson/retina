@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use clipboard::{ClipboardContext, ClipboardProvider};
+use copypasta::{ClipboardContext, ClipboardProvider};
 
 use log::{info, error};
 use retina_gfx::{
@@ -50,7 +50,7 @@ impl Application {
 
         spawn_page_event_forward_proxy(page_receive_half, window.create_proxy());
 
-        let clipboard = match ClipboardProvider::new() {
+        let clipboard = match ClipboardContext::new() {
             Ok(provider) => Some(provider),
             Err(e) => {
                 error!("Failed to create ClipboardProvider: {e}");
