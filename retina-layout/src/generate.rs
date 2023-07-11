@@ -402,9 +402,9 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         let default_reference_pixels = CssReferencePixels::new(16.0);
 
         let font = self.font_provider.get(FontDescriptor {
-            name: retina_gfx_font::FamilyName::SansSerif,
+            name: retina_gfx_font::FamilyName::Serif,
             weight: FontWeight::REGULAR,
-        }).expect("failed to load sans-serif font");
+        }).expect("failed to load serif font");
 
         let font_size = self.resolve_length(default_reference_pixels, default_reference_pixels, computed_style.font_size(), &computed_style);
 
