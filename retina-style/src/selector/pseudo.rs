@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_common::StrTendril;
+use strum::{AsRefStr, EnumIter};
 
 use crate::SelectorList;
 
@@ -25,6 +25,8 @@ pub enum FunctionalPseudoClassSelectorKind {
 /// # References
 /// * [CSS - Selectors Level 4 - 3.5](https://drafts.csswg.org/selectors/#pseudo-classes)
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(AsRefStr, EnumIter)]
+#[strum(serialize_all = "kebab-case")]
 pub enum PseudoClassSelectorKind {
     /// <https://drafts.csswg.org/selectors/#the-any-link-pseudo>
     AnyLink,
@@ -187,4 +189,12 @@ pub enum PseudoClassSelectorKind {
 
     /// <https://drafts.csswg.org/selectors/#sound-state>
     VolumeLocked,
+}
+
+impl PseudoClassSelectorKind {
+    pub fn parse(input: &str) -> Option<Self> {
+        use strum::IntoEnumIterator;
+        Self::iter()
+            .find(|x| x.as_ref().eq_ignore_ascii_case(input))
+    }
 }

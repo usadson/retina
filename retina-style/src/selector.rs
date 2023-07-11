@@ -6,6 +6,13 @@
 
 use retina_common::StrTendril;
 
+mod pseudo;
+
+pub use self::pseudo::{
+    FunctionalPseudoClassSelectorKind,
+    PseudoClassSelectorKind,
+};
+
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct AttributeSelector {
     pub(crate) attribute: StrTendril,
@@ -104,6 +111,8 @@ pub enum SimpleSelector {
     /// # References
     /// * [CSS - Selectors Level 4 - 6.6](https://www.w3.org/TR/selectors-4/#class-html)
     Id(StrTendril),
+
+    PseudoClass(PseudoClassSelectorKind),
 
     /// The type selector selects an element by it's tag name.
     ///

@@ -13,6 +13,7 @@ use retina_style::{
     AttributeSelector,
     AttributeSelectorCaseSensitivity,
     AttributeSelectorKind,
+    PseudoClassSelectorKind,
     Selector,
     SelectorList,
     SimpleSelector,
@@ -97,6 +98,13 @@ fn parse_selector<'i, 't>(
 
     let first_token = input.next()?;
     Ok(match first_token {
+        Token::Colon => {
+            let pseudo_class = input.expect_ident_cloned()?;
+            let pseudo = PseudoClassSelectorKind::parse(pseudo_class.as_ref())
+                .ok_or_else(|| input.new_custom_error(RetinaStyleParseError::UnknownSelectorPseudoClass(pseudo_class)))?;
+            Selector::Simple(SimpleSelector::PseudoClass(pseudo))
+        }
+
         Token::Delim('*') => Selector::Simple(SimpleSelector::Universal),
 
         Token::Ident(ident) => Selector::Simple(SimpleSelector::TypeSelector(ident.as_ref().into())),
