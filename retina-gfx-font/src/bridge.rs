@@ -18,8 +18,6 @@ pub struct FontKitAbGlyphFontBridge {
 unsafe impl Send for FontKitAbGlyphFontBridge {}
 unsafe impl Sync for FontKitAbGlyphFontBridge {}
 
-/// <windows>
-#[cfg(windows)]
 impl FontKitAbGlyphFontBridge {
     pub fn new<T>(inner: T) -> Self
             where T: Into<FontKit> {
@@ -32,7 +30,11 @@ impl FontKitAbGlyphFontBridge {
             hinting_options: font_kit::hinting::HintingOptions::None,
         }
     }
+}
 
+/// <windows>
+#[cfg(windows)]
+impl FontKitAbGlyphFontBridge {
     fn kern_unscaled_windows(&self, first: GlyphId, second: GlyphId) -> f32 {
         // TODO https://learn.microsoft.com/en-us/windows/win32/api/dwrite_1/nf-dwrite_1-idwritefontface1-getkerningpairadjustments
         _ = first;
