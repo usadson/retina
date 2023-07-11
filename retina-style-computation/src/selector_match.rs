@@ -2,11 +2,15 @@
 // All Rights Reserved.
 
 use retina_dom::{NodeKind, Element};
+
 use retina_style::{
     AttributeSelector,
+    AttributeSelectorKind,
+    AttributeSelectorCaseSensitivity,
+    PseudoClassSelectorKind,
     Selector,
     SelectorList,
-    SimpleSelector, AttributeSelectorKind, AttributeSelectorCaseSensitivity,
+    SimpleSelector,
 };
 
 fn matches_attribute_value(
@@ -111,6 +115,39 @@ fn matches_attribute_selector(
     }
 }
 
+fn matches_pseudo_class_selector(
+    pseudo_class_selector: PseudoClassSelectorKind,
+    element: &Element,
+) -> bool {
+    match pseudo_class_selector {
+        PseudoClassSelectorKind::AnyLink | PseudoClassSelectorKind::Link => {
+            if element.attributes().find_by_str("href").is_none() {
+                return false;
+            }
+
+            let name = &element.qualified_name().local;
+            name == "a" || name == "area"
+        }
+
+        // Matches if the element has no children, or all children are text with
+        // only whitespace.
+        PseudoClassSelectorKind::Empty => {
+            element.as_parent_node()
+                .children()
+                .iter()
+                .all(|node| node.is_text_with_only_whitespace())
+        }
+
+        PseudoClassSelectorKind::Visited => {
+            // TODO distinguish from :link and :visited, which requires a
+            //      browser history
+            false
+        }
+
+        _ => false,
+    }
+}
+
 /// Checks whether or not the given node matches the selector.
 pub fn matches_selector(selector: &Selector, node: &NodeKind) -> bool {
     _ = node;
@@ -135,6 +172,10 @@ pub fn matches_selector(selector: &Selector, node: &NodeKind) -> bool {
                 let element_id = element.id();
                 !element_id.is_empty() && element_id == id.as_ref()
             })
+        }
+
+        Selector::Simple(SimpleSelector::PseudoClass(pseudo_class_selector)) => {
+            node.as_dom_element().is_some_and(|element| matches_pseudo_class_selector(*pseudo_class_selector, element))
         }
 
         Selector::Simple(SimpleSelector::TypeSelector(ty)) => {
