@@ -82,6 +82,11 @@ impl CalculateSpecificity for SimpleSelector {
                 ..Default::default()
             },
 
+            SimpleSelector::PseudoClass(..) => SelectorSpecificity {
+                class_attribute_pseudo_class_selectors: 1,
+                ..Default::default()
+            },
+
             SimpleSelector::TypeSelector(..) => SelectorSpecificity {
                 type_and_pseudo_element_selectors: 1,
                 ..Default::default()
