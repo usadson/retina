@@ -272,7 +272,7 @@ impl<'art> Painter<'art> {
     )
             where Size: Into<f32>, FontType: Sync + wgpu_glyph::ab_glyph::Font {
 
-        let color = [color.red() as f32, color.green() as f32, color.red() as f32, color.alpha() as f32];
+        let color = [color.red() as f32, color.green() as f32, color.blue() as f32, color.alpha() as f32];
 
         glyph_brush.queue(wgpu_glyph::Section {
             screen_position: (
