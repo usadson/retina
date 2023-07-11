@@ -23,6 +23,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install Linux packages
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt install -y libxcb-shape0
     - name: Install nightly Rust toolchain
       continue-on-error: true
       uses: actions-rs/toolchain@v1
