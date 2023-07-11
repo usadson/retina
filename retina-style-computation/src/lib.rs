@@ -7,6 +7,8 @@ pub(crate) mod property_map;
 pub(crate) mod selector_match;
 pub(crate) mod selector_specificity;
 
+pub(crate) use self::collect::ApplicableRule;
+
 pub use collect::{CollectedStyles, StyleCollector};
 pub use cascade::Cascade;
 pub use property_map::{BorderProperties, PropertyMap};

@@ -10,6 +10,9 @@ use self::internal::CssNamedColorWrapper;
 pub trait CssAttributeStrExtensions {
     fn html_interpret_as_hexadecimal_number(&self) -> Option<u8>;
 
+    /// <https://html.spec.whatwg.org/multipage/rendering.html#maps-to-the-pixel-length-property>
+    fn html_map_to_the_pixel_length_property(&self) -> Option<usize>;
+
     /// <https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-a-legacy-colour-value>
     fn parse_legacy_color_value(&self) -> Option<CssColor>;
 
@@ -22,6 +25,10 @@ impl CssAttributeStrExtensions for str {
         let second = self.chars().nth(1)?.as_hexdigit()?;
 
         Some(first * 0x10 + second)
+    }
+
+    fn html_map_to_the_pixel_length_property(&self) -> Option<usize> {
+        self.parse().ok()
     }
 
     fn parse_legacy_color_value(&self) -> Option<CssColor> {

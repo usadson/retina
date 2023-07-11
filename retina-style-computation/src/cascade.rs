@@ -2,11 +2,25 @@
 // All Rights Reserved.
 
 use log::warn;
-use retina_dom::{HtmlElementKind, AttributeList};
-use retina_style::{CascadeOrigin, Rule};
+
+use retina_dom::{
+    AttributeList,
+    HtmlElementKind,
+};
+
+use retina_style::{
+    CascadeOrigin,
+    CssLength,
+    Rule,
+};
+
 use retina_style_parser::CssAttributeStrExtensions;
 
-use crate::{CollectedStyles, PropertyMap, collect::ApplicableRule};
+use crate::{
+    ApplicableRule,
+    CollectedStyles,
+    PropertyMap,
+};
 
 fn cascade_normal_declarations_for_origin(
     property_map: &mut PropertyMap,
@@ -84,6 +98,50 @@ fn cascade_styles_from_presentational_hints_body(
     if let Some(text_color) = attributes.find_by_str("text").and_then(CssAttributeStrExtensions::parse_legacy_color_value) {
         property_map.color = Some(text_color);
     }
+
+    property_map.margin_top = Some(cascade_styles_from_presentational_hints_body_margin(
+        attributes,
+        "marginheight",
+        "topmargin",
+    ));
+
+    property_map.margin_right = Some(cascade_styles_from_presentational_hints_body_margin(
+        attributes,
+        "marginwidth",
+        "rightmargin",
+    ));
+
+    property_map.margin_bottom = Some(cascade_styles_from_presentational_hints_body_margin(
+        attributes,
+        "marginheight",
+        "bottommargin",
+    ));
+
+    property_map.margin_left = Some(cascade_styles_from_presentational_hints_body_margin(
+        attributes,
+        "marginwidth",
+        "leftmargin",
+    ));
+}
+
+/// <https://html.spec.whatwg.org/multipage/rendering.html#the-page>
+fn cascade_styles_from_presentational_hints_body_margin(
+    attributes: &AttributeList,
+    attr_a: &str,
+    attr_b: &str,
+) -> CssLength {
+    if let Some(attr_a) = attributes.find_by_str(attr_a) {
+        if let Some(pixels) = attr_a.html_map_to_the_pixel_length_property() {
+            return CssLength::Pixels(pixels as _);
+        }
+    } else if let Some(attr_b) = attributes.find_by_str(attr_b) {
+        if let Some(pixels) = attr_b.html_map_to_the_pixel_length_property() {
+            return CssLength::Pixels(pixels as _);
+        }
+    }
+
+    // Default value of 8 pixels
+    CssLength::Pixels(8.0)
 }
 
 fn inherit_property<T>(target: &mut Option<T>, source: &Option<T>)
