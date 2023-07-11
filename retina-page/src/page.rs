@@ -215,6 +215,15 @@ impl Page {
                 }
             }
 
+            PageCommand::OpenStyleView => {
+                info!("Dumping stylesheets...");
+                if let Some(style_sheets) = &self.style_sheets {
+                    info!("{style_sheets:#?}");
+                } else {
+                    warn!("No stylesheets found!");
+                }
+            }
+
             PageCommand::Reload => self.load().await?,
 
             PageCommand::Scroll { delta } => {

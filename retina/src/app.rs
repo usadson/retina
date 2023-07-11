@@ -98,6 +98,7 @@ impl WindowApplication<RetinaEvent> for Application {
         match event.key() {
             VirtualKeyCode::F1 => _ = self.page_send_half.send_command(PageCommand::OpenLayoutTreeView),
             VirtualKeyCode::F5 => _ = self.page_send_half.send_command(PageCommand::Reload),
+            VirtualKeyCode::F6 => _ = self.page_send_half.send_command(PageCommand::OpenStyleView),
             VirtualKeyCode::F12 => _ = self.page_send_half.send_command(PageCommand::OpenDomTreeView),
 
             VirtualKeyCode::PageDown => _ = self.page_send_half.send_command(PageCommand::Action(PageCommandAction::PageDown)),

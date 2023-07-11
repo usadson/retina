@@ -12,6 +12,9 @@ pub enum PageCommand {
 
     OpenLayoutTreeView,
 
+    /// Show/dump the stylesheets.
+    OpenStyleView,
+
     Reload,
 
     ResizeCanvas {
