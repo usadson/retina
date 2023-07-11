@@ -308,6 +308,11 @@ impl Page {
     pub(crate) async fn load(&mut self) -> Result<(), ErrorKind> {
         info!("Loading page: {:?}", self.url);
 
+        // Discard the previous title
+        _ = self.message_sender.send(PageMessage::Title {
+            title: self.url.to_string(),
+        });
+
         _ = self.scroller.scroll_to_top();
 
         self.load_page().await?;
