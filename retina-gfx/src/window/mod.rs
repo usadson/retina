@@ -99,6 +99,27 @@ impl<EventType> Window<EventType>
                 }
 
                 winit::event::Event::WindowEvent {
+                    event: winit::event::WindowEvent::CursorEntered { .. },
+                    ..
+                } => {
+                    self.state.on_cursor_entered(app.as_mut());
+                }
+
+                winit::event::Event::WindowEvent {
+                    event: winit::event::WindowEvent::CursorLeft { .. },
+                    ..
+                } => {
+                    self.state.on_cursor_left(app.as_mut());
+                }
+
+                winit::event::Event::WindowEvent {
+                    event: winit::event::WindowEvent::CursorMoved { position, .. },
+                    ..
+                } => {
+                    self.state.on_cursor_moved(position, app.as_mut());
+                }
+
+                winit::event::Event::WindowEvent {
                     event: winit::event::WindowEvent::ModifiersChanged(event),
                     ..
                 } => {

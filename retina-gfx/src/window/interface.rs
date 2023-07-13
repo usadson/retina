@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use euclid::Size2D;
+use euclid::{Size2D, default::Point2D};
 use winit::event::{
     ModifiersState,
     MouseScrollDelta,
@@ -9,6 +9,15 @@ use winit::event::{
 };
 
 use crate::{Painter, Window};
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct MouseMoveEvent {
+    pub from: Point2D<f64>,
+    pub to: Point2D<f64>,
+
+    pub delta_x: f64,
+    pub delta_y: f64,
+}
 
 pub trait WindowApplication<EventType>
         where EventType: 'static {
@@ -19,6 +28,10 @@ pub trait WindowApplication<EventType>
 
     fn on_mouse_wheel(&mut self, delta: MouseScrollDelta) {
         _ = delta;
+    }
+
+    fn on_mouse_move(&mut self, event: MouseMoveEvent) {
+        _ = event;
     }
 
     fn on_key_press(&mut self, event: WindowKeyPressEvent) {
