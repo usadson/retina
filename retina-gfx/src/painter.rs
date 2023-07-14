@@ -197,6 +197,7 @@ impl<'art> Painter<'art> {
         drop(render_pass);
     }
 
+    #[inline]
     pub fn paint_rect_textured<Unit>(&mut self, rect: euclid::Rect<f64, Unit>, texture_view: &wgpu::TextureView) {
         self.paint_rect_textured_with(rect, texture_view, None, None)
     }
@@ -246,7 +247,7 @@ impl<'art> Painter<'art> {
             },
             wgpu::BindGroupEntry {
                 binding: 2,
-                resource: self.artwork.texture_material_renderer.uniform_buffer.as_entire_binding(),
+                resource: renderer.uniform_buffer.as_entire_binding(),
             },
 
             // Room for the entry, this is ignored if there is none.
