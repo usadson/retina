@@ -9,7 +9,7 @@ use std::{
     },
     sync::{
         Arc,
-        RwLock, Mutex,
+        RwLock,
     },
 };
 
@@ -176,7 +176,7 @@ impl GlyphAtlas {
     }
 
     pub fn prepare_chars(&mut self, context: &Context, font: &Backend, range: RangeInclusive<char>)  {
-        let glyphs = range.into_iter()
+        let glyphs = range.into_par_iter()
             .map(|character| {
                 let context = context.clone();
                 let font = font.clone();
@@ -185,7 +185,7 @@ impl GlyphAtlas {
                 (character, glyph)
             });
 
-        self.glyphs.extend(
+        self.glyphs.par_extend(
             glyphs
         );
     }
