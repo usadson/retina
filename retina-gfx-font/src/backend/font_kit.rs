@@ -28,16 +28,21 @@ use pathfinder_geometry::{
 };
 
 use rayon::prelude::*;
+
 use retina_gfx::{
     Context,
     FontDescriptor,
 };
+
 use wgpu::util::DeviceExt;
+
+use font_kit::metrics::Metrics as BackendMetrics;
 
 pub struct FontKitFont {
     gfx_context: Context,
     descriptor: FontDescriptor,
     font: Backend,
+    metrics: BackendMetrics,
     atlases: RwLock<Vec<RwLock<GlyphAtlas>>>,
 }
 
@@ -50,12 +55,14 @@ impl FontKitFont {
         descriptor: FontDescriptor,
         font: font_kit::font::Font,
     ) -> Self {
+        let metrics = font.metrics();
         Self {
             gfx_context: context.clone(),
             descriptor,
             font: Backend {
                 font: Arc::new(font),
             },
+            metrics,
             atlases: RwLock::new(Vec::new()),
         }
     }
@@ -69,7 +76,7 @@ impl FontKitFont {
 
         drop(atlases);
 
-        let mut atlas = GlyphAtlas::new(size);
+        let mut atlas = GlyphAtlas::new(size, self.metrics.units_per_em);
         atlas.prepare_basic_latin(&self.gfx_context, &self.font);
 
         let mut atlases = self.atlases.write().unwrap();
@@ -116,6 +123,12 @@ impl retina_gfx::Font for FontKitFont {
         font_size: f32,
         painter: &mut retina_gfx::Painter
     ) {
+        let ascent = self.metrics.ascent / self.metrics.units_per_em as f32 * font_size;
+        let descent = -(self.metrics.descent / self.metrics.units_per_em as f32 * font_size);
+
+        let baseline = ascent - descent;
+        position.y += baseline;
+
         self.with_size(font_size, |atlas| {
             for character in text.chars() {
                 let Some(glyph) = atlas.glyph(&self.gfx_context, &self.font, character) else {
@@ -124,8 +137,8 @@ impl retina_gfx::Font for FontKitFont {
 
                 let glyph_rect = Rect::new(
                     Point2D::new(
-                        position.x + glyph.typographic_bounds.origin_x(),
-                        position.y + glyph.typographic_bounds.origin_y(),
+                        position.x + glyph.origin.x(),
+                        position.y - glyph.typographic_bounds.max_y(),
                     ),
                     glyph.size.cast(),
                 ).cast();
@@ -137,7 +150,7 @@ impl retina_gfx::Font for FontKitFont {
                     painter.paint_rect_textured(glyph_rect, texture_view);
                 }
 
-                position.x += glyph.typographic_bounds.width();
+                position.x += glyph.advance.x();
             }
         });
     }
@@ -147,20 +160,22 @@ impl retina_gfx::Font for FontKitFont {
 /// but this can/should be implemented in the future.
 struct GlyphAtlas {
     size: f32,
+    units_per_em: u32,
     glyphs: HashMap<char, Option<Glyph>>,
 }
 
 impl GlyphAtlas {
-    pub fn new(size: f32) -> Self {
+    pub fn new(size: f32, units_per_em: u32) -> Self {
         Self {
             size,
+            units_per_em,
             glyphs: Default::default(),
         }
     }
 
     pub fn glyph(&mut self, context: &Context, font: &Backend, character: char) -> Option<&Glyph> {
         if !self.glyphs.contains_key(&character) {
-            self.glyphs.insert(character, Glyph::new_opt(context, font, character, self.size));
+            self.glyphs.insert(character, Glyph::new_opt(context, font, self.units_per_em, character, self.size));
         }
 
         self.glyphs.get(&character).unwrap().as_ref()
@@ -171,13 +186,13 @@ impl GlyphAtlas {
         self.prepare_chars(context, font, '!'..='~');
     }
 
-    pub fn prepare_chars(&mut self, context: &Context, font: &Backend, range: RangeInclusive<char>)  {
+    pub fn prepare_chars(&mut self, context: &Context, font: &Backend, range: RangeInclusive<char>) {
         let glyphs = range.into_par_iter()
             .map(|character| {
                 let context = context.clone();
                 let font = font.clone();
 
-                let glyph = Glyph::new_opt(&context, &font, character, self.size);
+                let glyph = Glyph::new_opt(&context, &font, self.units_per_em, character, self.size);
                 (character, glyph)
             });
 
@@ -191,6 +206,8 @@ impl GlyphAtlas {
 struct Glyph {
     size: Size2D<u32>,
     typographic_bounds: RectF,
+    origin: Vector2F,
+    advance: Vector2F,
 
     #[allow(dead_code)]
     texture: Option<wgpu::Texture>,
@@ -202,6 +219,7 @@ impl Glyph {
     pub fn new(
         context: &Context,
         font: &Backend,
+        units_per_em: u32,
         character: char,
         point_size: f32,
     ) -> Result<Self, Error> {
@@ -212,16 +230,20 @@ impl Glyph {
         let rasterization_options = font_kit::canvas::RasterizationOptions::GrayscaleAa;
 
         let typographic_bounds = font.typographic_bounds(glyph_id)?;
+        let typographic_unit_conversion_factor = units_per_em as f32 / point_size;
         let typographic_bounds = RectF::new(
             Vector2F::new(
-                typographic_bounds.origin_x() * point_size,
-                typographic_bounds.origin_y() * point_size
+                typographic_bounds.origin_x() / typographic_unit_conversion_factor,
+                typographic_bounds.origin_y() / typographic_unit_conversion_factor
             ),
             Vector2F::new(
-                typographic_bounds.width() * point_size,
-                typographic_bounds.height() * point_size
+                typographic_bounds.width() / typographic_unit_conversion_factor,
+                typographic_bounds.height() / typographic_unit_conversion_factor
             )
         );
+
+        let origin = font.origin(glyph_id)? / typographic_unit_conversion_factor;
+        let advance = font.advance(glyph_id)? / typographic_unit_conversion_factor;
 
         let bounds = font.raster_bounds(glyph_id, point_size, transform, hinting_options, rasterization_options)?;
 
@@ -236,54 +258,6 @@ impl Glyph {
             let mut canvas = font_kit::canvas::Canvas::new(bounds.size(), font_kit::canvas::Format::A8);
             let transform = Transform2F::from_translation(-bounds.origin().to_f32()) * transform;
             font.rasterize_glyph(&mut canvas, glyph_id, point_size, transform, hinting_options, rasterization_options)?;
-
-            println!("Character: {character} with size {point_size}");
-            println!("Canvas stride: {:?}", canvas.stride);
-            println!("Canvas size: {:?}", canvas.size);
-            println!("Canvas pixel count: {}", canvas.pixels.len());
-            println!("Typo bounds: {:?}", typographic_bounds);
-            println!("Raster bounds: {:?}", bounds);
-            println!("Actual format: {:?}", canvas.format);
-
-            println!("Pixels: {:?}", canvas.pixels);
-
-            fn shade(value: u8) -> char {
-                match value {
-                    0 => ' ',
-                    1..=84 => '░',
-                    85..=169 => '▒',
-                    170..=254 => '▓',
-                    _ => '█',
-                }
-            }
-
-            for y in 0..bounds.height() {
-                let mut line = String::new();
-                let (row_start, row_end) = (y as usize * canvas.stride, (y + 1) as usize * canvas.stride);
-                let row = &canvas.pixels[row_start..row_end];
-                for x in 0..bounds.width() {
-                    match canvas.format {
-                        font_kit::canvas::Format::Rgba32 => unimplemented!(),
-                        font_kit::canvas::Format::Rgb24 => {
-                            use std::fmt::Write;
-                            write!(
-                                &mut line,
-                                "{}{}{}",
-                                shade(row[x as usize * 3 + 0]),
-                                shade(row[x as usize * 3 + 1]),
-                                shade(row[x as usize * 3 + 2]),
-                            )
-                            .unwrap();
-                        }
-                        font_kit::canvas::Format::A8 => {
-                            let shade = shade(row[x as usize]);
-                            line.push(shade);
-                            line.push(shade);
-                        }
-                    }
-                }
-                println!("{}", line);
-            }
 
             let created_texture = context.device().create_texture_with_data(
                 context.queue(),
@@ -313,6 +287,8 @@ impl Glyph {
 
         Ok(Self {
             size: Size2D::new(bounds.width() as _, bounds.height() as _),
+            origin,
+            advance,
             typographic_bounds,
             texture,
             texture_view,
@@ -322,10 +298,11 @@ impl Glyph {
     pub fn new_opt(
         context: &Context,
         font: &Backend,
+        units_per_em: u32,
         character: char,
         point_size: f32,
     ) -> Option<Self> {
-        match Self::new(&context, &font, character, point_size) {
+        match Self::new(&context, &font, units_per_em, character, point_size) {
             Ok(glyph) => Some(glyph),
             Err(e) => {
                 warn!("Failed to load character U+{:0<4x}: {e:?}", character as usize);
