@@ -4,6 +4,7 @@
 pub mod canvas;
 pub mod context;
 mod font;
+mod font_descriptor;
 mod future;
 pub(crate) mod math;
 mod material;
@@ -19,6 +20,7 @@ pub use retina_common::Color;
 pub use self::{
     context::Context,
     font::Font,
+    font_descriptor::{FamilyName, FontDescriptor, FontWeight},
     future::SubmissionFuture,
     painter::Painter,
     texture::Texture,

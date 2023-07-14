@@ -1,20 +1,31 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::{sync::Arc, ops::Deref};
+use std::{
+    fmt::Debug,
+    ops::Deref,
+    sync::Arc,
+};
 
-use crate::WgpuFont;
+use retina_gfx::Font;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct FontHandle {
-    pub(crate) font: Arc<WgpuFont>,
+    pub(crate) font: Arc<dyn Font>,
+}
+
+impl Debug for FontHandle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FontHandle")
+            .finish_non_exhaustive()
+    }
 }
 
 impl Deref for FontHandle {
-    type Target = WgpuFont;
+    type Target = dyn Font;
 
     fn deref(&self) -> &Self::Target {
-        &self.font
+        self.font.deref()
     }
 }
 

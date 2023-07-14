@@ -11,12 +11,14 @@ use retina_common::LoadTime;
 use wgpu_glyph::{GlyphCruncher, Section, Text, ab_glyph::FontArc};
 
 use crate::{
+    backend::FontKitFont,
+    descriptor::{convert_font_kit_weight, convert_font_kit_name},
     FamilyName,
-    WgpuFont,
     FontDescriptor,
     FontFamily,
     FontHandle,
-    FontWeight, bridge::FontKitAbGlyphFontBridge,
+    FontWeight,
+    WgpuFont,
 };
 
 use retina_gfx::Context as GfxContext;
@@ -41,7 +43,7 @@ impl FontProvider {
         Self {
             gfx_context,
             families: Arc::new(RwLock::new(HashMap::new())),
-            implementation_kind: FontProviderImplementationKind::AbGlyph,
+            implementation_kind: FontProviderImplementationKind::FontKit,
         }
     }
 
@@ -55,7 +57,7 @@ impl FontProvider {
         };
 
         for font in &family.entries {
-            if font.descriptor.weight == descriptor.weight {
+            if font.descriptor().weight == descriptor.weight {
                 return Some(FontHandle {
                     font: Arc::clone(font)
                 });
@@ -88,7 +90,17 @@ impl FontProvider {
                     }
                 };
 
-                self.load_ab_glyph(descriptor, FontArc::new(FontKitAbGlyphFontBridge::new(font)))
+                let family_name = descriptor.name.clone();
+
+                let font = FontKitFont::new(
+                    &self.gfx_context,
+                    descriptor,
+                    font
+                );
+
+                self.load_gfx_font(family_name, Arc::new(font));
+
+                true
             }
         }
     }
@@ -104,14 +116,25 @@ impl FontProvider {
 
         let brush = Arc::new(RwLock::new(brush));
 
-        let mut families = self.families.write().expect("FontProvider failed to write to `families`");
-        families.entry(descriptor.name.clone()).or_insert(Default::default()).entries.push(Arc::new(WgpuFont {
+        let family_name = descriptor.name.clone();
+
+        self.load_gfx_font(family_name, Arc::new(WgpuFont {
             descriptor,
             brush,
             space_width,
         }));
 
         true
+    }
+
+    fn load_gfx_font(&self, family_name: FamilyName, font: Arc<dyn retina_gfx::Font>) {
+        let mut families = self.families.write()
+            .expect("FontProvider failed to write to `families`");
+
+        families.entry(family_name)
+            .or_insert(Default::default())
+            .entries
+            .push(font);
     }
 
     pub fn load_defaults(&self) {
@@ -152,9 +175,9 @@ impl FontProvider {
             let desc = descriptor.clone();
 
             let handle = source.select_best_match(
-                &[desc.name.into()],
+                &[convert_font_kit_name(desc.name)],
                 &font_kit::properties::Properties {
-                    weight: desc.weight.into(),
+                    weight: convert_font_kit_weight(desc.weight),
                     ..Default::default()
                 }
             ).unwrap();

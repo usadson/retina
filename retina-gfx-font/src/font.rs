@@ -32,6 +32,14 @@ pub struct WgpuFont {
 }
 
 impl retina_gfx::Font for WgpuFont {
+    fn calculate_size(&self, size: f32, text: &str) -> Size2D<f32> {
+        WgpuFont::calculate_size(&self, size, text)
+    }
+
+    fn descriptor(&self) -> &FontDescriptor {
+        &self.descriptor
+    }
+
     fn paint(
         &self,
         text: &str,

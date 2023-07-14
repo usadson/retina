@@ -11,5 +11,6 @@ font-kit = "*"
 euclid = "*"
 log = "*"
 pathfinder_geometry = "*"
+rayon = "*"
 wgpu = { version = "*", features = ["trace"] }
 wgpu_glyph = "*"

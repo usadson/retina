@@ -3005,6 +3005,7 @@ dependencies = [
  "font-kit",
  "log",
  "pathfinder_geometry",
+ "rayon",
  "retina-common",
  "retina-gfx",
  "wgpu",

@@ -3,9 +3,9 @@
 
 use std::sync::Arc;
 
-use crate::WgpuFont;
+use retina_gfx::Font;
 
 #[derive(Default)]
 pub(crate) struct FontFamily {
-    pub(crate) entries: Vec<Arc<WgpuFont>>,
+    pub(crate) entries: Vec<Arc<dyn Font>>,
 }
