@@ -268,11 +268,9 @@ impl Compositor {
             return;
         }
 
-        let mut brush = layout_box.font().brush();
-
         for line_box_fragment in layout_box.line_box_fragments() {
             painter.paint_text(
-                &mut brush,
+                layout_box.font().as_ref(),
                 line_box_fragment.text(),
                 color,
                 line_box_fragment.position().cast(),

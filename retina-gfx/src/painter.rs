@@ -15,15 +15,17 @@ use tracing::instrument;
 use crate::{
     ColorMaterialRenderer,
     Context,
-    TextureMaterialRenderer, SubmissionFuture,
+    Font,
+    SubmissionFuture,
+    TextureMaterialRenderer,
 };
 
 use crate::math;
 
 pub struct Artwork {
-    context: Context,
-    texture_view: wgpu::TextureView,
-    staging_belt: wgpu::util::StagingBelt,
+    pub context: Context,
+    pub texture_view: wgpu::TextureView,
+    pub staging_belt: wgpu::util::StagingBelt,
 
     color_material_renderer: ColorMaterialRenderer,
     texture_material_renderer: TextureMaterialRenderer,
@@ -79,6 +81,11 @@ impl<'art> Painter<'art> {
     #[inline]
     pub const fn artwork(&self) -> &Artwork {
         &*self.artwork
+    }
+
+    #[inline]
+    pub fn artwork_and_command_encoder(&mut self) -> (&mut Artwork, &mut wgpu::CommandEncoder) {
+        (&mut self.artwork, &mut self.command_encoder)
     }
 
     #[inline]
@@ -262,39 +269,16 @@ impl<'art> Painter<'art> {
         render_pass.draw_indexed(0..self.artwork.texture_material_renderer.num_indices, 0, 0..1);
     }
 
-    pub fn paint_text<PositionUnit, Size, FontType>(
+    pub fn paint_text<PositionUnit, Size>(
         &mut self,
-        glyph_brush: &mut wgpu_glyph::GlyphBrush<(), FontType>,
+        font: &dyn Font,
         text: &str,
         color: Color,
         position: euclid::Point2D<f32, PositionUnit>,
         size: Size,
     )
-            where Size: Into<f32>, FontType: Sync + wgpu_glyph::ab_glyph::Font {
-
-        let color = [color.red() as f32, color.green() as f32, color.blue() as f32, color.alpha() as f32];
-
-        glyph_brush.queue(wgpu_glyph::Section {
-            screen_position: (
-                position.x - self.viewport_position.x as f32,
-                position.y - self.viewport_position.y as f32,
-            ),
-            text: vec![wgpu_glyph::Text::new(text)
-                .with_color(color)
-                .with_scale(size.into() * 1.5)],
-            ..Default::default()
-        });
-
-        glyph_brush
-            .draw_queued(
-                self.artwork.context.device(),
-                &mut self.artwork.staging_belt,
-                &mut self.command_encoder,
-                &self.artwork.texture_view,
-                self.viewport_size.width,
-                self.viewport_size.height,
-            )
-            .expect("Draw queued");
+            where Size: Into<f32> {
+        font.paint(text, color, position.cast_unit(), size.into(), self);
     }
 
     #[must_use]

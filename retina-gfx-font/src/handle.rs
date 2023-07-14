@@ -18,6 +18,12 @@ impl Deref for FontHandle {
     }
 }
 
+impl AsRef<dyn retina_gfx::Font + 'static> for FontHandle {
+    fn as_ref(&self) -> &(dyn retina_gfx::Font + 'static) {
+        &*self.font
+    }
+}
+
 impl PartialEq for FontHandle {
     fn eq(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.font, &other.font)

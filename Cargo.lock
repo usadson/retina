@@ -2994,7 +2994,6 @@ dependencies = [
  "retina-common",
  "tracing",
  "wgpu",
- "wgpu_glyph",
  "winit",
 ]
 
