@@ -12,6 +12,7 @@ use euclid::default::{
 use retina_common::Color;
 use tracing::instrument;
 
+use crate::material::MaterialRenderer;
 use crate::{
     ColorMaterialRenderer,
     Context,
@@ -189,11 +190,9 @@ impl<'art> Painter<'art> {
             },
         );
 
-        render_pass.set_pipeline(&self.artwork.color_material_renderer.render_pipeline);
+        self.artwork.color_material_renderer.base().bind_to_render_pass(&mut render_pass);
         render_pass.set_bind_group(0, &self.artwork.color_material_renderer.color_bind_group, &[]);
-        render_pass.set_vertex_buffer(0, self.artwork.color_material_renderer.vertex_buffer.slice(..));
-        render_pass.set_index_buffer(self.artwork.color_material_renderer.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-        render_pass.draw_indexed(0..self.artwork.color_material_renderer.num_indices, 0, 0..1);
+        self.artwork.color_material_renderer.base().draw_once(&mut render_pass);
 
         drop(render_pass);
     }
@@ -262,11 +261,9 @@ impl<'art> Painter<'art> {
             },
         );
 
-        render_pass.set_pipeline(&self.artwork.texture_material_renderer.render_pipeline);
+        self.artwork.texture_material_renderer.base().bind_to_render_pass(&mut render_pass);
         render_pass.set_bind_group(0, &bind_group, &[]);
-        render_pass.set_vertex_buffer(0, self.artwork.texture_material_renderer.vertex_buffer.slice(..));
-        render_pass.set_index_buffer(self.artwork.texture_material_renderer.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-        render_pass.draw_indexed(0..self.artwork.texture_material_renderer.num_indices, 0, 0..1);
+        self.artwork.texture_material_renderer.base().draw_once(&mut render_pass);
     }
 
     pub fn paint_text<PositionUnit, Size>(

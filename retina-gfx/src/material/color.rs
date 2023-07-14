@@ -5,11 +5,13 @@ use wgpu::util::DeviceExt;
 
 use crate::vertex::colored_vertex::{ColoredVertex, INDICES, VERTICES};
 
+use super::{
+    MaterialRenderer,
+    MaterialRendererBase,
+};
+
 pub(crate) struct ColorMaterialRenderer {
-    pub(crate) render_pipeline: wgpu::RenderPipeline,
-    pub(crate) vertex_buffer: wgpu::Buffer,
-    pub(crate) index_buffer: wgpu::Buffer,
-    pub(crate) num_indices: u32,
+    pub(crate) base: MaterialRendererBase,
     pub(crate) color_buffer: wgpu::Buffer,
     pub(crate) color_bind_group: wgpu::BindGroup,
 }
@@ -130,12 +132,20 @@ impl ColorMaterialRenderer {
         });
 
         Self {
-            render_pipeline,
-            vertex_buffer,
-            index_buffer,
-            num_indices,
+            base: MaterialRendererBase {
+                render_pipeline,
+                vertex_buffer,
+                index_buffer,
+                num_indices,
+            },
             color_buffer,
             color_bind_group,
         }
+    }
+}
+
+impl MaterialRenderer for ColorMaterialRenderer {
+    fn base(&self) -> &MaterialRendererBase {
+        &self.base
     }
 }

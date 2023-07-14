@@ -5,11 +5,13 @@ use wgpu::util::DeviceExt;
 
 use crate::vertex::textured_vertex;
 
+use super::{
+    MaterialRenderer,
+    MaterialRendererBase,
+};
+
 pub(crate) struct TextureMaterialRenderer {
-    pub(crate) render_pipeline: wgpu::RenderPipeline,
-    pub(crate) vertex_buffer: wgpu::Buffer,
-    pub(crate) index_buffer: wgpu::Buffer,
-    pub(crate) num_indices: u32,
+    pub(crate) base: MaterialRendererBase,
     pub(crate) texture_bind_group_layout: wgpu::BindGroupLayout,
     pub(crate) uniform_buffer: wgpu::Buffer,
 }
@@ -134,12 +136,20 @@ impl TextureMaterialRenderer {
         );
 
         Self {
-            render_pipeline,
-            vertex_buffer,
-            index_buffer,
-            num_indices,
+            base: MaterialRendererBase {
+                render_pipeline,
+                vertex_buffer,
+                index_buffer,
+                num_indices,
+            },
             texture_bind_group_layout,
             uniform_buffer,
         }
+    }
+}
+
+impl MaterialRenderer for TextureMaterialRenderer {
+    fn base(&self) -> &MaterialRendererBase {
+        &self.base
     }
 }
