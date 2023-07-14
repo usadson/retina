@@ -267,13 +267,13 @@ impl<'art> Painter<'art> {
             &wgpu::BindGroupDescriptor {
                 layout: &renderer.texture_bind_group_layout,
                 entries: bind_group_entries,
-                label: Some("diffuse_bind_group"),
+                label: Some("(retina-gfx) Textured Material Bind Group"),
             }
         );
 
         let mut render_pass = self.command_encoder.begin_render_pass(
             &wgpu::RenderPassDescriptor {
-                label: Some("Render pass"),
+                label: Some("(retina-gfx) Textured Material Render Pass"),
                 color_attachments: &[Some(
                     wgpu::RenderPassColorAttachment {
                         view: &self.artwork.texture_view,
