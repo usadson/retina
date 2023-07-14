@@ -64,7 +64,9 @@ impl FontTextureMaterialRenderer {
             },
         ];
 
-        let renderer = TextureMaterialRenderer::with_shader(context.device(), shader, extra_layout_entries);
+        let blend_state = wgpu::BlendState::ALPHA_BLENDING;
+
+        let renderer = TextureMaterialRenderer::with_shader(context.device(), shader, extra_layout_entries, blend_state);
 
         let uniform_buffer = context.device().create_buffer_init(
             &wgpu::util::BufferInitDescriptor {
