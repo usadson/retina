@@ -23,11 +23,15 @@ use log::warn;
 
 use pathfinder_geometry::{
     rect::RectF,
-    vector::Vector2F, transform2d::Transform2F,
+    transform2d::Transform2F,
+    vector::Vector2F,
 };
 
 use rayon::prelude::*;
-use retina_gfx::{Context, FontDescriptor};
+use retina_gfx::{
+    Context,
+    FontDescriptor,
+};
 use wgpu::util::DeviceExt;
 
 pub struct FontKitFont {
@@ -41,10 +45,6 @@ unsafe impl Send for FontKitFont {}
 unsafe impl Sync for FontKitFont {}
 
 impl FontKitFont {
-    // fn create_cache(&self) -> GlyphCache {
-
-    // }
-
     pub fn new(
         context: &Context,
         descriptor: FontDescriptor,
@@ -151,10 +151,6 @@ struct GlyphAtlas {
 }
 
 impl GlyphAtlas {
-    // pub fn new(context: &Context, size: f32, font: &Backend) -> Self {
-    //     font.gl
-    // }
-
     pub fn new(size: f32) -> Self {
         Self {
             size,
