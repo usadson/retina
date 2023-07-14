@@ -48,9 +48,7 @@ const MAX_OPACITY: f32 = 0.000;
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     var mask = textureSample(t_diffuse, s_diffuse, in.tex_coords);
 
-    if (mask.r <= MAX_OPACITY && mask.g <= MAX_OPACITY && mask.b <= MAX_OPACITY) {
-        discard;
-    }
+    mask.a = (mask.r + mask.g + mask.b) / 3.0;
 
     var color = fragment_uniform.color * mask;
 
