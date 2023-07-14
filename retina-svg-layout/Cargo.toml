@@ -1,0 +1,19 @@
+[package]
+name = "retina-svg-layout"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+retina-common = { path = "../retina-common" }
+retina-dom = { path = "../retina-dom" }
+retina-fetch = { path = "../retina-fetch" }
+retina-gfx-font = { path = "../retina-gfx-font" }
+retina-style = { path = "../retina-style" }
+retina-style-computation = { path = "../retina-style-computation" }
+
+euclid = "*"
+log = "*"
+
+[dev-dependencies]
+rstest = "*"

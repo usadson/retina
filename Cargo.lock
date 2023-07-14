@@ -3140,6 +3140,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "retina-svg-layout"
+version = "0.2.0"
+dependencies = [
+ "euclid",
+ "log",
+ "retina-common",
+ "retina-dom",
+ "retina-fetch",
+ "retina-gfx-font",
+ "retina-style",
+ "retina-style-computation",
+ "rstest",
+]
+
+[[package]]
 name = "retina-user-agent"
 version = "0.2.0"
 dependencies = [

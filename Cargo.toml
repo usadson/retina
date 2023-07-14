@@ -17,6 +17,7 @@ members = [
     "retina-style",
     "retina-style-computation",
     "retina-style-parser",
+    "retina-svg-layout",
     "retina-user-agent",
 ]
 
