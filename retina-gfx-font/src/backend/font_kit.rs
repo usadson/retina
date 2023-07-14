@@ -77,7 +77,9 @@ impl FontKitFont {
             where F: FnOnce(&mut GlyphAtlas) -> RetVal {
         let atlases = self.atlases.read().unwrap();
         for atlas in atlases.iter() {
-            return f(&mut atlas.write().unwrap());
+            if atlas.read().unwrap().is_size(size) {
+                return f(&mut atlas.write().unwrap());
+            }
         }
 
         drop(atlases);
@@ -196,6 +198,12 @@ impl GlyphAtlas {
         }
 
         self.glyphs.get(&character).unwrap().as_ref()
+    }
+
+    #[inline]
+    pub fn is_size(&self, size: f32) -> bool {
+        let convert = |val| (val * 10.0) as i32;
+        convert(self.size) == convert(size)
     }
 
     #[inline]
