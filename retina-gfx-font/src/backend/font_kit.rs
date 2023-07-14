@@ -26,8 +26,6 @@ use pathfinder_geometry::{
     vector::Vector2F, transform2d::Transform2F,
 };
 
-static WARN_LOCK: Mutex<()> = Mutex::new(());
-
 use rayon::prelude::*;
 use retina_gfx::{Context, FontDescriptor};
 use wgpu::util::DeviceExt;
@@ -334,10 +332,7 @@ impl Glyph {
         match Self::new(&context, &font, character, point_size) {
             Ok(glyph) => Some(glyph),
             Err(e) => {
-                let _guard = WARN_LOCK.lock();
                 warn!("Failed to load character U+{:0<4x}: {e:?}", character as usize);
-                drop(_guard);
-                std::process::abort();
                 None
             }
         }
