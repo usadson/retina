@@ -10,7 +10,7 @@ use super::{
     MaterialRendererBase,
 };
 
-pub(crate) struct TextureMaterialRenderer {
+pub struct TextureMaterialRenderer {
     pub(crate) base: MaterialRendererBase,
     pub(crate) texture_bind_group_layout: wgpu::BindGroupLayout,
     pub(crate) uniform_buffer: wgpu::Buffer,

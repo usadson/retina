@@ -7,7 +7,7 @@ mod font;
 mod font_descriptor;
 mod future;
 pub(crate) mod math;
-mod material;
+pub mod material;
 mod painter;
 mod texture;
 pub mod vertex;

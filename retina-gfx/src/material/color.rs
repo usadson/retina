@@ -10,7 +10,7 @@ use super::{
     MaterialRendererBase,
 };
 
-pub(crate) struct ColorMaterialRenderer {
+pub struct ColorMaterialRenderer {
     pub(crate) base: MaterialRendererBase,
     pub(crate) color_buffer: wgpu::Buffer,
     pub(crate) color_bind_group: wgpu::BindGroup,

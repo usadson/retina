@@ -4,8 +4,10 @@
 mod color;
 mod texture;
 
-pub(crate) use color::ColorMaterialRenderer;
-pub(crate) use texture::TextureMaterialRenderer;
+pub use self::{
+    color::ColorMaterialRenderer,
+    texture::TextureMaterialRenderer,
+};
 
 pub struct MaterialRendererBase {
     pub(crate) render_pipeline: wgpu::RenderPipeline,

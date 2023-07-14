@@ -198,14 +198,26 @@ impl<'art> Painter<'art> {
     }
 
     pub fn paint_rect_textured<Unit>(&mut self, rect: euclid::Rect<f64, Unit>, texture_view: &wgpu::TextureView) {
+        self.paint_rect_textured_with(rect, texture_view, None, None)
+    }
+
+    pub fn paint_rect_textured_with<Unit>(
+        &mut self,
+        rect: euclid::Rect<f64, Unit>,
+        texture_view: &wgpu::TextureView,
+        renderer: Option<&TextureMaterialRenderer>,
+        extra_bind_group_entry: Option<wgpu::BindGroupEntry>,
+    ) {
         let rect = self.offset_rect(rect);
         let transformation = math::project(self.viewport_size.cast(), rect);
         let uniform: &[u8] = bytemuck::cast_slice(&transformation);
 
+        let renderer = renderer.unwrap_or(&self.artwork.texture_material_renderer);
+
         {
             let mut uniform_buffer_view = self.artwork.staging_belt.write_buffer(
                 &mut self.command_encoder,
-                &self.artwork.texture_material_renderer.uniform_buffer,
+                &renderer.uniform_buffer,
                 0,
                 std::num::NonZeroU64::new(uniform.len() as _).unwrap(),
                 self.artwork.context.device(),
@@ -223,23 +235,38 @@ impl<'art> Painter<'art> {
             ..Default::default()
         });
 
+        let mut bind_group_entries = [
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::TextureView(&texture_view),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: wgpu::BindingResource::Sampler(&sampler),
+            },
+            wgpu::BindGroupEntry {
+                binding: 2,
+                resource: self.artwork.texture_material_renderer.uniform_buffer.as_entire_binding(),
+            },
+
+            // Room for the entry, this is ignored if there is none.
+            wgpu::BindGroupEntry {
+                binding: 3,
+                resource: wgpu::BindingResource::TextureView(&texture_view),
+            },
+        ];
+
+        let bind_group_entries = if let Some(extra_bind_group_entry) = extra_bind_group_entry {
+            bind_group_entries[3] = extra_bind_group_entry;
+            &bind_group_entries
+        } else {
+            &bind_group_entries[0..3]
+        };
+
         let bind_group = self.artwork.context.device().create_bind_group(
             &wgpu::BindGroupDescriptor {
-                layout: &self.artwork.texture_material_renderer.texture_bind_group_layout,
-                entries: &[
-                    wgpu::BindGroupEntry {
-                        binding: 0,
-                        resource: wgpu::BindingResource::TextureView(&texture_view),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
-                        resource: wgpu::BindingResource::Sampler(&sampler),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 2,
-                        resource: self.artwork.texture_material_renderer.uniform_buffer.as_entire_binding(),
-                    },
-                ],
+                layout: &renderer.texture_bind_group_layout,
+                entries: bind_group_entries,
                 label: Some("diffuse_bind_group"),
             }
         );
@@ -261,9 +288,9 @@ impl<'art> Painter<'art> {
             },
         );
 
-        self.artwork.texture_material_renderer.base().bind_to_render_pass(&mut render_pass);
+        renderer.base().bind_to_render_pass(&mut render_pass);
         render_pass.set_bind_group(0, &bind_group, &[]);
-        self.artwork.texture_material_renderer.base().draw_once(&mut render_pass);
+        renderer.base().draw_once(&mut render_pass);
     }
 
     pub fn paint_text<PositionUnit, Size>(
