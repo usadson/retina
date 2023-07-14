@@ -3,15 +3,15 @@
 
 use std::{sync::Arc, ops::Deref};
 
-use crate::Font;
+use crate::WgpuFont;
 
 #[derive(Clone, Debug)]
 pub struct FontHandle {
-    pub(crate) font: Arc<Font>,
+    pub(crate) font: Arc<WgpuFont>,
 }
 
 impl Deref for FontHandle {
-    type Target = Font;
+    type Target = WgpuFont;
 
     fn deref(&self) -> &Self::Target {
         &self.font

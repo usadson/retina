@@ -12,7 +12,7 @@ use wgpu_glyph::{GlyphCruncher, Section, Text, ab_glyph::FontArc};
 
 use crate::{
     FamilyName,
-    Font,
+    WgpuFont,
     FontDescriptor,
     FontFamily,
     FontHandle,
@@ -105,7 +105,7 @@ impl FontProvider {
         let brush = Arc::new(RwLock::new(brush));
 
         let mut families = self.families.write().expect("FontProvider failed to write to `families`");
-        families.entry(descriptor.name.clone()).or_insert(Default::default()).entries.push(Arc::new(Font {
+        families.entry(descriptor.name.clone()).or_insert(Default::default()).entries.push(Arc::new(WgpuFont {
             descriptor,
             brush,
             space_width,

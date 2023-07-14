@@ -18,7 +18,7 @@ use crate::FontDescriptor;
 type Brush = GlyphBrush<(), FontArc>;
 
 #[derive(Debug)]
-pub struct Font {
+pub struct WgpuFont {
     pub(crate) descriptor: FontDescriptor,
     pub(crate) brush: Arc<RwLock<Brush>>,
 
@@ -26,7 +26,7 @@ pub struct Font {
     pub(crate) space_width: f32,
 }
 
-impl Font {
+impl WgpuFont {
     pub fn brush(&self) -> RwLockWriteGuard<'_, Brush> {
         self.brush.write().unwrap()
     }

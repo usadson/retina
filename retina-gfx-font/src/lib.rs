@@ -8,7 +8,7 @@ pub(crate) mod font;
 pub(crate) mod handle;
 pub(crate) mod provider;
 
-pub(crate) use font::Font;
+pub(crate) use font::WgpuFont;
 pub(crate) use family::FontFamily;
 
 pub use descriptor::{FamilyName, FontDescriptor, FontWeight};
