@@ -21,10 +21,20 @@ impl TextureMaterialRenderer {
         let shader = include_str!("../vertex/textured_vertex.wgsl");
         let extra_layout_entries = &[];
 
-        Self::with_shader(device, shader, extra_layout_entries)
+        let blend_state = wgpu::BlendState {
+            color: wgpu::BlendComponent::REPLACE,
+            alpha: wgpu::BlendComponent::REPLACE,
+        };
+
+        Self::with_shader(device, shader, extra_layout_entries, blend_state)
     }
 
-    pub fn with_shader(device: &wgpu::Device, shader: &str, extra_layout_entries: &[wgpu::BindGroupLayoutEntry]) -> Self {
+    pub fn with_shader(
+        device: &wgpu::Device,
+        shader: &str,
+        extra_layout_entries: &[wgpu::BindGroupLayoutEntry],
+        blend_state: wgpu::BlendState,
+    ) -> Self {
         let mut layout_entries = vec![
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
@@ -89,10 +99,7 @@ impl TextureMaterialRenderer {
                 entry_point: "fs_main",
                 targets: &[Some(wgpu::ColorTargetState {
                     format: wgpu::TextureFormat::Bgra8UnormSrgb,
-                    blend: Some(wgpu::BlendState {
-                        color: wgpu::BlendComponent::REPLACE,
-                        alpha: wgpu::BlendComponent::REPLACE,
-                    }),
+                    blend: Some(blend_state),
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
             }),
