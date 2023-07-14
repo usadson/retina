@@ -8,6 +8,7 @@ pub(crate) mod family;
 pub(crate) mod font;
 pub(crate) mod handle;
 pub(crate) mod provider;
+pub(crate) mod renderer;
 
 pub(crate) use font::WgpuFont;
 pub(crate) use family::FontFamily;

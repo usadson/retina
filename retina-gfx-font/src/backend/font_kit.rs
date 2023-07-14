@@ -38,6 +38,8 @@ use wgpu::util::DeviceExt;
 
 use font_kit::metrics::Metrics as BackendMetrics;
 
+use crate::renderer::FontTextureMaterialRenderer;
+
 pub struct FontKitFont {
     gfx_context: Context,
     descriptor: FontDescriptor,
@@ -55,6 +57,10 @@ impl FontKitFont {
         descriptor: FontDescriptor,
         font: font_kit::font::Font,
     ) -> Self {
+        // Initialize the renderer here to parallelize the material render setup
+        // code, which costs some CPU and GPU time.
+        _ = FontTextureMaterialRenderer::get(context);
+
         let metrics = font.metrics();
         Self {
             gfx_context: context.clone(),
@@ -143,11 +149,22 @@ impl retina_gfx::Font for FontKitFont {
                     glyph.size.cast(),
                 ).cast();
 
-                _ = color; // TODO!
-
                 // If the texture is absent, this glyph is invisible (e.g. whitespace).
                 if let Some(texture_view) = glyph.texture_view.as_ref() {
-                    painter.paint_rect_textured(glyph_rect, texture_view);
+                    let renderer = FontTextureMaterialRenderer::get(&painter.artwork().context);
+                    let bind_group_entry = wgpu::BindGroupEntry {
+                        binding: 3,
+                        resource: renderer.uniform_buffer.as_entire_binding(),
+                    };
+
+                    renderer.prepare(painter, color);
+
+                    painter.paint_rect_textured_with(
+                        glyph_rect,
+                        texture_view,
+                        Some(&renderer.renderer),
+                        Some(bind_group_entry),
+                    );
                 }
 
                 position.x += glyph.advance.x();
@@ -227,7 +244,7 @@ impl Glyph {
 
         let transform = Transform2F::default();
         let hinting_options = font_kit::hinting::HintingOptions::None;
-        let rasterization_options = font_kit::canvas::RasterizationOptions::GrayscaleAa;
+        let rasterization_options = font_kit::canvas::RasterizationOptions::SubpixelAa;
 
         let typographic_bounds = font.typographic_bounds(glyph_id)?;
         let typographic_unit_conversion_factor = units_per_em as f32 / point_size;
@@ -255,7 +272,7 @@ impl Glyph {
         let mut texture_view = None;
 
         if bounds.size().x() != 0 && bounds.size().y() != 0 {
-            let mut canvas = font_kit::canvas::Canvas::new(bounds.size(), font_kit::canvas::Format::A8);
+            let mut canvas = font_kit::canvas::Canvas::new(bounds.size(), font_kit::canvas::Format::Rgba32);
             let transform = Transform2F::from_translation(-bounds.origin().to_f32()) * transform;
             font.rasterize_glyph(&mut canvas, glyph_id, point_size, transform, hinting_options, rasterization_options)?;
 
@@ -263,7 +280,7 @@ impl Glyph {
                 context.queue(),
                 &wgpu::TextureDescriptor {
                     dimension: wgpu::TextureDimension::D2,
-                    format: wgpu::TextureFormat::R8Unorm,
+                    format: wgpu::TextureFormat::Rgba8Unorm,
                     label: Some(&format!("FontGlyph[backend=font_kit, char='{character}']")),
                     mip_level_count: 1,
                     sample_count: 1,

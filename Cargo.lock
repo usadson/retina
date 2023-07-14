@@ -3001,6 +3001,7 @@ dependencies = [
 name = "retina-gfx-font"
 version = "0.2.0"
 dependencies = [
+ "bytemuck",
  "euclid",
  "font-kit",
  "log",
