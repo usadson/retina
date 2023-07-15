@@ -102,7 +102,7 @@ impl FontKitFont {
     }
 
     fn glyph_iter<F>(&self, point_size: f32, text: &str, mut f: F)
-            where F: FnMut(harfbuzz_rs::GlyphPosition, harfbuzz_rs::GlyphInfo, &Glyph, GlyphId) {
+            where F: FnMut(harfbuzz_rs::GlyphPosition, &Glyph) {
         self.with_size(point_size, |atlas| {
             self.font.with_harfbuzz_font(|font| {
                 let unicode_buffer = harfbuzz_rs::UnicodeBuffer::new()
@@ -119,7 +119,7 @@ impl FontKitFont {
                     let glyph = atlas.glyph(&self.gfx_context, &self.font, glyph_id)
                         .expect(&format!("Failed to lookup Glyph that HarfBuzz _did_ find: {glyph_id:?}"));
 
-                    f(*position, *info, glyph, glyph_id);
+                    f(*position, glyph);
                 }
             });
         });
@@ -137,7 +137,7 @@ impl retina_gfx::Font for FontKitFont {
             height,
         );
 
-        self.glyph_iter(point_size, text, |position, _info, _glyph, _glyph_id| {
+        self.glyph_iter(point_size, text, |position, _glyph| {
             size.width += position.x_advance as f32 / typographic_unit_conversion_factor;
         });
 
@@ -162,7 +162,7 @@ impl retina_gfx::Font for FontKitFont {
         // Offset the position to the baseline.
         position.y += self.metrics.ascent / typographic_unit_conversion_factor;
 
-        self.glyph_iter(font_size, text, |glyph_position, info, glyph, glyph_id| {
+        self.glyph_iter(font_size, text, |glyph_position, glyph| {
             let x_offset = glyph_position.x_offset as f32 / typographic_unit_conversion_factor;
             let y_offset = glyph_position.y_offset as f32 / typographic_unit_conversion_factor;
             let glyph_rect = Rect::new(
