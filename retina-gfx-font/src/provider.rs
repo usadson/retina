@@ -201,4 +201,29 @@ impl FontProvider {
             }
         }
     }
+
+    pub fn load_from_system(&self, descriptor: FontDescriptor) -> bool {
+        let provider = self.clone();
+        let source = font_kit::source::SystemSource::new();
+        let desc = descriptor.clone();
+
+        let result = source.select_best_match(
+            &[convert_font_kit_name(desc.name)],
+            &font_kit::properties::Properties {
+                weight: convert_font_kit_weight(desc.weight),
+                ..Default::default()
+            }
+        );
+
+        let Ok(handle) = result else {
+            return false;
+        };
+
+        provider.load_from_font_kit_handle(
+            handle,
+            descriptor,
+        );
+
+        true
+    }
 }
