@@ -130,7 +130,7 @@ impl retina_gfx::Font for FontKitFont {
     fn calculate_size(&self, point_size: f32, text: &str) -> Size2D<f32> {
         let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / point_size;
 
-        let height = (self.metrics.ascent + self.metrics.descent + self.metrics.line_gap)
+        let height = (self.metrics.ascent - self.metrics.descent)
             / typographic_unit_conversion_factor;
         let mut size = Size2D::new(
             0.0,
