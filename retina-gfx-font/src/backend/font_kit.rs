@@ -258,7 +258,6 @@ struct Glyph {
     size: Size2D<u32>,
     typographic_bounds: RectF,
     origin: Vector2F,
-    advance: Vector2F,
 
     #[allow(dead_code)]
     texture: Option<wgpu::Texture>,
@@ -293,7 +292,6 @@ impl Glyph {
         );
 
         let origin = font.borrow_font().origin(glyph_id)? / typographic_unit_conversion_factor;
-        let advance = font.borrow_font().advance(glyph_id)? / typographic_unit_conversion_factor;
 
         let bounds = font.borrow_font().raster_bounds(glyph_id, point_size, transform, hinting_options, rasterization_options)?;
 
@@ -338,7 +336,6 @@ impl Glyph {
         Ok(Self {
             size: Size2D::new(bounds.width() as _, bounds.height() as _),
             origin,
-            advance,
             typographic_bounds,
             texture,
             texture_view,
