@@ -54,12 +54,10 @@ impl FontProvider {
 
     pub fn get(&self, descriptor: FontDescriptor) -> Option<FontHandle> {
         let Ok(families) = self.families.read() else {
-            self.load_default_in_background(descriptor);
             return None;
         };
 
         let Some(family) = families.get(&descriptor.name) else {
-            self.load_default_in_background(descriptor);
             return None;
         };
 
@@ -70,8 +68,6 @@ impl FontProvider {
                 });
             }
         }
-
-        self.load_default_in_background(descriptor);
 
         None
     }
