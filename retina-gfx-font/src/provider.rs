@@ -49,10 +49,12 @@ impl FontProvider {
 
     pub fn get(&self, descriptor: FontDescriptor) -> Option<FontHandle> {
         let Ok(families) = self.families.read() else {
+            self.load_default_in_background(descriptor);
             return None;
         };
 
         let Some(family) = families.get(&descriptor.name) else {
+            self.load_default_in_background(descriptor);
             return None;
         };
 
@@ -64,10 +66,13 @@ impl FontProvider {
             }
         }
 
+        self.load_default_in_background(descriptor);
+
         None
     }
 
     pub fn load(&self, descriptor: FontDescriptor, data: Vec<u8>) -> bool {
+        log::trace!("Inserting font: {descriptor:?} with {} bytes", data.len());
         match self.implementation_kind {
             FontProviderImplementationKind::AbGlyph => {
                 let font = match wgpu_glyph::ab_glyph::FontArc::try_from_vec(data) {

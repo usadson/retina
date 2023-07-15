@@ -21,6 +21,8 @@ use euclid::default::{
 
 use log::warn;
 
+use ouroboros::self_referencing;
+
 use pathfinder_geometry::{
     rect::RectF,
     transform2d::Transform2F,
@@ -62,12 +64,12 @@ impl FontKitFont {
         _ = FontTextureMaterialRenderer::get(context);
 
         let metrics = font.metrics();
+        let font = Backend::new(font);
+
         Self {
             gfx_context: context.clone(),
             descriptor,
-            font: Backend {
-                font: Arc::new(font),
-            },
+            font,
             metrics,
             atlases: RwLock::new(Vec::new()),
         }
@@ -98,24 +100,48 @@ impl FontKitFont {
 
         return_value
     }
+
+    fn glyph_iter<F>(&self, point_size: f32, text: &str, mut f: F)
+            where F: FnMut(harfbuzz_rs::GlyphPosition, harfbuzz_rs::GlyphInfo, &Glyph, GlyphId) {
+        self.with_size(point_size, |atlas| {
+            self.font.with_harfbuzz_font(|font| {
+                let unicode_buffer = harfbuzz_rs::UnicodeBuffer::new()
+                    .add_str(text)
+                    .guess_segment_properties();
+
+                let glyph_buffer = harfbuzz_rs::shape(font, unicode_buffer, &[]);
+                let positions = glyph_buffer.get_glyph_positions();
+                let infos = glyph_buffer.get_glyph_infos();
+
+                for (position, info) in positions.iter().zip(infos) {
+                    let glyph_id = GlyphId(info.codepoint);
+
+                    let glyph = atlas.glyph(&self.gfx_context, &self.font, glyph_id)
+                        .expect(&format!("Failed to lookup Glyph that HarfBuzz _did_ find: {glyph_id:?}"));
+
+                    f(*position, *info, glyph, glyph_id);
+                }
+            });
+        });
+    }
 }
 
 impl retina_gfx::Font for FontKitFont {
     fn calculate_size(&self, point_size: f32, text: &str) -> Size2D<f32> {
-        let mut size = Size2D::default();
+        let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / point_size;
 
-        for character in text.chars() {
-            let Some(glyph_id) = self.font.glyph_for_char(character) else { continue };
-            let Ok(advance) = self.font.advance(glyph_id) else { continue };
-            let advance = Size2D::new(advance.x(), advance.y());
+        let height = (self.metrics.ascent + self.metrics.descent + self.metrics.line_gap)
+            / typographic_unit_conversion_factor;
+        let mut size = Size2D::new(
+            0.0,
+            height,
+        );
 
-            size.width += advance.width;
-            if size.height < advance.height {
-                size.height = advance.height;
-            }
-        }
+        self.glyph_iter(point_size, text, |position, _info, _glyph, _glyph_id| {
+            size.width += position.x_advance as f32 / typographic_unit_conversion_factor;
+        });
 
-        size * point_size
+        size
     }
 
     #[inline]
@@ -137,50 +163,47 @@ impl retina_gfx::Font for FontKitFont {
         let baseline = ascent - descent;
         position.y += baseline;
 
-        self.with_size(font_size, |atlas| {
-            for character in text.chars() {
-                let Some(glyph) = atlas.glyph(&self.gfx_context, &self.font, character) else {
-                    continue;
+        self.glyph_iter(font_size, text, |glyph_position, info, glyph, glyph_id| {
+            let glyph_rect = Rect::new(
+                Point2D::new(
+                    position.x + glyph.origin.x(),
+                    position.y - glyph.typographic_bounds.max_y(),
+                ),
+                glyph.size.cast(),
+            ).cast();
+
+            // If the texture is absent, this glyph is invisible (e.g. whitespace).
+            if let Some(texture_view) = glyph.texture_view.as_ref() {
+                let renderer = FontTextureMaterialRenderer::get(&painter.artwork().context);
+                let bind_group_entry = wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: renderer.uniform_buffer.as_entire_binding(),
                 };
 
-                let glyph_rect = Rect::new(
-                    Point2D::new(
-                        position.x + glyph.origin.x(),
-                        position.y - glyph.typographic_bounds.max_y(),
-                    ),
-                    glyph.size.cast(),
-                ).cast();
+                renderer.prepare(painter, color);
 
-                // If the texture is absent, this glyph is invisible (e.g. whitespace).
-                if let Some(texture_view) = glyph.texture_view.as_ref() {
-                    let renderer = FontTextureMaterialRenderer::get(&painter.artwork().context);
-                    let bind_group_entry = wgpu::BindGroupEntry {
-                        binding: 3,
-                        resource: renderer.uniform_buffer.as_entire_binding(),
-                    };
-
-                    renderer.prepare(painter, color);
-
-                    painter.paint_rect_textured_with(
-                        glyph_rect,
-                        texture_view,
-                        Some(&renderer.renderer),
-                        Some(bind_group_entry),
-                    );
-                }
-
-                position.x += glyph.advance.x();
+                painter.paint_rect_textured_with(
+                    glyph_rect,
+                    texture_view,
+                    Some(&renderer.renderer),
+                    Some(bind_group_entry),
+                );
             }
+
+            position.x += glyph.advance.x();
         });
     }
 }
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+struct GlyphId(pub u32);
 
 /// TODO: this doesn't actually use a texture atlas, for simplicity reasons,
 /// but this can/should be implemented in the future.
 struct GlyphAtlas {
     size: f32,
     units_per_em: u32,
-    glyphs: HashMap<char, Option<Glyph>>,
+    glyphs: HashMap<GlyphId, Option<Glyph>>,
 }
 
 impl GlyphAtlas {
@@ -192,12 +215,12 @@ impl GlyphAtlas {
         }
     }
 
-    pub fn glyph(&mut self, context: &Context, font: &Backend, character: char) -> Option<&Glyph> {
-        if !self.glyphs.contains_key(&character) {
-            self.glyphs.insert(character, Glyph::new_opt(context, font, self.units_per_em, character, self.size));
+    pub fn glyph(&mut self, context: &Context, font: &Backend, glyph_id: GlyphId) -> Option<&Glyph> {
+        if !self.glyphs.contains_key(&glyph_id) {
+            self.glyphs.insert(glyph_id, Glyph::new_opt(context, font, self.units_per_em, glyph_id, self.size));
         }
 
-        self.glyphs.get(&character).unwrap().as_ref()
+        self.glyphs.get(&glyph_id).unwrap().as_ref()
     }
 
     #[inline]
@@ -213,12 +236,14 @@ impl GlyphAtlas {
 
     pub fn prepare_chars(&mut self, context: &Context, font: &Backend, range: RangeInclusive<char>) {
         let glyphs = range.into_par_iter()
-            .map(|character| {
+            .filter_map(|character| {
                 let context = context.clone();
                 let font = font.clone();
 
-                let glyph = Glyph::new_opt(&context, &font, self.units_per_em, character, self.size);
-                (character, glyph)
+                let glyph_id = GlyphId(font.borrow_font().glyph_for_char(character)?);
+
+                let glyph = Glyph::new_opt(&context, &font, self.units_per_em, glyph_id, self.size);
+                Some((glyph_id, glyph))
             });
 
         self.glyphs.par_extend(
@@ -245,16 +270,15 @@ impl Glyph {
         context: &Context,
         font: &Backend,
         units_per_em: u32,
-        character: char,
+        glyph_id: GlyphId,
         point_size: f32,
     ) -> Result<Self, Error> {
-        let glyph_id = font.glyph_for_char(character).ok_or(Error::GlyphNotPresent(character))?;
-
+        let glyph_id = glyph_id.0;
         let transform = Transform2F::default();
         let hinting_options = font_kit::hinting::HintingOptions::None;
         let rasterization_options = font_kit::canvas::RasterizationOptions::SubpixelAa;
 
-        let typographic_bounds = font.typographic_bounds(glyph_id)?;
+        let typographic_bounds = font.borrow_font().typographic_bounds(glyph_id)?;
         let typographic_unit_conversion_factor = units_per_em as f32 / point_size;
         let typographic_bounds = RectF::new(
             Vector2F::new(
@@ -267,10 +291,10 @@ impl Glyph {
             )
         );
 
-        let origin = font.origin(glyph_id)? / typographic_unit_conversion_factor;
-        let advance = font.advance(glyph_id)? / typographic_unit_conversion_factor;
+        let origin = font.borrow_font().origin(glyph_id)? / typographic_unit_conversion_factor;
+        let advance = font.borrow_font().advance(glyph_id)? / typographic_unit_conversion_factor;
 
-        let bounds = font.raster_bounds(glyph_id, point_size, transform, hinting_options, rasterization_options)?;
+        let bounds = font.borrow_font().raster_bounds(glyph_id, point_size, transform, hinting_options, rasterization_options)?;
 
         if bounds.width() < 0 || bounds.height() < 0 {
             return Err(Error::InvalidGlyphBounds(bounds));
@@ -282,14 +306,14 @@ impl Glyph {
         if bounds.size().x() != 0 && bounds.size().y() != 0 {
             let mut canvas = font_kit::canvas::Canvas::new(bounds.size(), font_kit::canvas::Format::Rgba32);
             let transform = Transform2F::from_translation(-bounds.origin().to_f32()) * transform;
-            font.rasterize_glyph(&mut canvas, glyph_id, point_size, transform, hinting_options, rasterization_options)?;
+            font.borrow_font().rasterize_glyph(&mut canvas, glyph_id, point_size, transform, hinting_options, rasterization_options)?;
 
             let created_texture = context.device().create_texture_with_data(
                 context.queue(),
                 &wgpu::TextureDescriptor {
                     dimension: wgpu::TextureDimension::D2,
                     format: wgpu::TextureFormat::Rgba8Unorm,
-                    label: Some(&format!("FontGlyph[backend=font_kit, char='{character}']")),
+                    label: Some(&format!("FontGlyph[backend=font_kit, glyph_id={glyph_id}]")),
                     mip_level_count: 1,
                     sample_count: 1,
                     size: wgpu::Extent3d {
@@ -324,13 +348,13 @@ impl Glyph {
         context: &Context,
         font: &Backend,
         units_per_em: u32,
-        character: char,
+        glyph_id: GlyphId,
         point_size: f32,
     ) -> Option<Self> {
-        match Self::new(&context, &font, units_per_em, character, point_size) {
+        match Self::new(&context, &font, units_per_em, glyph_id, point_size) {
             Ok(glyph) => Some(glyph),
             Err(e) => {
-                warn!("Failed to load character U+{:0<4x}: {e:?}", character as usize);
+                warn!("Failed to load glyph {glyph_id:?}: {e:?}");
                 None
             }
         }
@@ -339,7 +363,6 @@ impl Glyph {
 
 #[derive(Debug)]
 enum Error {
-    GlyphNotPresent(char),
     GlyphLoadingError(font_kit::error::GlyphLoadingError),
     InvalidGlyphBounds(pathfinder_geometry::rect::RectI),
 }
@@ -350,17 +373,51 @@ impl From<font_kit::error::GlyphLoadingError> for Error {
     }
 }
 
+#[derive(Clone)]
 struct Backend {
-    font: Arc<font_kit::font::Font>,
+    inner: Arc<BackendInner>,
+}
+
+impl Backend {
+    pub fn new(font: font_kit::font::Font) -> Self {
+        let font_data = font.copy_font_data().unwrap();
+        let inner = BackendInnerBuilder {
+            font,
+            font_data,
+            harfbuzz_font_builder: |font_data: &Arc<Vec<u8>>| {
+                let face = harfbuzz_rs::Face::from_bytes(&font_data, 0);
+                let font = harfbuzz_rs::Font::new(face);
+                font
+            }
+        };
+
+        Self {
+            inner: Arc::new(inner.build()),
+        }
+    }
+}
+
+impl Deref for Backend {
+    type Target = Arc<BackendInner>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
 }
 
 unsafe impl Send for Backend {}
 unsafe impl Sync for Backend {}
 
-impl Deref for Backend {
-    type Target = Arc<font_kit::font::Font>;
+#[self_referencing]
+struct BackendInner {
+    font: font_kit::font::Font,
 
-    fn deref(&self) -> &Self::Target {
-        &self.font
-    }
+    font_data: Arc<Vec<u8>>,
+
+    #[borrows(font_data)]
+    #[not_covariant]
+    harfbuzz_font: harfbuzz_rs::Owned<harfbuzz_rs::Font<'this>>,
 }
+
+unsafe impl Send for BackendInner {}
+unsafe impl Sync for BackendInner {}
