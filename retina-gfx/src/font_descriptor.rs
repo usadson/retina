@@ -1,6 +1,8 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use std::hash::Hash;
+
 use retina_common::StrTendril;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -13,7 +15,7 @@ pub enum FamilyName {
     Serif,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct FontDescriptor {
     pub name: FamilyName,
     pub weight: FontWeight,
@@ -41,3 +43,12 @@ impl FontWeight {
         self.0
     }
 }
+
+impl Hash for FontWeight {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        let raw = self.0.to_bits();
+        raw.hash(state);
+    }
+}
+
+impl std::cmp::Eq for FontWeight {}
