@@ -3,6 +3,7 @@
 
 pub(crate) mod dirty_state;
 pub(crate) mod command;
+pub(crate) mod font_loader;
 pub(crate) mod handle;
 pub(crate) mod message;
 pub(crate) mod page;
@@ -12,12 +13,16 @@ pub use command::{PageCommand, PageCommandAction};
 pub use handle::{PageHandle, PageHandleCommunicationError, PageHandleReceiveHalf, PageHandleSendHalf};
 pub use message::{PageMessage, PageProgress};
 
-use page::Page;
-use dirty_state::DirtyState;
+use self::{
+    font_loader::FontLoader,
+    page::Page,
+    dirty_state::DirtyState,
+    scroller::Scroller,
+};
+
 use retina_compositor::Compositor;
 use retina_gfx::{canvas::CanvasPaintingContext, euclid::Size2D};
 use retina_gfx_font::FontProvider;
-use scroller::Scroller;
 
 use std::{sync::{mpsc::{channel, sync_channel}, Arc}, time::Duration};
 use url::Url;
@@ -55,6 +60,13 @@ pub fn spawn(
         runtime.clone().block_on(async {
             let (page_task_message_sender, page_task_message_receiver) = tokio::sync::mpsc::channel(128);
 
+            let fetch = retina_fetch::Fetch::new();
+            let font_loader = FontLoader::new(
+                fetch.clone(),
+                page_task_message_sender.clone(),
+                font_provider.clone(),
+            );
+
             let page = Page {
                 runtime,
                 message_sender,
@@ -70,11 +82,12 @@ pub fn spawn(
                 canvas,
                 font_provider,
                 compositor: Compositor::new(),
-                fetch: retina_fetch::Fetch::new(),
+                fetch,
                 page_task_message_sender,
                 browsing_context: None,
                 event_queue: None,
                 dirty_state: DirtyState::new(),
+                font_loader,
             };
 
             page.start(command_receiver, page_task_message_receiver).await.unwrap()

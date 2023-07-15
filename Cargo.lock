@@ -3075,6 +3075,7 @@ name = "retina-page"
 version = "0.2.0"
 dependencies = [
  "log",
+ "retina-common",
  "retina-compositor",
  "retina-debug",
  "retina-dom",

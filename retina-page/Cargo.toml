@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+retina-common = { path = "../retina-common" }
 retina-compositor = { path = "../retina-compositor" }
 retina-debug = { path = "../retina-debug" }
 retina-dom = { path = "../retina-dom" }

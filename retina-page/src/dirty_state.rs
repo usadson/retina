@@ -32,6 +32,7 @@ impl DirtyState {
 
     pub(crate) fn request(&mut self, phase: DirtyPhase) {
         if phase > self.phase {
+            log::trace!("Page phase {phase:?} requested!");
             self.phase = phase;
         }
     }

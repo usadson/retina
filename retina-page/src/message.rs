@@ -1,10 +1,18 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_gfx::{euclid::Size2D, Color};
+use retina_gfx::{
+    Color,
+    euclid::Size2D,
+    FontDescriptor,
+};
+
 use retina_style::Stylesheet;
 
-use crate::PageCommand;
+use crate::{
+    font_loader::FontState,
+    PageCommand,
+};
 
 /// The page sends messages to the browser to inform it of it's status.
 #[derive(Debug)]
@@ -51,6 +59,12 @@ pub(crate) enum PageTaskMessage {
 
     /// The browser (probably) closed.
     CommandPipelineClosed,
+
+    /// A font was loaded.
+    FontLoadResult {
+        descriptor: FontDescriptor,
+        state: FontState,
+    },
 
     /// A new image was loaded.
     ImageLoaded,
