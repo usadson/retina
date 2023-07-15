@@ -3,22 +3,28 @@
 
 use std::{
     collections::HashMap,
-    sync::{Arc, RwLock}, path::Path, io::Read,
+    io::Read,
+    sync::{
+        Arc,
+        RwLock,
+    },
+    path::Path,
 };
 
 use log::error;
 use retina_common::LoadTime;
-use wgpu_glyph::{GlyphCruncher, Section, Text, ab_glyph::FontArc};
 
 use crate::{
     backend::FontKitFont,
-    descriptor::{convert_font_kit_weight, convert_font_kit_name},
+    descriptor::{
+        convert_font_kit_name,
+        convert_font_kit_weight,
+    },
     FamilyName,
     FontDescriptor,
     FontFamily,
     FontHandle,
     FontWeight,
-    WgpuFont,
 };
 
 use retina_gfx::Context as GfxContext;
@@ -32,7 +38,6 @@ pub struct FontProvider {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum FontProviderImplementationKind {
-    AbGlyph,
     FontKit,
 }
 
@@ -72,20 +77,7 @@ impl FontProvider {
     }
 
     pub fn load(&self, descriptor: FontDescriptor, data: Vec<u8>) -> bool {
-        log::trace!("Inserting font: {descriptor:?} with {} bytes", data.len());
         match self.implementation_kind {
-            FontProviderImplementationKind::AbGlyph => {
-                let font = match wgpu_glyph::ab_glyph::FontArc::try_from_vec(data) {
-                    Ok(font) => font,
-                    Err(e) => {
-                        error!("Failed to load font ({descriptor:?}): {e}");
-                        return false;
-                    }
-                };
-
-                self.load_ab_glyph(descriptor, font)
-            }
-
             FontProviderImplementationKind::FontKit => {
                 let font = match font_kit::font::Font::from_bytes(Arc::new(data), 0) {
                     Ok(font) => font,
@@ -108,28 +100,6 @@ impl FontProvider {
                 true
             }
         }
-    }
-
-    fn load_ab_glyph(&self, descriptor: FontDescriptor, font: FontArc) -> bool {
-        let mut brush = wgpu_glyph::GlyphBrushBuilder::using_font(font)
-            .build(self.gfx_context.device(), wgpu::TextureFormat::Bgra8UnormSrgb);
-        let space_width = brush.glyph_bounds(
-                Section::builder().add_text(Text::new(" "))
-            )
-            .unwrap_or_default()
-            .width();
-
-        let brush = Arc::new(RwLock::new(brush));
-
-        let family_name = descriptor.name.clone();
-
-        self.load_gfx_font(family_name, Arc::new(WgpuFont {
-            descriptor,
-            brush,
-            space_width,
-        }));
-
-        true
     }
 
     fn load_gfx_font(&self, family_name: FamilyName, font: Arc<dyn retina_gfx::Font>) {

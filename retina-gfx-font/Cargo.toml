@@ -17,4 +17,3 @@ ouroboros = "*"
 pathfinder_geometry = "*"
 rayon = "*"
 wgpu = { version = "*", features = ["trace"] }
-wgpu_glyph = "*"

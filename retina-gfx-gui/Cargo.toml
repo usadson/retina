@@ -15,7 +15,6 @@ thiserror = "*"
 tracing = "*"
 raw-window-handle = "*"
 wgpu = { version = "*", features = ["trace"] }
-wgpu_glyph = "*"
 
 [target.'cfg(windows)'.dependencies]
 winsafe = { version = "*", features = [

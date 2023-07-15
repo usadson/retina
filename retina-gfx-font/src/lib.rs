@@ -2,15 +2,12 @@
 // All Rights Reserved.
 
 pub(crate) mod backend;
-pub(crate) mod bridge;
 pub(crate) mod descriptor;
 pub(crate) mod family;
-pub(crate) mod font;
 pub(crate) mod handle;
 pub(crate) mod provider;
 pub(crate) mod renderer;
 
-pub(crate) use font::WgpuFont;
 pub(crate) use family::FontFamily;
 
 pub use descriptor::{FamilyName, FontDescriptor, FontWeight};
