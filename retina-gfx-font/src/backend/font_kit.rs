@@ -157,11 +157,10 @@ impl retina_gfx::Font for FontKitFont {
         font_size: f32,
         painter: &mut retina_gfx::Painter
     ) {
-        let ascent = self.metrics.ascent / self.metrics.units_per_em as f32 * font_size;
-        let descent = -(self.metrics.descent / self.metrics.units_per_em as f32 * font_size);
+        let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / font_size;
 
-        let baseline = ascent - descent;
-        position.y += baseline;
+        // Offset the position to the baseline.
+        position.y += self.metrics.ascent / typographic_unit_conversion_factor;
 
         self.glyph_iter(font_size, text, |glyph_position, info, glyph, glyph_id| {
             let glyph_rect = Rect::new(
