@@ -45,10 +45,12 @@ pub enum Property {
     Float,
     Font,
     FontFamily,
+    FontKerning,
     /// <https://drafts.csswg.org/css-fonts-4/#font-size-prop>
     FontSize,
     FontStretch,
     FontStyle,
+    FontVariantLigatures,
     FontWeight,
 
     Height,

@@ -120,6 +120,23 @@ pub(crate) fn parse_font_families<'i, 't>(
     Ok(families)
 }
 
+pub(crate) fn parse_font_kerning<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssFontKerning, ParseError<'i>> {
+    let location = input.current_source_location();
+    let keyword = input.expect_ident()?;
+    CssFontKerning::iter()
+        .find(|style| {
+            style.as_ref().eq_ignore_ascii_case(&keyword)
+        })
+        .ok_or_else(|| ParseError {
+            kind: ParseErrorKind::Custom(
+                RetinaStyleParseError::FontStyleUnknownKeyword(keyword.clone())
+            ),
+            location,
+        })
+}
+
 pub(crate) fn parse_font_shorthand<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<CssFontShorthand, ParseError<'i>> {
@@ -161,6 +178,56 @@ pub(crate) fn parse_font_style<'i, 't>(
             ),
             location,
         })
+}
+
+pub(crate) fn parse_font_variant_ligatures<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssFontVariantLigatures, ParseError<'i>> {
+    let mut keyword = input.expect_ident_cloned()?;
+
+    if keyword.eq_ignore_ascii_case("normal") {
+        return Ok(CssFontVariantLigatures::Normal);
+    }
+
+    if keyword.eq_ignore_ascii_case("none") {
+        return Ok(CssFontVariantLigatures::None);
+    }
+
+    let mut common = false;
+    let mut discretionary = false;
+    let mut historical = false;
+    let mut contextual = false;
+
+    loop {
+        match keyword.as_ref() {
+            "common-ligatures" => common = true,
+            "no-common-ligatures" => common = false,
+
+            "discretionary-ligatures" => discretionary = true,
+            "no-discretionary-ligatures" => discretionary = false,
+
+            "historical-ligatures" => historical = true,
+            "no-historical-ligatures" => historical = false,
+
+            "contextual" => contextual = true,
+            "no-contextual" => contextual = false,
+
+            _ => return Err(input.new_custom_error(RetinaStyleParseError::FontVariantLigaturesUnknownKeyword(keyword))),
+        }
+
+        if input.is_exhausted() {
+            break;
+        }
+
+        keyword = input.expect_ident_cloned()?;
+    }
+
+    Ok(CssFontVariantLigatures::Specific {
+        common,
+        discretionary,
+        historical,
+        contextual,
+    })
 }
 
 pub(crate) fn parse_image<'i, 't>(
@@ -312,6 +379,8 @@ fn parse_specific_value<'i, 't>(
         Property::Float => Some(parse_float(input).map(|float| Value::Float(float))),
         Property::Font => Some(parse_font_shorthand(input).map(|shorthand| Value::FontShorthand(shorthand))),
         Property::FontFamily => Some(parse_font_families(input).map(|families| Value::FontFamily(families))),
+        Property::FontKerning => Some(parse_font_kerning(input).map(|kerning| Value::FontKerning(kerning))),
+        Property::FontVariantLigatures => Some(parse_font_variant_ligatures(input).map(|ligatures| Value::FontVariantLigatures(ligatures))),
         Property::FontStyle => Some(parse_font_style(input).map(|style| Value::FontStyle(style))),
 
         _ => None,

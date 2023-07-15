@@ -41,12 +41,13 @@ use retina_style_computation::{
 };
 
 use crate::{
+    ActualValueMap,
     DomNode,
     formatting_context::FormattingContextKind,
     LayoutBox,
     LayoutBoxDimensions,
     LayoutBoxKind,
-    LayoutEdge, ActualValueMap,
+    LayoutEdge,
 };
 
 pub struct LayoutGenerator<'stylesheets> {
@@ -199,15 +200,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
                 CssColor::Color(color) => color,
                 CssColor::CurrentColor => text_color,
             },
-            text_hinting_options: TextHintingOptions{
-                ligatures: LigatureMode::Specific {
-                    common: true,
-                    discretionary: true,
-                    historical: true,
-                    contextual: true,
-                },
-                ..Default::default()
-            },
+            text_hinting_options: self.convert_text_hinting_options(computed_style),
             text_color,
         }
     }
@@ -242,6 +235,35 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
                     FontWeight::new(700.0)
                 }
             }
+        }
+    }
+
+    fn convert_text_hinting_options(&self, computed_style: &PropertyMap) -> TextHintingOptions {
+        let kerning = match computed_style.font_kerning.unwrap_or_default() {
+            retina_style::CssFontKerning::Auto => true,
+            retina_style::CssFontKerning::None => false,
+            retina_style::CssFontKerning::Normal => true,
+        };
+
+        let ligatures = match computed_style.font_variant_ligatures.unwrap_or_default() {
+             retina_style::CssFontVariantLigatures::None => LigatureMode::None,
+             retina_style::CssFontVariantLigatures::Normal => LigatureMode::Normal,
+             retina_style::CssFontVariantLigatures::Specific {
+                common,
+                discretionary,
+                historical,
+                contextual,
+            } => LigatureMode::Specific {
+                common,
+                discretionary,
+                historical,
+                contextual,
+            },
+        };
+
+        TextHintingOptions {
+            kerning,
+            ligatures,
         }
     }
 

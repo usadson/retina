@@ -12,6 +12,19 @@ pub enum CssFontFamilyName {
     Name(StrTendril),
 }
 
+/// <https://drafts.csswg.org/css-fonts/#font-kerning-prop>
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(AsRefStr, EnumIter)]
+#[strum(serialize_all = "kebab-case")]
+pub enum CssFontKerning {
+    #[default]
+    Auto,
+
+    Normal,
+
+    None,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct CssFontShorthand {
     pub families: Vec<CssFontFamilyName>,
@@ -36,6 +49,20 @@ pub enum CssFontWeight {
     Absolute(CssDecimal),
     Bolder,
     Lighter,
+}
+
+/// <https://drafts.csswg.org/css-fonts/#font-variant-ligatures-prop>
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub enum CssFontVariantLigatures {
+    #[default]
+    Normal,
+    None,
+    Specific {
+        common: bool,
+        discretionary: bool,
+        historical: bool,
+        contextual: bool,
+    },
 }
 
 /// <https://drafts.csswg.org/css-fonts-4/#generic-font-families>

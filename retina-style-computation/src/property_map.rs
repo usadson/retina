@@ -93,9 +93,11 @@ pub struct PropertyMap {
     pub color: Option<CssColor>,
     pub display: Option<CssDisplay>,
     pub float: Option<CssFloatValue>,
-    pub font_size: Option<CssLength>,
+    pub font_kerning: Option<CssFontKerning>,
     pub font_family_list: Option<Vec<CssFontFamilyName>>,
+    pub font_size: Option<CssLength>,
     pub font_style: Option<CssFontStyle>,
+    pub font_variant_ligatures: Option<CssFontVariantLigatures>,
     pub font_weight: Option<CssFontWeight>,
     pub height: Option<CssLength>,
     pub line_height: Option<CssLength>,
@@ -319,10 +321,24 @@ impl PropertyMap {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue
             }
 
+            Property::FontKerning => if let Value::FontKerning(kerning) = value {
+                self.font_kerning = Some(kerning);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
             Property::FontStretch => PropertyMapDidApply::NoBecauseOfAnUnsupportedFeature,
 
             Property::FontStyle => if let Value::FontStyle(style) = value {
                 self.font_style = Some(style);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::FontVariantLigatures => if let Value::FontVariantLigatures(ligatures) = value {
+                self.font_variant_ligatures = Some(ligatures);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue
