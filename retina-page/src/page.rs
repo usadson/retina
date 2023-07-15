@@ -314,19 +314,19 @@ impl Page {
         &mut self,
         page_task_message_receiver: &mut AsyncReceiver<PageTaskMessage>
     ) -> Result<PageTaskMessageListenResult, ErrorKind> {
-        let task_message = tokio::time::timeout(Duration::from_millis(1), async {
-            page_task_message_receiver.recv()
-        }).await;
+        tokio::select! {
+            task_message = page_task_message_receiver.recv() => {
+                let Some(task_message) = task_message else {
+                    return Ok(PageTaskMessageListenResult::PipelineClosed);
+                };
 
-        let Ok(task_message) = task_message else {
-            return Ok(PageTaskMessageListenResult::Timeout)
-        };
+                self.handle_task_message(task_message).await
+            }
 
-        let Some(task_message) = task_message.await else {
-            return Ok(PageTaskMessageListenResult::PipelineClosed);
-        };
-
-        self.handle_task_message(task_message).await
+            _ = tokio::time::sleep(Duration::from_millis(5)) => {
+                Ok(PageTaskMessageListenResult::Timeout)
+            }
+        }
     }
 
     pub(crate) async fn load(&mut self) -> Result<(), ErrorKind> {
