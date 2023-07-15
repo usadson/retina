@@ -163,10 +163,12 @@ impl retina_gfx::Font for FontKitFont {
         position.y += self.metrics.ascent / typographic_unit_conversion_factor;
 
         self.glyph_iter(font_size, text, |glyph_position, info, glyph, glyph_id| {
+            let x_offset = glyph_position.x_offset as f32 / typographic_unit_conversion_factor;
+            let y_offset = glyph_position.y_offset as f32 / typographic_unit_conversion_factor;
             let glyph_rect = Rect::new(
                 Point2D::new(
-                    position.x + glyph.origin.x(),
-                    position.y - glyph.typographic_bounds.max_y(),
+                    position.x + glyph.origin.x() + x_offset,
+                    position.y - glyph.typographic_bounds.max_y() + y_offset,
                 ),
                 glyph.size.cast(),
             ).cast();
@@ -189,7 +191,7 @@ impl retina_gfx::Font for FontKitFont {
                 );
             }
 
-            position.x += glyph.advance.x();
+            position.x += glyph_position.x_advance as f32 / typographic_unit_conversion_factor;
         });
     }
 }
