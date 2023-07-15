@@ -6,9 +6,39 @@ use log::{warn, info};
 use retina_common::Color;
 use retina_dom::{Node, ImageData};
 use retina_fetch::{Fetch, Url};
-use retina_gfx_font::{FontProvider, FontDescriptor, FontWeight, FontHandle, FamilyName};
-use retina_style::{Stylesheet, CssDisplay, CssReferencePixels, CssDisplayInside, CssDisplayOutside, CssLength, CssDisplayBox, CssFontFamilyName, CssGenericFontFamilyName, CssFontWeight, CssLineStyle, CssImage, CssColor};
-use retina_style_computation::{PropertyMap, StyleCollector, Cascade, BorderProperties};
+
+use retina_gfx_font::{
+    FamilyName,
+    FontDescriptor,
+    FontHandle,
+    FontProvider,
+    FontWeight,
+    LigatureMode,
+    TextHintingOptions,
+};
+
+use retina_style::{
+    Stylesheet,
+    CssColor,
+    CssDisplay,
+    CssDisplayBox,
+    CssDisplayInside,
+    CssDisplayOutside,
+    CssFontFamilyName,
+    CssFontWeight,
+    CssGenericFontFamilyName,
+    CssImage,
+    CssLength,
+    CssLineStyle,
+    CssReferencePixels,
+};
+
+use retina_style_computation::{
+    Cascade,
+    BorderProperties,
+    PropertyMap,
+    StyleCollector,
+};
 
 use crate::{
     DomNode,
@@ -168,6 +198,15 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             background_color: match computed_style.background_color() {
                 CssColor::Color(color) => color,
                 CssColor::CurrentColor => text_color,
+            },
+            text_hinting_options: TextHintingOptions{
+                ligatures: LigatureMode::Specific {
+                    common: true,
+                    discretionary: true,
+                    historical: true,
+                    contextual: true,
+                },
+                ..Default::default()
             },
             text_color,
         }
@@ -414,6 +453,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         let actual_value_map = ActualValueMap {
             text_color: Color::BLACK,
             background_color: Color::WHITE,
+            text_hinting_options: TextHintingOptions::default(),
         };
 
         LayoutBox::new(

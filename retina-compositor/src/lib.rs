@@ -275,6 +275,7 @@ impl Compositor {
                 color,
                 line_box_fragment.position().cast(),
                 size,
+                layout_box.actual_values().text_hinting_options,
             );
         }
     }

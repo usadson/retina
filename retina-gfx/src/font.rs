@@ -4,10 +4,14 @@
 use euclid::default::{Point2D, Size2D};
 use retina_common::Color;
 
-use crate::{Painter, FontDescriptor};
+use crate::{
+    FontDescriptor,
+    Painter,
+    TextHintingOptions,
+};
 
 pub trait Font {
-    fn calculate_size(&self, size: f32, text: &str) -> Size2D<f32>;
+    fn calculate_size(&self, size: f32, text: &str, hints: TextHintingOptions) -> Size2D<f32>;
 
     fn descriptor(&self) -> &FontDescriptor;
 
@@ -17,6 +21,7 @@ pub trait Font {
         color: Color,
         position: Point2D<f32>,
         font_size: f32,
+        hints: TextHintingOptions,
         painter: &mut Painter
     );
 }

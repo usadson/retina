@@ -18,6 +18,7 @@ use crate::{
     Context,
     Font,
     SubmissionFuture,
+    TextHintingOptions,
     TextureMaterialRenderer,
 };
 
@@ -301,9 +302,10 @@ impl<'art> Painter<'art> {
         color: Color,
         position: euclid::Point2D<f32, PositionUnit>,
         size: Size,
+        hints: TextHintingOptions,
     )
             where Size: Into<f32> {
-        font.paint(text, color, position.cast_unit(), size.into(), self);
+        font.paint(text, color, position.cast_unit(), size.into(), hints, self);
     }
 
     #[must_use]

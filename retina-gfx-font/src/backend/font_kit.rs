@@ -34,6 +34,8 @@ use rayon::prelude::*;
 use retina_gfx::{
     Context,
     FontDescriptor,
+    LigatureMode,
+    TextHintingOptions,
 };
 
 use wgpu::util::DeviceExt;
@@ -101,7 +103,13 @@ impl FontKitFont {
         return_value
     }
 
-    fn glyph_iter<F>(&self, point_size: f32, text: &str, mut f: F)
+    fn glyph_iter<F>(
+        &self,
+        point_size: f32,
+        text: &str,
+        hints: TextHintingOptions,
+        mut f: F
+    )
             where F: FnMut(harfbuzz_rs::GlyphPosition, &Glyph) {
         self.with_size(point_size, |atlas| {
             self.font.with_harfbuzz_font(|font| {
@@ -109,7 +117,9 @@ impl FontKitFont {
                     .add_str(text)
                     .guess_segment_properties();
 
-                let glyph_buffer = harfbuzz_rs::shape(font, unicode_buffer, &[]);
+                let features = resolve_hints_to_harfbuzz(hints);
+
+                let glyph_buffer = harfbuzz_rs::shape(font, unicode_buffer, &features);
                 let positions = glyph_buffer.get_glyph_positions();
                 let infos = glyph_buffer.get_glyph_infos();
 
@@ -126,8 +136,69 @@ impl FontKitFont {
     }
 }
 
+fn resolve_hints_to_harfbuzz(hints: TextHintingOptions) -> Vec<harfbuzz_rs::Feature> {
+    use harfbuzz_rs::Feature;
+    use crate::harfbuzz_util::*;
+
+    let mut features = Vec::new();
+
+    if !hints.kerning {
+        features.push(Feature::new(TAG_KERN, 0, ..));
+    }
+
+    match hints.ligatures {
+        // https://drafts.csswg.org/css-fonts/#font-variant-ligatures-none-value
+        LigatureMode::None => {
+            features.push(Feature::new(TAG_CONTEXTUAL_ALTERNATIVES, 0, ..));
+            features.push(Feature::new(TAG_CONTEXTUAL_LIGATURES, 0, ..));
+            features.push(Feature::new(TAG_DISCRETIONARY_LIGATURES, 0, ..));
+            features.push(Feature::new(TAG_HISTORICAL_LIGATURES, 0, ..));
+            features.push(Feature::new(TAG_STANDARD_LIGATURES, 0, ..));
+
+            // We must not disable required ligatures (rlig), see
+            // https://drafts.csswg.org/css-fonts/#rlig-unaffected%22
+        }
+
+        // https://drafts.csswg.org/css-fonts/#font-variant-ligatures-normal-value
+        // See also: https://drafts.csswg.org/css-fonts/#default-features
+        LigatureMode::Normal => {
+            // Harfbuzz already complies :)
+            // https://harfbuzz.github.io/shaping-opentype-features.html
+        }
+
+        LigatureMode::Specific {
+            common,
+            contextual,
+            discretionary,
+            historical,
+        } => {
+            // https://drafts.csswg.org/css-fonts/#valdef-font-variant-ligatures-common-ligatures
+            let common = common as u32;
+            features.push(Feature::new(TAG_CONTEXTUAL_LIGATURES, common, ..));
+            features.push(Feature::new(TAG_STANDARD_LIGATURES, common, ..));
+
+
+            // https://drafts.csswg.org/css-fonts/#valdef-font-variant-ligatures-contextual
+            let contextual = contextual as u32;
+            features.push(Feature::new(TAG_CONTEXTUAL_ALTERNATIVES, contextual, ..));
+
+
+            // https://drafts.csswg.org/css-fonts/#valdef-font-variant-ligatures-discretionary-ligatures
+            let discretionary = discretionary as u32;
+            features.push(Feature::new(TAG_DISCRETIONARY_LIGATURES, discretionary, ..));
+
+
+            // https://drafts.csswg.org/css-fonts/#valdef-font-variant-ligatures-historical-ligatures
+            let historical = historical as u32;
+            features.push(Feature::new(TAG_HISTORICAL_LIGATURES, historical, ..));
+        }
+    }
+
+    features
+}
+
 impl retina_gfx::Font for FontKitFont {
-    fn calculate_size(&self, point_size: f32, text: &str) -> Size2D<f32> {
+    fn calculate_size(&self, point_size: f32, text: &str, hints: TextHintingOptions) -> Size2D<f32> {
         let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / point_size;
 
         let height = (self.metrics.ascent - self.metrics.descent)
@@ -137,7 +208,7 @@ impl retina_gfx::Font for FontKitFont {
             height,
         );
 
-        self.glyph_iter(point_size, text, |position, _glyph| {
+        self.glyph_iter(point_size, text, hints, |position, _glyph| {
             size.width += position.x_advance as f32 / typographic_unit_conversion_factor;
         });
 
@@ -155,14 +226,15 @@ impl retina_gfx::Font for FontKitFont {
         color: retina_common::Color,
         mut position: euclid::default::Point2D<f32>,
         font_size: f32,
-        painter: &mut retina_gfx::Painter
+        hints: TextHintingOptions,
+        painter: &mut retina_gfx::Painter,
     ) {
         let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / font_size;
 
         // Offset the position to the baseline.
         position.y += self.metrics.ascent / typographic_unit_conversion_factor;
 
-        self.glyph_iter(font_size, text, |glyph_position, glyph| {
+        self.glyph_iter(font_size, text, hints, |glyph_position, glyph| {
             let x_offset = glyph_position.x_offset as f32 / typographic_unit_conversion_factor;
             let y_offset = glyph_position.y_offset as f32 / typographic_unit_conversion_factor;
             let glyph_rect = Rect::new(

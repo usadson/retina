@@ -17,7 +17,7 @@ use euclid::default::Size2D;
 use log::warn;
 use retina_common::{DumpableNode, Color, StrExt, StrTendril};
 use retina_dom::{ImageData, HtmlElementKind};
-use retina_gfx_font::FontHandle;
+use retina_gfx_font::{FontHandle, TextHintingOptions};
 use retina_style::{CssReferencePixels, CssLength};
 
 use crate::{formatting_context::{
@@ -156,10 +156,11 @@ impl LayoutBox {
             parent.whitespace_state = FormattingContextWhitespaceState::NoWhitespace;
         }
 
+        let hinting_options = self.actual_value_map.text_hinting_options;
         let text = StrTendril::from(text.as_ref());
 
         if parent.max_width.unwrap_or_default().value() <= 0.0 {
-            let size = self.font.calculate_size(self.font_size.value() as _, &text).cast();
+            let size = self.font.calculate_size(self.font_size.value() as _, &text, hinting_options).cast();
             self.line_box_fragments = vec![
                 LineBoxFragment {
                     position: self.dimensions().content_position,
@@ -168,13 +169,13 @@ impl LayoutBox {
                 }
             ];
         } else {
-            self.run_anonymous_layout_algorithm(parent, text);
+            self.run_anonymous_layout_algorithm(parent, text, hinting_options);
         }
 
         self.run_anonymous_layout_calculate_size();
     }
 
-    fn run_anonymous_layout_algorithm(&mut self, parent: &mut FormattingContext, text: StrTendril) {
+    fn run_anonymous_layout_algorithm(&mut self, parent: &mut FormattingContext, text: StrTendril, hinting_options: TextHintingOptions) {
         self.line_box_fragments.clear();
 
         let max_width = parent.max_width.unwrap();
@@ -187,7 +188,7 @@ impl LayoutBox {
             let word = text.try_include_following_space(word).unwrap_or(word);
 
             let Some(fragment) = self.line_box_fragments.last_mut() else {
-                let word_size = self.font.calculate_size(self.font_size().value() as _, word);
+                let word_size = self.font.calculate_size(self.font_size().value() as _, word, hinting_options);
                 debug_assert!(fragment_begin_index == 0);
 
                 self.line_box_fragments.push(LineBoxFragment {
@@ -210,7 +211,7 @@ impl LayoutBox {
                 new_fragment_text_length,
             );
 
-            let fragment_size = self.font.calculate_size(font_size, &fragment_text).cast();
+            let fragment_size = self.font.calculate_size(font_size, &fragment_text, hinting_options).cast();
 
             // Does this word already fit on the last fragment?
             if fragment_size.width < max_width.value() {
@@ -237,7 +238,7 @@ impl LayoutBox {
                                 fragment_begin_index + word.len() as u32,
                             ))
                     }),
-                size: self.font().calculate_size(font_size, word).cast(),
+                size: self.font().calculate_size(font_size, word, hinting_options).cast(),
             });
         }
     }

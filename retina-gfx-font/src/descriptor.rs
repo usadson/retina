@@ -4,7 +4,9 @@
 pub use retina_gfx::{
     FamilyName,
     FontDescriptor,
-    FontWeight
+    FontWeight,
+    LigatureMode,
+    TextHintingOptions,
 };
 
 
