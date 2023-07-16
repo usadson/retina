@@ -8,6 +8,7 @@ use retina_dom::{Node, ImageData};
 use retina_fetch::{Fetch, Url};
 
 use retina_gfx_font::{
+    CapitalLetterMode,
     FamilyName,
     FontDescriptor,
     FontHandle,
@@ -239,6 +240,16 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
     }
 
     fn convert_text_hinting_options(&self, computed_style: &PropertyMap) -> TextHintingOptions {
+        let capitals = match computed_style.font_variant_caps.unwrap_or_default() {
+            retina_style::CssFontVariantCaps::Normal => CapitalLetterMode::Normal,
+            retina_style::CssFontVariantCaps::SmallCaps => CapitalLetterMode::SmallCaps,
+            retina_style::CssFontVariantCaps::AllSmallCaps => CapitalLetterMode::AllSmallCaps,
+            retina_style::CssFontVariantCaps::PetiteCaps => CapitalLetterMode::PetiteCaps,
+            retina_style::CssFontVariantCaps::AllPetiteCaps => CapitalLetterMode::AllPetiteCaps,
+            retina_style::CssFontVariantCaps::Unicase => CapitalLetterMode::Unicase,
+            retina_style::CssFontVariantCaps::TitlingCaps => CapitalLetterMode::TitlingCaps,
+        };
+
         let kerning = match computed_style.font_kerning.unwrap_or_default() {
             retina_style::CssFontKerning::Auto => true,
             retina_style::CssFontKerning::None => false,
@@ -262,6 +273,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         };
 
         TextHintingOptions {
+            capitals,
             kerning,
             ligatures,
         }
