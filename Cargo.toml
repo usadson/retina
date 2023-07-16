@@ -19,6 +19,7 @@ members = [
     "retina-style-parser",
     "retina-svg-layout",
     "retina-user-agent",
+    "retina-woff",
 ]
 
 resolver = "2"

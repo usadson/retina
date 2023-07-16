@@ -1,0 +1,10 @@
+[package]
+name = "retina-woff"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+brotli =  "*"
+bytes = "*"
+thiserror = "*"
