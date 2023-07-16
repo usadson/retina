@@ -97,6 +97,7 @@ pub struct PropertyMap {
     pub font_family_list: Option<Vec<CssFontFamilyName>>,
     pub font_size: Option<CssLength>,
     pub font_style: Option<CssFontStyle>,
+    pub font_variant_caps: Option<CssFontVariantCaps>,
     pub font_variant_ligatures: Option<CssFontVariantLigatures>,
     pub font_weight: Option<CssFontWeight>,
     pub height: Option<CssLength>,
@@ -332,6 +333,13 @@ impl PropertyMap {
 
             Property::FontStyle => if let Value::FontStyle(style) = value {
                 self.font_style = Some(style);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::FontVariantCaps => if let Value::FontVariantCaps(caps) = value {
+                self.font_variant_caps = Some(caps);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue

@@ -157,6 +157,7 @@ fn inherit_properties(property_map: &mut PropertyMap, parent: &PropertyMap) {
     inherit_property(&mut property_map.font_kerning, &parent.font_kerning);
     inherit_property(&mut property_map.font_size, &parent.font_size);
     inherit_property(&mut property_map.font_style, &parent.font_style);
+    inherit_property(&mut property_map.font_variant_caps, &parent.font_variant_caps);
     inherit_property(&mut property_map.font_variant_ligatures, &parent.font_variant_ligatures);
     inherit_property(&mut property_map.font_weight, &parent.font_weight);
     // `display` is not inherited

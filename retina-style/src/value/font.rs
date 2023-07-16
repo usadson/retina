@@ -51,6 +51,34 @@ pub enum CssFontWeight {
     Lighter,
 }
 
+/// <https://drafts.csswg.org/css-fonts/#propdef-font-variant-caps>
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(AsRefStr, EnumIter)]
+#[strum(serialize_all = "kebab-case")]
+pub enum CssFontVariantCaps {
+    /// https://drafts.csswg.org/css-fonts/#font-variant-caps-normal-value
+    #[default]
+    Normal,
+
+    /// https://drafts.csswg.org/css-fonts/#valdef-font-variant-caps-small-caps
+    SmallCaps,
+
+    /// https://drafts.csswg.org/css-fonts/#valdef-font-variant-caps-all-small-caps
+    AllSmallCaps,
+
+    /// https://drafts.csswg.org/css-fonts/#valdef-font-variant-caps-petite-caps
+    PetiteCaps,
+
+    /// https://drafts.csswg.org/css-fonts/#valdef-font-variant-caps-all-petite-caps
+    AllPetiteCaps,
+
+    /// https://drafts.csswg.org/css-fonts/#valdef-font-variant-caps-unicase
+    Unicase,
+
+    /// https://drafts.csswg.org/css-fonts/#valdef-font-variant-caps-titling-caps
+    TitlingCaps,
+}
+
 /// <https://drafts.csswg.org/css-fonts/#font-variant-ligatures-prop>
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub enum CssFontVariantLigatures {

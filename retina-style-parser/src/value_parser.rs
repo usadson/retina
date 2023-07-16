@@ -180,6 +180,23 @@ pub(crate) fn parse_font_style<'i, 't>(
         })
 }
 
+pub(crate) fn parse_font_variant_caps<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssFontVariantCaps, ParseError<'i>> {
+    let location = input.current_source_location();
+    let keyword = input.expect_ident()?;
+    CssFontVariantCaps::iter()
+        .find(|style| {
+            style.as_ref().eq_ignore_ascii_case(&keyword)
+        })
+        .ok_or_else(|| ParseError {
+            kind: ParseErrorKind::Custom(
+                RetinaStyleParseError::FontStyleUnknownKeyword(keyword.clone())
+            ),
+            location,
+        })
+}
+
 pub(crate) fn parse_font_variant_ligatures<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<CssFontVariantLigatures, ParseError<'i>> {
@@ -380,6 +397,7 @@ fn parse_specific_value<'i, 't>(
         Property::Font => Some(parse_font_shorthand(input).map(|shorthand| Value::FontShorthand(shorthand))),
         Property::FontFamily => Some(parse_font_families(input).map(|families| Value::FontFamily(families))),
         Property::FontKerning => Some(parse_font_kerning(input).map(|kerning| Value::FontKerning(kerning))),
+        Property::FontVariantCaps => Some(parse_font_variant_caps(input).map(|ligatures| Value::FontVariantCaps(ligatures))),
         Property::FontVariantLigatures => Some(parse_font_variant_ligatures(input).map(|ligatures| Value::FontVariantLigatures(ligatures))),
         Property::FontStyle => Some(parse_font_style(input).map(|style| Value::FontStyle(style))),
 
