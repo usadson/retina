@@ -32,6 +32,7 @@ use pathfinder_geometry::{
 use rayon::prelude::*;
 
 use retina_gfx::{
+    CapitalLetterMode,
     Context,
     FontDescriptor,
     LigatureMode,
@@ -141,6 +142,43 @@ fn resolve_hints_to_harfbuzz(hints: TextHintingOptions) -> Vec<harfbuzz_rs::Feat
     use crate::harfbuzz_util::*;
 
     let mut features = Vec::new();
+
+    match hints.capitals {
+        // https://drafts.csswg.org/css-fonts/#font-variant-caps-normal-value
+        CapitalLetterMode::Normal => (),
+
+        // https://drafts.csswg.org/css-fonts/#valdef-font-variant-caps-small-caps
+        CapitalLetterMode::SmallCaps => {
+            features.push(Feature::new(TAG_SMALL_CAPITALS, 1, ..));
+        }
+
+        // https://drafts.csswg.org/css-fonts/#valdef-font-variant-caps-all-small-caps
+        CapitalLetterMode::AllSmallCaps => {
+            features.push(Feature::new(TAG_SMALL_CAPITALS, 1, ..));
+            features.push(Feature::new(TAG_SMALL_CAPITALS_FROM_CAPITALS, 1, ..));
+        }
+
+        // https://drafts.csswg.org/css-fonts/#valdef-font-variant-caps-petite-caps
+        CapitalLetterMode::PetiteCaps => {
+            features.push(Feature::new(TAG_PETITE_CAPITALS, 1, ..));
+        }
+
+        // https://drafts.csswg.org/css-fonts/#valdef-font-variant-caps-all-petite-caps
+        CapitalLetterMode::AllPetiteCaps => {
+            features.push(Feature::new(TAG_PETITE_CAPITALS, 1, ..));
+            features.push(Feature::new(TAG_PETITE_CAPITALS_FROM_CAPITALS, 1, ..));
+        }
+
+        // https://drafts.csswg.org/css-fonts/#valdef-font-variant-caps-unicase
+        CapitalLetterMode::Unicase => {
+            features.push(Feature::new(TAG_UNICASE, 1, ..));
+        }
+
+        // https://drafts.csswg.org/css-fonts/#valdef-font-variant-caps-titling-caps
+        CapitalLetterMode::TitlingCaps => {
+            features.push(Feature::new(TAG_TITLING, 1, ..));
+        }
+    }
 
     if !hints.kerning {
         features.push(Feature::new(TAG_KERN, 0, ..));

@@ -2,6 +2,24 @@
 // All Rights Reserved.
 
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub enum CapitalLetterMode {
+    #[default]
+    Normal,
+
+    SmallCaps,
+
+    AllSmallCaps,
+
+    PetiteCaps,
+
+    AllPetiteCaps,
+
+    Unicase,
+
+    TitlingCaps,
+}
+
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub enum LigatureMode {
     None,
 
@@ -28,6 +46,7 @@ pub enum LigatureMode {
 /// by the backing implementation.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct TextHintingOptions {
+    pub capitals: CapitalLetterMode,
     pub ligatures: LigatureMode,
     pub kerning: bool,
 }
@@ -35,6 +54,7 @@ pub struct TextHintingOptions {
 impl Default for TextHintingOptions {
     fn default() -> Self {
         Self {
+            capitals: CapitalLetterMode::default(),
             ligatures: LigatureMode::default(),
             kerning: false,
         }

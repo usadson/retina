@@ -20,10 +20,7 @@ use raw_window_handle::{RawWindowHandle, RawDisplayHandle, HasRawWindowHandle, H
 pub use retina_common::Color;
 pub use self::{
     context::Context,
-    features::{
-        LigatureMode,
-        TextHintingOptions,
-    },
+    features::*,
     font::Font,
     font_descriptor::{FamilyName, FontDescriptor, FontWeight},
     future::SubmissionFuture,

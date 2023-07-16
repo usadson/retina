@@ -12,13 +12,7 @@ pub(crate) mod renderer;
 pub(crate) use family::FontFamily;
 
 pub use self:: {
-    descriptor::{
-        FamilyName,
-        FontDescriptor,
-        FontWeight,
-        LigatureMode,
-        TextHintingOptions,
-    },
+    descriptor::*,
     handle::FontHandle,
     provider::FontProvider,
 };
