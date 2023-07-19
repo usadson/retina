@@ -78,6 +78,7 @@ pub enum Property {
     TextDecorationColor,
     TextDecorationLine,
     TextDecorationStyle,
+    TextTransform,
 
     Width,
     WhiteSpace,

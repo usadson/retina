@@ -500,6 +500,23 @@ pub(crate) fn parse_text_decoration_style<'i, 't>(
         })
 }
 
+pub(crate) fn parse_text_transform<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssTextTransform, ParseError<'i>> {
+    let location = input.current_source_location();
+    let keyword = input.expect_ident()?;
+    CssTextTransform::iter()
+        .find(|style| {
+            style.as_ref().eq_ignore_ascii_case(&keyword)
+        })
+        .ok_or_else(|| ParseError {
+            kind: ParseErrorKind::Custom(
+                RetinaStyleParseError::UnknownKeyword(keyword.clone())
+            ),
+            location,
+        })
+}
+
 fn parse_specific_value<'i, 't>(
     input: &mut Parser<'i, 't>,
     property: Property,
@@ -516,6 +533,7 @@ fn parse_specific_value<'i, 't>(
         Property::TextDecoration => Some(parse_text_decoration(input).map(|value| Value::TextDecoration(value))),
         Property::TextDecorationLine => Some(parse_text_decoration_line(input).map(|value| Value::TextDecorationLine(value))),
         Property::TextDecorationStyle => Some(parse_text_decoration_style(input).map(|value| Value::TextDecorationStyle(value))),
+        Property::TextTransform => Some(parse_text_transform(input).map(|value| Value::TextTransform(value))),
 
         _ => None,
     }

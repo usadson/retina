@@ -105,6 +105,7 @@ pub struct PropertyMap {
     pub text_decoration_color: Option<CssColor>,
     pub text_decoration_line: Option<CssTextDecorationLine>,
     pub text_decoration_style: Option<CssTextDecorationStyle>,
+    pub text_transform: Option<CssTextTransform>,
     pub width: Option<CssLength>,
     pub white_space: Option<CssWhiteSpace>,
 }
@@ -549,6 +550,13 @@ impl PropertyMap {
 
             Property::TextDecorationStyle => if let Value::TextDecorationStyle(style) = value {
                 self.text_decoration_style = Some(style);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::TextTransform => if let Value::TextTransform(transform) = value {
+                self.text_transform = Some(transform);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue

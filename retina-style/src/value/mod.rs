@@ -9,6 +9,7 @@ pub mod image;
 pub mod length;
 pub mod line_style;
 pub mod reference_pixels;
+pub mod text;
 pub mod text_decoration;
 pub mod white_space;
 
@@ -32,6 +33,7 @@ pub use self::{
     length::CssLength,
     line_style::CssLineStyle,
     reference_pixels::CssReferencePixels,
+    text::CssTextTransform,
     text_decoration::{
         CssTextDecoration,
         CssTextDecorationLine,
@@ -67,6 +69,7 @@ pub enum Value {
     TextDecoration(CssTextDecoration),
     TextDecorationLine(CssTextDecorationLine),
     TextDecorationStyle(CssTextDecorationStyle),
+    TextTransform(CssTextTransform),
     WhiteSpace(CssWhiteSpace),
 }
 
