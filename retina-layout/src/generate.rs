@@ -2,7 +2,7 @@
 // All Rights Reserved.
 
 use euclid::default::Point2D;
-use log::{warn, info};
+use log::warn;
 use retina_common::Color;
 use retina_dom::{Node, ImageData};
 use retina_fetch::{Fetch, Url};
@@ -344,7 +344,6 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
                 };
 
                 if let Some(font) = self.font_provider.get(descriptor) {
-                    info!("[font-family] Using font: {font_family:#?}");
                     return font;
                 }
 
