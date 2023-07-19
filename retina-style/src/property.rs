@@ -74,6 +74,11 @@ pub enum Property {
     PaddingRight,
     PaddingTop,
 
+    TextDecoration,
+    TextDecorationColor,
+    TextDecorationLine,
+    TextDecorationStyle,
+
     Width,
     WhiteSpace,
 }

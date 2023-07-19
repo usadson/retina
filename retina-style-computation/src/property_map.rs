@@ -102,6 +102,9 @@ pub struct PropertyMap {
     pub font_weight: Option<CssFontWeight>,
     pub height: Option<CssLength>,
     pub line_height: Option<CssLength>,
+    pub text_decoration_color: Option<CssColor>,
+    pub text_decoration_line: Option<CssTextDecorationLine>,
+    pub text_decoration_style: Option<CssTextDecorationStyle>,
     pub width: Option<CssLength>,
     pub white_space: Option<CssWhiteSpace>,
 }
@@ -508,6 +511,44 @@ impl PropertyMap {
 
             Property::PaddingTop => if let Value::Length(length) = value {
                 self.padding_top = Some(length);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::TextDecoration => if let Value::TextDecoration(decoration) = value {
+                if let Some(color) = decoration.color {
+                    self.text_decoration_color = Some(color);
+                }
+
+                if let Some(line) = decoration.line {
+                    self.text_decoration_line = Some(line);
+                }
+
+                if let Some(style) = decoration.style {
+                    self.text_decoration_style = Some(style);
+                }
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::TextDecorationColor => if let Value::Color(color) = value {
+                self.text_decoration_color = Some(color);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::TextDecorationLine => if let Value::TextDecorationLine(line) = value {
+                self.text_decoration_line = Some(line);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::TextDecorationStyle => if let Value::TextDecorationStyle(style) = value {
+                self.text_decoration_style = Some(style);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue

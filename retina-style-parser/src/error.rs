@@ -35,6 +35,7 @@ pub enum RetinaStyleParseError<'i> {
     UnknownAtRule(CowRcStr<'i>),
 
     UnknownBasicColorKeyword,
+    UnknownKeyword(CowRcStr<'i>),
     UnknownSelector(Token<'i>),
     UnknownSelectorPseudoClass(CowRcStr<'i>),
     UnknownValue(Option<Token<'i>>),

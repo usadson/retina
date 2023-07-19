@@ -9,6 +9,7 @@ pub mod image;
 pub mod length;
 pub mod line_style;
 pub mod reference_pixels;
+pub mod text_decoration;
 pub mod white_space;
 
 pub type CssDecimal = f64;
@@ -31,6 +32,11 @@ pub use self::{
     length::CssLength,
     line_style::CssLineStyle,
     reference_pixels::CssReferencePixels,
+    text_decoration::{
+        CssTextDecoration,
+        CssTextDecorationLine,
+        CssTextDecorationStyle,
+    },
     white_space::CssWhiteSpace,
 };
 
@@ -58,6 +64,9 @@ pub enum Value {
     Image(CssImage),
     Length(CssLength),
     LineStyle(CssLineStyle),
+    TextDecoration(CssTextDecoration),
+    TextDecorationLine(CssTextDecorationLine),
+    TextDecorationStyle(CssTextDecorationStyle),
     WhiteSpace(CssWhiteSpace),
 }
 

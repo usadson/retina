@@ -388,6 +388,77 @@ pub(crate) fn parse_single_value<'i, 't>(input: &mut Parser<'i, 't>) -> Result<V
     Err(input.new_custom_error(RetinaStyleParseError::UnknownValue(token)))
 }
 
+pub(crate) fn parse_text_decoration<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssTextDecoration, ParseError<'i>> {
+    let mut result = CssTextDecoration {
+        color: None,
+        line: None,
+        style: None,
+    };
+
+    while !input.is_exhausted() {
+        if result.color.is_none() {
+            if let Ok(color) = input.try_parse(parse_color) {
+                result.color = Some(color);
+                continue;
+            }
+        }
+
+        if result.line.is_none() {
+            if let Ok(line) = input.try_parse(parse_text_decoration_line) {
+                result.line = Some(line);
+                continue;
+            }
+        }
+
+        if result.style.is_none() {
+            if let Ok(style) = input.try_parse(parse_text_decoration_style) {
+                result.style = Some(style);
+                continue;
+            }
+        }
+
+        return Err(input.new_error_for_next_token());
+    }
+
+    Ok(result)
+}
+
+pub(crate) fn parse_text_decoration_line<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssTextDecorationLine, ParseError<'i>> {
+    let location = input.current_source_location();
+    let keyword = input.expect_ident()?;
+    CssTextDecorationLine::iter()
+        .find(|style| {
+            style.as_ref().eq_ignore_ascii_case(&keyword)
+        })
+        .ok_or_else(|| ParseError {
+            kind: ParseErrorKind::Custom(
+                RetinaStyleParseError::UnknownKeyword(keyword.clone())
+            ),
+            location,
+        })
+}
+
+pub(crate) fn parse_text_decoration_style<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssTextDecorationStyle, ParseError<'i>> {
+    let location = input.current_source_location();
+    let keyword = input.expect_ident()?;
+    CssTextDecorationStyle::iter()
+        .find(|style| {
+            style.as_ref().eq_ignore_ascii_case(&keyword)
+        })
+        .ok_or_else(|| ParseError {
+            kind: ParseErrorKind::Custom(
+                RetinaStyleParseError::UnknownKeyword(keyword.clone())
+            ),
+            location,
+        })
+}
+
 fn parse_specific_value<'i, 't>(
     input: &mut Parser<'i, 't>,
     property: Property,
@@ -400,6 +471,9 @@ fn parse_specific_value<'i, 't>(
         Property::FontVariantCaps => Some(parse_font_variant_caps(input).map(|ligatures| Value::FontVariantCaps(ligatures))),
         Property::FontVariantLigatures => Some(parse_font_variant_ligatures(input).map(|ligatures| Value::FontVariantLigatures(ligatures))),
         Property::FontStyle => Some(parse_font_style(input).map(|style| Value::FontStyle(style))),
+        Property::TextDecoration => Some(parse_text_decoration(input).map(|value| Value::TextDecoration(value))),
+        Property::TextDecorationLine => Some(parse_text_decoration_line(input).map(|value| Value::TextDecorationLine(value))),
+        Property::TextDecorationStyle => Some(parse_text_decoration_style(input).map(|value| Value::TextDecorationStyle(value))),
 
         _ => None,
     }
