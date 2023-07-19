@@ -253,9 +253,24 @@ impl retina_gfx::Font for FontKitFont {
         size
     }
 
+    fn baseline_offset(&self, point_size: f32) -> f32 {
+        let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / point_size;
+        (self.metrics.ascent - self.metrics.descent) / typographic_unit_conversion_factor
+    }
+
     #[inline]
     fn descriptor(&self) -> &FontDescriptor {
         &self.descriptor
+    }
+
+    fn underline_position(&self, point_size: f32) -> f32 {
+        let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / point_size;
+        self.metrics.underline_position / typographic_unit_conversion_factor
+    }
+
+    fn underline_thickness(&self, point_size: f32) -> f32 {
+        let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / point_size;
+        self.metrics.underline_thickness / typographic_unit_conversion_factor
     }
 
     fn paint(

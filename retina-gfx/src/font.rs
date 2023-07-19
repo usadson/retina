@@ -24,4 +24,8 @@ pub trait Font {
         hints: TextHintingOptions,
         painter: &mut Painter
     );
+
+    fn baseline_offset(&self, point_size: f32) -> f32;
+    fn underline_position(&self, point_size: f32) -> f32;
+    fn underline_thickness(&self, point_size: f32) -> f32;
 }
