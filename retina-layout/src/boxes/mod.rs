@@ -183,7 +183,8 @@ impl LayoutBox {
         let font_size = self.font_size().value() as f32;
         let mut fragment_begin_index: u32 = 0;
 
-        for word in text.split_ascii_whitespace() {
+        use unicode_segmentation::UnicodeSegmentation;
+        for word in text.split_word_bounds() {
             let original_word = word;
             let word = text.try_include_following_space(word).unwrap_or(word);
 

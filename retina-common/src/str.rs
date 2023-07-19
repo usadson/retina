@@ -60,13 +60,16 @@ impl StrExt for str {
     }
 
     fn try_include_following_space(&self, word: &str) -> Option<&str> {
-        let Some(word_and_after) = self.slice_from_substring(word) else {
-            return None;
-        };
+        let word_and_after = self.slice_from_substring(word)?;
 
-        let Some(after_word_char) = word_and_after.chars().nth(word.len()) else {
+        debug_assert_eq!(word, &word_and_after[0..word.len()]);
+
+        if word_and_after.len() == word.len() {
             return None;
-        };
+        }
+
+        let chars_in_word = word.chars().count();
+        let after_word_char = word_and_after.chars().nth(chars_in_word)?;
 
         if after_word_char.is_ascii_whitespace() {
             Some(&word_and_after[0..word.len() + 1])

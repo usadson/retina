@@ -15,6 +15,7 @@ retina-style-computation = { path = "../retina-style-computation" }
 euclid = "*"
 log = "*"
 tokio = { version = "*", features = ["full"] }
+unicode-segmentation = "*"
 
 [dev-dependencies]
 rstest = "*"
