@@ -247,6 +247,47 @@ pub(crate) fn parse_font_variant_ligatures<'i, 't>(
     })
 }
 
+pub(crate) fn parse_font_weight<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssFontWeight, ParseError<'i>> {
+    let state = input.state();
+
+    match input.next()? {
+        Token::Ident(ident) => {
+            // https://drafts.csswg.org/css-fonts/#valdef-font-weight-normal
+            if ident.eq_ignore_ascii_case("normal") {
+                return Ok(CssFontWeight::Absolute(400.0));
+            }
+
+            // https://drafts.csswg.org/css-fonts/#valdef-font-weight-bold
+            if ident.eq_ignore_ascii_case("bold") {
+                return Ok(CssFontWeight::Absolute(700.0));
+            }
+
+            // https://drafts.csswg.org/css-fonts/#valdef-font-weight-bolder
+            if ident.eq_ignore_ascii_case("bolder") {
+                return Ok(CssFontWeight::Bolder);
+            }
+
+            // https://drafts.csswg.org/css-fonts/#valdef-font-weight-lighter
+            if ident.eq_ignore_ascii_case("lighter") {
+                return Ok(CssFontWeight::Lighter);
+            }
+        }
+
+        Token::Number { value, .. } => {
+            if *value >= 1.0 && *value <= 1000.0 {
+                return Ok(CssFontWeight::Absolute(*value as _));
+            }
+        }
+
+        _ => (),
+    }
+
+    input.reset(&state);
+    Err(input.new_error_for_next_token())
+}
+
 pub(crate) fn parse_image<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<CssImage, ParseError<'i>> {
@@ -468,9 +509,10 @@ fn parse_specific_value<'i, 't>(
         Property::Font => Some(parse_font_shorthand(input).map(|shorthand| Value::FontShorthand(shorthand))),
         Property::FontFamily => Some(parse_font_families(input).map(|families| Value::FontFamily(families))),
         Property::FontKerning => Some(parse_font_kerning(input).map(|kerning| Value::FontKerning(kerning))),
+        Property::FontStyle => Some(parse_font_style(input).map(|style| Value::FontStyle(style))),
         Property::FontVariantCaps => Some(parse_font_variant_caps(input).map(|ligatures| Value::FontVariantCaps(ligatures))),
         Property::FontVariantLigatures => Some(parse_font_variant_ligatures(input).map(|ligatures| Value::FontVariantLigatures(ligatures))),
-        Property::FontStyle => Some(parse_font_style(input).map(|style| Value::FontStyle(style))),
+        Property::FontWeight => Some(parse_font_weight(input).map(|value| Value::FontWeight(value))),
         Property::TextDecoration => Some(parse_text_decoration(input).map(|value| Value::TextDecoration(value))),
         Property::TextDecorationLine => Some(parse_text_decoration_line(input).map(|value| Value::TextDecorationLine(value))),
         Property::TextDecorationStyle => Some(parse_text_decoration_style(input).map(|value| Value::TextDecorationStyle(value))),
