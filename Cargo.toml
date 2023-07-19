@@ -9,6 +9,7 @@ members = [
     "retina-gfx",
     "retina-gfx-gui",
     "retina-gfx-font",
+    "retina-i18n",
     "retina-layout",
     "retina-media-type",
     "retina-page",

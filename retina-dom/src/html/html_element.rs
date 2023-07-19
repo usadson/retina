@@ -3,7 +3,8 @@
 
 use std::ops::Deref;
 
-use html5ever::QualName;
+use html5ever::{QualName, local_name};
+use retina_i18n::IetfLanguageSubtag;
 
 use crate::Element;
 
@@ -17,6 +18,28 @@ impl HtmlElement {
         Self {
             element: Element::new(qualified_name),
         }
+    }
+
+    /// Resolves the [`lang`][spec] attribute.
+    ///
+    /// [spec]: https://html.spec.whatwg.org/multipage/dom.html#attr-lang
+    pub fn language(&self) -> Option<IetfLanguageSubtag> {
+        if let Some(lang) = self.element.attributes().find(&local_name!("lang")) {
+            // Even if the language is invalid, we don't have to look at the
+            // ancestors:
+            //
+            // "That attribute specifies the language of the node (regardless of
+            // its value)."
+            return IetfLanguageSubtag::from_str(lang);
+        }
+
+        self.element.as_node()
+            .parent()?
+            .upgrade()?
+            .as_html_element_kind()?
+            .as_html_element()
+            .language()
+
     }
 }
 

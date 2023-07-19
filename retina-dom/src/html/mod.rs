@@ -53,6 +53,15 @@ impl HtmlElementKind {
         }
     }
 
+    pub fn as_html_element(&self) -> &HtmlElement {
+        match self {
+            Self::Img(element) => element.as_ref(),
+            Self::Link(element) => element.as_ref(),
+            Self::Style(element) => element.as_ref(),
+            Self::Unknown(element) => element.as_ref(),
+        }
+    }
+
     pub fn as_style_element(&self) -> Option<&HtmlStyleElement> {
         if let Self::Style(element) = self {
             Some(element)

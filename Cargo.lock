@@ -3011,6 +3011,7 @@ dependencies = [
  "log",
  "retina-common",
  "retina-fetch",
+ "retina-i18n",
  "retina-media-type",
  "strum",
  "tendril",
@@ -3078,9 +3079,14 @@ dependencies = [
  "thiserror",
  "tracing",
  "wgpu",
+ "windows 0.48.0",
  "winit",
  "winsafe",
 ]
+
+[[package]]
+name = "retina-i18n"
+version = "0.2.0"
 
 [[package]]
 name = "retina-layout"
@@ -3092,6 +3098,7 @@ dependencies = [
  "retina-dom",
  "retina-fetch",
  "retina-gfx-font",
+ "retina-i18n",
  "retina-style",
  "retina-style-computation",
  "rstest",

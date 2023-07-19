@@ -147,8 +147,20 @@ impl LayoutBox {
 
         let mut text = Cow::Borrowed(text.data_as_str());
         if self.computed_style.white_space().collapses() {
-            text = crate::white_space::collapse_white_space(text, parent.whitespace_state);
+            text = crate::text::collapse_white_space(text, parent.whitespace_state);
         }
+
+        let mut parent_node = None;
+        let element = self.node.as_html_element_kind()
+            .unwrap_or_else(|| {
+                parent_node = Some(self.node.as_node().parent().unwrap().upgrade().unwrap());
+                parent_node.as_ref().unwrap().as_html_element_kind().unwrap()
+            });
+
+
+        let language = element.as_html_element().language();
+
+        text = crate::text::transform(text, self.computed_style.text_transform.unwrap_or_default(), language);
 
         if text.ends_with(' ') {
             parent.whitespace_state = FormattingContextWhitespaceState::EndedWithWhitespace;

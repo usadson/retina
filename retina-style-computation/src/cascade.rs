@@ -160,7 +160,7 @@ fn inherit_properties(property_map: &mut PropertyMap, parent: &PropertyMap) {
     inherit_property(&mut property_map.font_variant_caps, &parent.font_variant_caps);
     inherit_property(&mut property_map.font_variant_ligatures, &parent.font_variant_ligatures);
     inherit_property(&mut property_map.font_weight, &parent.font_weight);
-    // `display` is not inherited
+    inherit_property(&mut property_map.text_transform, &parent.text_transform);
     inherit_property(&mut property_map.white_space, &parent.white_space);
 
     // This is incorrect, but I'm not sure what the spec means by inheritance

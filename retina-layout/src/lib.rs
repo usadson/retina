@@ -18,7 +18,7 @@ mod actual_values;
 mod boxes;
 mod formatting_context;
 mod generate;
-pub(crate) mod white_space;
+pub(crate) mod text;
 
 pub use self::{
     actual_values::ActualValueMap,

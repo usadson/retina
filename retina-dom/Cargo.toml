@@ -7,6 +7,7 @@ license.workspace = true
 [dependencies]
 retina-common = { path = "../retina-common" }
 retina-fetch = { path = "../retina-fetch" }
+retina-i18n = { path = "../retina-i18n" }
 retina-media-type = { path = "../retina-media-type" }
 
 log = "*"
