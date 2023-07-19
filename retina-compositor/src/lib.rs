@@ -278,8 +278,16 @@ impl Compositor {
             CssColor::CurrentColor => layout_box.actual_values().text_color,
         };
 
-        let text_decoration_offset = layout_box.font().baseline_offset(size) as CssDecimal
-            + layout_box.font().underline_position(size) as CssDecimal;
+        let line = layout_box.computed_style().text_decoration_line.unwrap_or_default();
+        let font_baseline = layout_box.font().baseline_offset(size) as CssDecimal;
+        let font_underline_offset  = layout_box.font().underline_position(size) as CssDecimal;
+
+        let text_decoration_offset = match line {
+            CssTextDecorationLine::Underline => font_baseline + font_underline_offset,
+            CssTextDecorationLine::LineThrough => font_baseline / 2.0,
+            CssTextDecorationLine::Overline => 0.0,
+            _ => 0.0,
+        };
         let text_decoration_thickness = layout_box.font().underline_thickness(size) as CssDecimal;
 
         for line_box_fragment in layout_box.line_box_fragments() {
@@ -294,7 +302,7 @@ impl Compositor {
                 layout_box.actual_values().text_hinting_options,
             );
 
-            match layout_box.computed_style().text_decoration_line.unwrap_or_default() {
+            match line {
                 CssTextDecorationLine::None => (),
                 _ => {
                     let rect: Rect<f64, UnknownUnit> = Rect::new(
