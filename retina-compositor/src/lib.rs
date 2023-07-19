@@ -6,7 +6,12 @@ use std::sync::OnceLock;
 use retina_dom::{HtmlElementKind, ImageData};
 use retina_gfx::{Painter, euclid::{Rect, Point2D, Size2D, UnknownUnit}, Texture, Color};
 use retina_layout::LayoutBox;
-use retina_style::{CssColor, CssDecimal, CssLineStyle};
+use retina_style::{
+    CssColor,
+    CssDecimal,
+    CssLineStyle,
+    CssTextDecorationLine,
+};
 use retina_style_computation::BorderProperties;
 use tracing::instrument;
 
@@ -268,15 +273,43 @@ impl Compositor {
             return;
         }
 
+        let text_decoration_color = match layout_box.computed_style().text_decoration_color.unwrap_or(CssColor::CurrentColor) {
+            CssColor::Color(color) => color,
+            CssColor::CurrentColor => layout_box.actual_values().text_color,
+        };
+
+        let text_decoration_offset = layout_box.font().baseline_offset(size) as CssDecimal
+            + layout_box.font().underline_position(size) as CssDecimal;
+        let text_decoration_thickness = layout_box.font().underline_thickness(size) as CssDecimal;
+
         for line_box_fragment in layout_box.line_box_fragments() {
+            let position = line_box_fragment.position();
+
             painter.paint_text(
                 layout_box.font().as_ref(),
                 line_box_fragment.text(),
                 color,
-                line_box_fragment.position().cast(),
+                position.cast(),
                 size,
                 layout_box.actual_values().text_hinting_options,
             );
+
+            match layout_box.computed_style().text_decoration_line.unwrap_or_default() {
+                CssTextDecorationLine::None => (),
+                _ => {
+                    let rect: Rect<f64, UnknownUnit> = Rect::new(
+                        Point2D::new(
+                            position.x,
+                            position.y + text_decoration_offset
+                        ),
+                        Size2D::new(line_box_fragment.size().width, text_decoration_thickness)
+                    );
+
+                    painter.paint_rect_colored(
+                        rect, text_decoration_color
+                    );
+                }
+            }
         }
     }
 }

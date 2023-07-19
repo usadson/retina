@@ -34,6 +34,11 @@ impl LineBoxFragment {
     }
 
     #[inline]
+    pub const fn size(&self) -> Size2D<CssDecimal> {
+        self.size
+    }
+
+    #[inline]
     pub fn text(&self) -> &str {
         &self.text
     }
