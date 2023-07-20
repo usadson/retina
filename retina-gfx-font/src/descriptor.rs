@@ -2,6 +2,8 @@
 // All Rights Reserved.
 
 pub use retina_gfx::{
+    EastAsianGlyphForm,
+    EastAsianGlyphWidth,
     FamilyName,
     FontDescriptor,
     FontWeight,

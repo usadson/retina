@@ -20,6 +20,27 @@ pub enum CapitalLetterMode {
 }
 
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub enum EastAsianGlyphForm {
+    #[default]
+    Normal,
+    Jis78,
+    Jis83,
+    Jis90,
+    Jis04,
+    Simplified,
+    Traditional,
+}
+
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub enum EastAsianGlyphWidth {
+    #[default]
+    Normal,
+    FullWidth,
+    ProportionalWidth,
+}
+
+
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub enum LigatureMode {
     None,
 
@@ -47,16 +68,22 @@ pub enum LigatureMode {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct TextHintingOptions {
     pub capitals: CapitalLetterMode,
+    pub east_asian_form: EastAsianGlyphForm,
+    pub east_asian_width: EastAsianGlyphWidth,
     pub ligatures: LigatureMode,
     pub kerning: bool,
+    pub ruby: bool,
 }
 
 impl Default for TextHintingOptions {
     fn default() -> Self {
         Self {
             capitals: CapitalLetterMode::default(),
+            east_asian_form: EastAsianGlyphForm::default(),
+            east_asian_width: EastAsianGlyphWidth::default(),
             ligatures: LigatureMode::default(),
             kerning: false,
+            ruby: false,
         }
     }
 }

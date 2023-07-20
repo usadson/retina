@@ -33,6 +33,8 @@ use rayon::prelude::*;
 
 use retina_gfx::{
     CapitalLetterMode,
+    EastAsianGlyphForm,
+    EastAsianGlyphWidth,
     Context,
     FontDescriptor,
     LigatureMode,
@@ -180,6 +182,22 @@ fn resolve_hints_to_harfbuzz(hints: TextHintingOptions) -> Vec<harfbuzz_rs::Feat
         }
     }
 
+    match hints.east_asian_form {
+        EastAsianGlyphForm::Normal => (),
+        EastAsianGlyphForm::Jis78 => features.push(Feature::new(TAG_JP78, 1, ..)),
+        EastAsianGlyphForm::Jis83 => features.push(Feature::new(TAG_JP83, 1, ..)),
+        EastAsianGlyphForm::Jis90 => features.push(Feature::new(TAG_JP90, 1, ..)),
+        EastAsianGlyphForm::Jis04 => features.push(Feature::new(TAG_JP04, 1, ..)),
+        EastAsianGlyphForm::Simplified => features.push(Feature::new(TAG_SIMPLIFIED_FORMS, 1, ..)),
+        EastAsianGlyphForm::Traditional => features.push(Feature::new(TAG_TRADITIONAL_FORMS, 1, ..)),
+    }
+
+    match hints.east_asian_width {
+        EastAsianGlyphWidth::Normal => (),
+        EastAsianGlyphWidth::FullWidth => features.push(Feature::new(TAG_FULL_WIDTHS, 1, ..)),
+        EastAsianGlyphWidth::ProportionalWidth => features.push(Feature::new(TAG_PROPORTIONAL_WIDTHS, 1, ..)),
+    }
+
     if !hints.kerning {
         features.push(Feature::new(TAG_KERN, 0, ..));
     }
@@ -230,6 +248,10 @@ fn resolve_hints_to_harfbuzz(hints: TextHintingOptions) -> Vec<harfbuzz_rs::Feat
             let historical = historical as u32;
             features.push(Feature::new(TAG_HISTORICAL_LIGATURES, historical, ..));
         }
+    }
+
+    if !hints.kerning {
+        features.push(Feature::new(TAG_RUBY, 1, ..));
     }
 
     features

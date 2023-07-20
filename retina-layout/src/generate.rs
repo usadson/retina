@@ -9,6 +9,8 @@ use retina_fetch::{Fetch, Url};
 
 use retina_gfx_font::{
     CapitalLetterMode,
+    EastAsianGlyphForm,
+    EastAsianGlyphWidth,
     FamilyName,
     FontDescriptor,
     FontHandle,
@@ -26,6 +28,9 @@ use retina_style::{
     CssDisplayInside,
     CssDisplayOutside,
     CssFontFamilyName,
+    CssFontVariantEastAsian,
+    CssFontVariantEastAsianValues,
+    CssFontVariantEastAsianWidth,
     CssFontWeight,
     CssGenericFontFamilyName,
     CssImage,
@@ -250,6 +255,35 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             retina_style::CssFontVariantCaps::TitlingCaps => CapitalLetterMode::TitlingCaps,
         };
 
+        let east_asian_width;
+        let east_asian_form;
+        let ruby = match computed_style.font_variant_east_asian.unwrap_or_default() {
+            CssFontVariantEastAsian::Normal => {
+                east_asian_form = Default::default();
+                east_asian_width = Default::default();
+                false
+            }
+            CssFontVariantEastAsian::Specific { values, width, ruby } => {
+                east_asian_form = match values {
+                    CssFontVariantEastAsianValues::Normal => EastAsianGlyphForm::Normal,
+                    CssFontVariantEastAsianValues::Jis78 => EastAsianGlyphForm::Jis78,
+                    CssFontVariantEastAsianValues::Jis83 => EastAsianGlyphForm::Jis83,
+                    CssFontVariantEastAsianValues::Jis90 => EastAsianGlyphForm::Jis90,
+                    CssFontVariantEastAsianValues::Jis04 => EastAsianGlyphForm::Jis04,
+                    CssFontVariantEastAsianValues::Simplified => EastAsianGlyphForm::Simplified,
+                    CssFontVariantEastAsianValues::Traditional => EastAsianGlyphForm::Traditional,
+                };
+
+                east_asian_width = match width {
+                    CssFontVariantEastAsianWidth::Normal => EastAsianGlyphWidth::Normal,
+                    CssFontVariantEastAsianWidth::FullWidth => EastAsianGlyphWidth::FullWidth,
+                    CssFontVariantEastAsianWidth::ProportionalWidth => EastAsianGlyphWidth::ProportionalWidth,
+                };
+
+                ruby
+            }
+        };
+
         let kerning = match computed_style.font_kerning.unwrap_or_default() {
             retina_style::CssFontKerning::Auto => true,
             retina_style::CssFontKerning::None => false,
@@ -274,8 +308,11 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
 
         TextHintingOptions {
             capitals,
+            east_asian_form,
+            east_asian_width,
             kerning,
             ligatures,
+            ruby,
         }
     }
 
