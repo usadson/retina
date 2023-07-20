@@ -79,6 +79,40 @@ pub enum CssFontVariantCaps {
     TitlingCaps,
 }
 
+/// <https://drafts.csswg.org/css-fonts/#font-variant-east-asian-prop>
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub enum CssFontVariantEastAsian {
+    #[default]
+    Normal,
+    Specific {
+        values: CssFontVariantEastAsianValues,
+        width: CssFontVariantEastAsianWidth,
+        ruby: bool,
+    },
+}
+
+/// <https://drafts.csswg.org/css-fonts/#font-variant-east-asian-prop>
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub enum CssFontVariantEastAsianValues {
+    #[default]
+    Normal,
+    Jis78,
+    Jis83,
+    Jis90,
+    Jis04,
+    Simplified,
+    Traditional,
+}
+
+/// <https://drafts.csswg.org/css-fonts/#font-variant-east-asian-prop>
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub enum CssFontVariantEastAsianWidth {
+    #[default]
+    Normal,
+    FullWidth,
+    ProportionalWidth,
+}
+
 /// <https://drafts.csswg.org/css-fonts/#font-variant-ligatures-prop>
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub enum CssFontVariantLigatures {

@@ -51,6 +51,7 @@ pub enum Property {
     FontStretch,
     FontStyle,
     FontVariantCaps,
+    FontVariantEastAsian,
     FontVariantLigatures,
     FontWeight,
 

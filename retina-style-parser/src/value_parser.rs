@@ -197,6 +197,60 @@ pub(crate) fn parse_font_variant_caps<'i, 't>(
         })
 }
 
+pub(crate) fn parse_font_variant_east_asian<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssFontVariantEastAsian, ParseError<'i>> {
+    if input.try_parse(|input| input.expect_ident_matching("normal")).is_ok() {
+        return Ok(CssFontVariantEastAsian::Normal);
+    }
+
+    let mut ruby = false;
+    let mut values = CssFontVariantEastAsianValues::default();
+    let mut width = CssFontVariantEastAsianWidth::default();
+
+    while !input.is_exhausted() {
+        let ident = input.expect_ident()?;
+        match ident.as_ref() {
+            "ruby" => {
+                ruby = true;
+            },
+            "jis78" => {
+                values = CssFontVariantEastAsianValues::Jis78;
+            },
+            "jis83" => {
+                values = CssFontVariantEastAsianValues::Jis83;
+            },
+            "jis90" => {
+                values = CssFontVariantEastAsianValues::Jis90;
+            },
+            "jis04" => {
+                values = CssFontVariantEastAsianValues::Jis04;
+            },
+            "simplified" => {
+                values = CssFontVariantEastAsianValues::Simplified;
+            },
+            "traditional" => {
+                values = CssFontVariantEastAsianValues::Traditional;
+            },
+            "full-width" => {
+                width = CssFontVariantEastAsianWidth::FullWidth;
+            },
+            "proportional-width" => {
+                width = CssFontVariantEastAsianWidth::ProportionalWidth;
+            },
+            _ => {
+                return Err(input.new_error_for_next_token());
+            }
+        }
+    }
+
+    Ok(CssFontVariantEastAsian::Specific {
+        ruby: false,
+        values: Default::default(),
+        width: Default::default(),
+    })
+}
+
 pub(crate) fn parse_font_variant_ligatures<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<CssFontVariantLigatures, ParseError<'i>> {
@@ -528,6 +582,7 @@ fn parse_specific_value<'i, 't>(
         Property::FontKerning => Some(parse_font_kerning(input).map(|kerning| Value::FontKerning(kerning))),
         Property::FontStyle => Some(parse_font_style(input).map(|style| Value::FontStyle(style))),
         Property::FontVariantCaps => Some(parse_font_variant_caps(input).map(|ligatures| Value::FontVariantCaps(ligatures))),
+        Property::FontVariantEastAsian => Some(parse_font_variant_east_asian(input).map(|value| Value::FontVariantEastAsian(value))),
         Property::FontVariantLigatures => Some(parse_font_variant_ligatures(input).map(|ligatures| Value::FontVariantLigatures(ligatures))),
         Property::FontWeight => Some(parse_font_weight(input).map(|value| Value::FontWeight(value))),
         Property::TextDecoration => Some(parse_text_decoration(input).map(|value| Value::TextDecoration(value))),
