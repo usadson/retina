@@ -100,6 +100,7 @@ pub struct PropertyMap {
     pub font_variant_caps: Option<CssFontVariantCaps>,
     pub font_variant_east_asian: Option<CssFontVariantEastAsian>,
     pub font_variant_ligatures: Option<CssFontVariantLigatures>,
+    pub font_variant_position: Option<CssFontVariantPosition>,
     pub font_weight: Option<CssFontWeight>,
     pub height: Option<CssLength>,
     pub line_height: Option<CssLength>,
@@ -359,6 +360,13 @@ impl PropertyMap {
 
             Property::FontVariantLigatures => if let Value::FontVariantLigatures(ligatures) = value {
                 self.font_variant_ligatures = Some(ligatures);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::FontVariantPosition => if let Value::FontVariantPosition(value) = value {
+                self.font_variant_position = Some(value);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue

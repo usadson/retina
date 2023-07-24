@@ -18,6 +18,7 @@ use retina_gfx_font::{
     FontWeight,
     LigatureMode,
     TextHintingOptions,
+    TypographicPositionMode,
 };
 
 use retina_style::{
@@ -28,9 +29,13 @@ use retina_style::{
     CssDisplayInside,
     CssDisplayOutside,
     CssFontFamilyName,
+    CssFontKerning,
     CssFontVariantEastAsian,
     CssFontVariantEastAsianValues,
     CssFontVariantEastAsianWidth,
+    CssFontVariantCaps,
+    CssFontVariantLigatures,
+    CssFontVariantPosition,
     CssFontWeight,
     CssGenericFontFamilyName,
     CssImage,
@@ -246,13 +251,13 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
 
     fn convert_text_hinting_options(&self, computed_style: &PropertyMap) -> TextHintingOptions {
         let capitals = match computed_style.font_variant_caps.unwrap_or_default() {
-            retina_style::CssFontVariantCaps::Normal => CapitalLetterMode::Normal,
-            retina_style::CssFontVariantCaps::SmallCaps => CapitalLetterMode::SmallCaps,
-            retina_style::CssFontVariantCaps::AllSmallCaps => CapitalLetterMode::AllSmallCaps,
-            retina_style::CssFontVariantCaps::PetiteCaps => CapitalLetterMode::PetiteCaps,
-            retina_style::CssFontVariantCaps::AllPetiteCaps => CapitalLetterMode::AllPetiteCaps,
-            retina_style::CssFontVariantCaps::Unicase => CapitalLetterMode::Unicase,
-            retina_style::CssFontVariantCaps::TitlingCaps => CapitalLetterMode::TitlingCaps,
+            CssFontVariantCaps::Normal => CapitalLetterMode::Normal,
+            CssFontVariantCaps::SmallCaps => CapitalLetterMode::SmallCaps,
+            CssFontVariantCaps::AllSmallCaps => CapitalLetterMode::AllSmallCaps,
+            CssFontVariantCaps::PetiteCaps => CapitalLetterMode::PetiteCaps,
+            CssFontVariantCaps::AllPetiteCaps => CapitalLetterMode::AllPetiteCaps,
+            CssFontVariantCaps::Unicase => CapitalLetterMode::Unicase,
+            CssFontVariantCaps::TitlingCaps => CapitalLetterMode::TitlingCaps,
         };
 
         let east_asian_width;
@@ -285,15 +290,15 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         };
 
         let kerning = match computed_style.font_kerning.unwrap_or_default() {
-            retina_style::CssFontKerning::Auto => true,
-            retina_style::CssFontKerning::None => false,
-            retina_style::CssFontKerning::Normal => true,
+            CssFontKerning::Auto => true,
+            CssFontKerning::None => false,
+            CssFontKerning::Normal => true,
         };
 
         let ligatures = match computed_style.font_variant_ligatures.unwrap_or_default() {
-             retina_style::CssFontVariantLigatures::None => LigatureMode::None,
-             retina_style::CssFontVariantLigatures::Normal => LigatureMode::Normal,
-             retina_style::CssFontVariantLigatures::Specific {
+             CssFontVariantLigatures::None => LigatureMode::None,
+             CssFontVariantLigatures::Normal => LigatureMode::Normal,
+             CssFontVariantLigatures::Specific {
                 common,
                 discretionary,
                 historical,
@@ -306,6 +311,12 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             },
         };
 
+        let typographic_position = match computed_style.font_variant_position.unwrap_or_default() {
+            CssFontVariantPosition::Normal => TypographicPositionMode::Normal,
+            CssFontVariantPosition::Sub => TypographicPositionMode::Subscript,
+            CssFontVariantPosition::Super => TypographicPositionMode::Superscript,
+        };
+
         TextHintingOptions {
             capitals,
             east_asian_form,
@@ -313,6 +324,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             kerning,
             ligatures,
             ruby,
+            typographic_position,
         }
     }
 

@@ -245,9 +245,9 @@ pub(crate) fn parse_font_variant_east_asian<'i, 't>(
     }
 
     Ok(CssFontVariantEastAsian::Specific {
-        ruby: false,
-        values: Default::default(),
-        width: Default::default(),
+        ruby,
+        values,
+        width,
     })
 }
 
@@ -299,6 +299,23 @@ pub(crate) fn parse_font_variant_ligatures<'i, 't>(
         historical,
         contextual,
     })
+}
+
+pub(crate) fn parse_font_variant_position<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssFontVariantPosition, ParseError<'i>> {
+    let location = input.current_source_location();
+    let keyword = input.expect_ident()?;
+    CssFontVariantPosition::iter()
+        .find(|style| {
+            style.as_ref().eq_ignore_ascii_case(&keyword)
+        })
+        .ok_or_else(|| ParseError {
+            kind: ParseErrorKind::Custom(
+                RetinaStyleParseError::FontStyleUnknownKeyword(keyword.clone())
+            ),
+            location,
+        })
 }
 
 pub(crate) fn parse_font_weight<'i, 't>(
@@ -584,6 +601,7 @@ fn parse_specific_value<'i, 't>(
         Property::FontVariantCaps => Some(parse_font_variant_caps(input).map(|ligatures| Value::FontVariantCaps(ligatures))),
         Property::FontVariantEastAsian => Some(parse_font_variant_east_asian(input).map(|value| Value::FontVariantEastAsian(value))),
         Property::FontVariantLigatures => Some(parse_font_variant_ligatures(input).map(|ligatures| Value::FontVariantLigatures(ligatures))),
+        Property::FontVariantPosition => Some(parse_font_variant_position(input).map(|value| Value::FontVariantPosition(value))),
         Property::FontWeight => Some(parse_font_weight(input).map(|value| Value::FontWeight(value))),
         Property::TextDecoration => Some(parse_text_decoration(input).map(|value| Value::TextDecoration(value))),
         Property::TextDecorationLine => Some(parse_text_decoration_line(input).map(|value| Value::TextDecorationLine(value))),

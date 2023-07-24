@@ -10,6 +10,7 @@ pub use retina_gfx::{
     CapitalLetterMode,
     LigatureMode,
     TextHintingOptions,
+    TypographicPositionMode,
 };
 
 

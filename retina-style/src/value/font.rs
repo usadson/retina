@@ -127,6 +127,17 @@ pub enum CssFontVariantLigatures {
     },
 }
 
+/// <https://drafts.csswg.org/css-fonts/#propdef-font-variant-position>
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(AsRefStr, EnumIter)]
+#[strum(serialize_all = "kebab-case")]
+pub enum CssFontVariantPosition {
+    #[default]
+    Normal,
+    Sub,
+    Super,
+}
+
 /// <https://drafts.csswg.org/css-fonts-4/#generic-font-families>
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[derive(AsRefStr, EnumIter)]

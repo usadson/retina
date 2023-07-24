@@ -57,6 +57,12 @@ pub const TAG_SMALL_CAPITALS_FROM_CAPITALS: Tag = Tag::new('c', '2', 's', 'c');
 /// <https://learn.microsoft.com/en-us/typography/opentype/spec/features_ae#tag-liga>
 pub const TAG_STANDARD_LIGATURES: Tag = Tag::new('l', 'i', 'g', 'a');
 
+/// <https://learn.microsoft.com/en-us/typography/opentype/spec/features_pt#tag-subs>
+pub const TAG_SUBSCRIPT: Tag = Tag::new('s', 'u', 'b', 's');
+
+/// <https://learn.microsoft.com/en-us/typography/opentype/spec/features_pt#tag-sups>
+pub const TAG_SUPERSCRIPT: Tag = Tag::new('s', 'u', 'p', 's');
+
 /// <https://learn.microsoft.com/en-us/typography/opentype/spec/features_ae#tag-titl>
 pub const TAG_TITLING: Tag = Tag::new('t', 'i', 't', 'l');
 

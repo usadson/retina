@@ -73,6 +73,7 @@ pub struct TextHintingOptions {
     pub ligatures: LigatureMode,
     pub kerning: bool,
     pub ruby: bool,
+    pub typographic_position: TypographicPositionMode,
 }
 
 impl Default for TextHintingOptions {
@@ -84,6 +85,15 @@ impl Default for TextHintingOptions {
             ligatures: LigatureMode::default(),
             kerning: false,
             ruby: false,
+            typographic_position: TypographicPositionMode::Normal,
         }
     }
+}
+
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub enum TypographicPositionMode {
+    #[default]
+    Normal,
+    Subscript,
+    Superscript,
 }

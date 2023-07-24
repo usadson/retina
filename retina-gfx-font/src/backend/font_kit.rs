@@ -39,6 +39,7 @@ use retina_gfx::{
     FontDescriptor,
     LigatureMode,
     TextHintingOptions,
+    TypographicPositionMode,
 };
 
 use wgpu::util::DeviceExt;
@@ -252,6 +253,12 @@ fn resolve_hints_to_harfbuzz(hints: TextHintingOptions) -> Vec<harfbuzz_rs::Feat
 
     if !hints.kerning {
         features.push(Feature::new(TAG_RUBY, 1, ..));
+    }
+
+    match hints.typographic_position {
+        TypographicPositionMode::Normal => (),
+        TypographicPositionMode::Subscript => features.push(Feature::new(TAG_SUBSCRIPT, 1, ..)),
+        TypographicPositionMode::Superscript => features.push(Feature::new(TAG_SUPERSCRIPT, 1, ..)),
     }
 
     features
