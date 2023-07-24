@@ -160,7 +160,7 @@ impl FontProvider {
         });
     }
 
-    pub fn load_from_file(&self, load_time: LoadTime, path: &Path, descriptor: FontDescriptor) {
+    pub fn load_from_file(&self, load_time: LoadTime, path: &Path, descriptor: FontDescriptor) -> bool {
         match load_time {
             LoadTime::Background => {
                 let provider = self.clone();
@@ -168,15 +168,16 @@ impl FontProvider {
                 std::thread::spawn(move || {
                     provider.load_from_file_impl(&path, descriptor);
                 });
+                true
             }
 
             LoadTime::Now => {
-                self.load_from_file_impl(path, descriptor);
+                self.load_from_file_impl(path, descriptor)
             }
         }
     }
 
-    fn load_from_file_impl(&self, path: &Path, descriptor: FontDescriptor) {
+    fn load_from_file_impl(&self, path: &Path, descriptor: FontDescriptor) -> bool {
         let mut file = std::fs::File::open(path)
             .expect(&format!("failed to load file from path: {}", path.display()));
 
@@ -184,16 +185,16 @@ impl FontProvider {
         file.read_to_end(&mut data)
             .expect(&format!("failed to load file from path: {}", path.display()));
 
-        _ = self.load(descriptor, data);
+        self.load(descriptor, data)
     }
 
-    fn load_from_font_kit_handle(&self, handle: font_kit::handle::Handle, descriptor: FontDescriptor) {
+    fn load_from_font_kit_handle(&self, handle: font_kit::handle::Handle, descriptor: FontDescriptor) -> bool {
         use font_kit::handle::Handle;
 
         match handle {
             Handle::Memory { bytes, font_index } => {
                 _ = font_index;
-                self.load(descriptor, Vec::clone(&bytes));
+                self.load(descriptor, Vec::clone(&bytes))
             }
             Handle::Path { path, font_index } => {
                 _ = font_index;
