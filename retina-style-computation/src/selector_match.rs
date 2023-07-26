@@ -150,13 +150,18 @@ fn matches_pseudo_class_selector(
 
 /// Checks whether or not the given node matches the selector.
 pub fn matches_selector(selector: &Selector, node: &NodeKind) -> bool {
-    _ = node;
     match selector {
-        Selector::Simple(SimpleSelector::Attribute(attribute_selector)) => {
+        Selector::Simple(simple_selector) => matches_selector_simple(simple_selector, node),
+    }
+}
+
+fn matches_selector_simple(simple_selector: &SimpleSelector, node: &NodeKind) -> bool {
+    match simple_selector {
+        SimpleSelector::Attribute(attribute_selector) => {
             node.as_dom_element().is_some_and(|element| matches_attribute_selector(attribute_selector, element))
         }
 
-        Selector::Simple(SimpleSelector::Class(class_to_find)) => {
+        SimpleSelector::Class(class_to_find) => {
             let class_to_find = class_to_find.as_ref();
             node.as_dom_element()
                 .is_some_and(|element| {
@@ -166,7 +171,7 @@ pub fn matches_selector(selector: &Selector, node: &NodeKind) -> bool {
                 })
         }
 
-        Selector::Simple(SimpleSelector::Id(id)) => {
+        SimpleSelector::Id(id) => {
             // TODO in quirks mode <https://www.w3.org/TR/selectors-4/#ref-for-concept-document-quirks%E2%91%A0>
             node.as_dom_element().is_some_and(|element| {
                 let element_id = element.id();
@@ -174,15 +179,15 @@ pub fn matches_selector(selector: &Selector, node: &NodeKind) -> bool {
             })
         }
 
-        Selector::Simple(SimpleSelector::PseudoClass(pseudo_class_selector)) => {
+        SimpleSelector::PseudoClass(pseudo_class_selector) => {
             node.as_dom_element().is_some_and(|element| matches_pseudo_class_selector(*pseudo_class_selector, element))
         }
 
-        Selector::Simple(SimpleSelector::TypeSelector(ty)) => {
+        SimpleSelector::TypeSelector(ty) => {
             node.tag_name().is_some_and(|name| name.eq_ignore_ascii_case(ty))
         }
 
-        Selector::Simple(SimpleSelector::Universal) => true,
+        SimpleSelector::Universal => true,
     }
 }
 
