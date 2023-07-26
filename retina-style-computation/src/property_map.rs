@@ -101,7 +101,7 @@ pub struct PropertyMap {
     pub font_variant_east_asian: Option<CssFontVariantEastAsian>,
     pub font_variant_ligatures: Option<CssFontVariantLigatures>,
     pub font_variant_position: Option<CssFontVariantPosition>,
-    pub font_weight: Option<CssFontWeight>,
+    pub font_weight: Option<CssDecimal>,
     pub height: Option<CssLength>,
     pub line_height: Option<CssLength>,
     pub text_decoration_color: Option<CssColor>,
@@ -313,7 +313,9 @@ impl PropertyMap {
                 self.font_family_list = Some(shorthand.families);
                 self.font_size = Some(shorthand.size);
                 self.font_style = shorthand.style;
-                self.font_weight = shorthand.weight;
+                if let Some(font_value) = shorthand.weight {
+                    self.apply_property_font_weight(font_value);
+                }
                 self.line_height = shorthand.line_height;
 
                 PropertyMapDidApply::Yes
@@ -373,7 +375,7 @@ impl PropertyMap {
             }
 
             Property::FontWeight => if let Value::FontWeight(weight) = value {
-                self.font_weight = Some(weight);
+                self.apply_property_font_weight(weight);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue
@@ -594,6 +596,37 @@ impl PropertyMap {
         }
     }
 
+    /// <https://drafts.csswg.org/css-fonts-4/#relative-weights>
+    fn apply_property_font_weight(&mut self, value: CssFontWeight) {
+        // TODO get this from the actual parent, since having "bolder" in two
+        //      separate declarations will apply twice.
+
+        let parent_weight = self.font_weight();
+        self.font_weight = Some(match value {
+            CssFontWeight::Absolute(value) => value ,
+            CssFontWeight::Bolder => {
+                if parent_weight < 350.0 {
+                    400.0
+                } else if parent_weight <= 550.0 {
+                    700.0
+                } else {
+                    900.0
+                }
+            }
+            CssFontWeight::Lighter => {
+                if parent_weight < 100.0 {
+                    parent_weight
+                } else if parent_weight < 550.0 {
+                    100.0
+                } else if parent_weight <= 750.0 {
+                    400.0
+                } else {
+                    700.0
+                }
+            }
+        });
+    }
+
     pub fn background_color(&self) -> CssColor {
         self.background_color.unwrap_or(CssNamedColor::TRANSPARENT)
     }
@@ -615,8 +648,8 @@ impl PropertyMap {
         self.font_size.unwrap_or(CssLength::Pixels(16.0))
     }
 
-    pub fn font_weight(&self) -> CssFontWeight {
-        self.font_weight.unwrap_or(CssFontWeight::Absolute(400.0))
+    pub fn font_weight(&self) -> CssDecimal {
+        self.font_weight.unwrap_or(400.0)
     }
 
     pub fn has_same_font_properties(&self, other: &PropertyMap) -> bool {

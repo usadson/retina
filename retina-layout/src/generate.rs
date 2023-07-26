@@ -36,7 +36,6 @@ use retina_style::{
     CssFontVariantCaps,
     CssFontVariantLigatures,
     CssFontVariantPosition,
-    CssFontWeight,
     CssGenericFontFamilyName,
     CssImage,
     CssLength,
@@ -216,39 +215,6 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         }
     }
 
-    /// <https://drafts.csswg.org/css-fonts-4/#relative-weights>
-    fn compute_font_weight(
-        &self,
-        parent: &LayoutBox,
-        value: CssFontWeight,
-    ) -> FontWeight {
-        let parent_weight = parent.font.descriptor().weight;
-
-        match value {
-            CssFontWeight::Absolute(value) => FontWeight::new(value as _),
-            CssFontWeight::Bolder => {
-                if parent_weight.value() < 350.0 {
-                    FontWeight::new(400.0)
-                } else if parent_weight.value() <= 550.0 {
-                    FontWeight::new(700.0)
-                } else {
-                    FontWeight::new(900.0)
-                }
-            }
-            CssFontWeight::Lighter => {
-                if parent_weight.value() < 100.0 {
-                    parent_weight
-                } else if parent_weight.value() < 550.0 {
-                    FontWeight::new(100.0)
-                } else if parent_weight.value() <= 750.0 {
-                    FontWeight::new(400.0)
-                } else {
-                    FontWeight::new(700.0)
-                }
-            }
-        }
-    }
-
     fn convert_text_hinting_options(&self, computed_style: &PropertyMap) -> TextHintingOptions {
         let capitals = match computed_style.font_variant_caps.unwrap_or_default() {
             CssFontVariantCaps::Normal => CapitalLetterMode::Normal,
@@ -385,11 +351,9 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
                     }
                 };
 
-                let weight = self.compute_font_weight(parent, computed_style.font_weight());
-
                 let descriptor = FontDescriptor {
                     name,
-                    weight,
+                    weight: FontWeight::new(computed_style.font_weight() as _),
                 };
 
                 if let Some(font) = self.font_provider.get(descriptor) {

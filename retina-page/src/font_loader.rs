@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use log::trace;
 use retina_fetch::Fetch;
-use retina_gfx::{FamilyName, FontDescriptor};
+use retina_gfx::{FamilyName, FontDescriptor, FontWeight};
 use retina_gfx_font::FontProvider;
 use retina_layout::LayoutBox;
 use retina_style::{CssFontFamilyName, Stylesheet};
@@ -98,8 +98,7 @@ impl FontLoader {
             let descriptor = FontDescriptor {
                 name: FamilyName::Title(desired_font.clone()),
 
-                // TODO is this correct?
-                weight: layout_box.font().descriptor().weight,
+                weight: FontWeight::new(layout_box.computed_style().font_weight() as _),
             };
 
             if layout_box.font().descriptor() == &descriptor {
