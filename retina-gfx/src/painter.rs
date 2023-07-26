@@ -230,18 +230,6 @@ impl<'art> Painter<'art> {
             uniform_buffer_view.copy_from_slice(uniform);
         });
 
-        let sampler = trace_span!("create sampler").in_scope(|| {
-            self.artwork.context.device().create_sampler(&wgpu::SamplerDescriptor {
-                address_mode_u: wgpu::AddressMode::ClampToEdge,
-                address_mode_v: wgpu::AddressMode::ClampToEdge,
-                address_mode_w: wgpu::AddressMode::ClampToEdge,
-                mag_filter: wgpu::FilterMode::Linear,
-                min_filter: wgpu::FilterMode::Nearest,
-                mipmap_filter: wgpu::FilterMode::Nearest,
-                ..Default::default()
-            })
-        });
-
         let mut bind_group_entries = [
             wgpu::BindGroupEntry {
                 binding: 0,
@@ -249,7 +237,7 @@ impl<'art> Painter<'art> {
             },
             wgpu::BindGroupEntry {
                 binding: 1,
-                resource: wgpu::BindingResource::Sampler(&sampler),
+                resource: wgpu::BindingResource::Sampler(&renderer.sampler),
             },
             wgpu::BindGroupEntry {
                 binding: 2,

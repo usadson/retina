@@ -15,6 +15,7 @@ pub struct TextureMaterialRenderer {
     pub(crate) base: MaterialRendererBase,
     pub(crate) texture_bind_group_layout: wgpu::BindGroupLayout,
     pub(crate) uniform_buffer: wgpu::Buffer,
+    pub(crate) sampler: wgpu::Sampler,
 }
 
 impl TextureMaterialRenderer {
@@ -27,7 +28,17 @@ impl TextureMaterialRenderer {
             alpha: wgpu::BlendComponent::REPLACE,
         };
 
-        Self::with_shader(device, shader, extra_layout_entries, blend_state)
+        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            ..Default::default()
+        });
+
+        Self::with_shader(device, shader, extra_layout_entries, blend_state, sampler)
     }
 
     pub fn with_shader(
@@ -35,6 +46,7 @@ impl TextureMaterialRenderer {
         shader: &str,
         extra_layout_entries: &[wgpu::BindGroupLayoutEntry],
         blend_state: wgpu::BlendState,
+        sampler: wgpu::Sampler,
     ) -> Self {
         let mut layout_entries = vec![
             wgpu::BindGroupLayoutEntry {
@@ -163,6 +175,7 @@ impl TextureMaterialRenderer {
             },
             texture_bind_group_layout,
             uniform_buffer,
+            sampler,
         }
     }
 }
