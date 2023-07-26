@@ -287,9 +287,11 @@ impl<'art> Painter<'art> {
             )
         });
 
-        renderer.base().bind_to_render_pass(&mut render_pass);
-        render_pass.set_bind_group(0, &bind_group, &[]);
-        renderer.base().draw_once(&mut render_pass);
+        trace_span!("bind and draw").in_scope(|| {
+            renderer.base().bind_to_render_pass(&mut render_pass);
+            render_pass.set_bind_group(0, &bind_group, &[]);
+            renderer.base().draw_once(&mut render_pass);
+        });
     }
 
     #[instrument(skip(font, size))]
