@@ -152,6 +152,7 @@ fn matches_pseudo_class_selector(
 pub fn matches_selector(selector: &Selector, node: &NodeKind) -> bool {
     match selector {
         Selector::Simple(simple_selector) => matches_selector_simple(simple_selector, node),
+        Selector::Compound(selectors) => selectors.0.iter().all(|selector| matches_selector_simple(selector, node)),
     }
 }
 

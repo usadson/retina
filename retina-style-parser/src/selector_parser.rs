@@ -13,6 +13,7 @@ use retina_style::{
     AttributeSelector,
     AttributeSelectorCaseSensitivity,
     AttributeSelectorKind,
+    CompoundSelector,
     PseudoClassSelectorKind,
     Selector,
     SelectorList,
@@ -26,7 +27,7 @@ use crate::{
 
 fn parse_attribute_selector<'i, 't>(
     input: &mut Parser<'i, 't>
-) -> Result<Selector, ParseError<'i>> {
+) -> Result<SimpleSelector, ParseError<'i>> {
     let attribute = parse_attribute_selector_name(input)?;
 
     let location = input.current_source_location();
@@ -68,7 +69,7 @@ fn parse_attribute_selector<'i, 't>(
         })
     };
 
-    Ok(Selector::Simple(SimpleSelector::Attribute(AttributeSelector::new(attribute, case_sensitivity, kind))))
+    Ok(SimpleSelector::Attribute(AttributeSelector::new(attribute, case_sensitivity, kind)))
 }
 
 fn parse_attribute_selector_name<'i, 't>(
@@ -90,28 +91,54 @@ fn parse_attribute_selector_name<'i, 't>(
 fn parse_selector<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<Selector, ParseError<'i>> {
+    let mut compound = parse_compound_selector(input)?;
+
+    if compound.0.len() == 1 {
+        Ok(Selector::Simple(compound.0.pop().unwrap()))
+    } else {
+        Ok(Selector::Compound(compound))
+    }
+}
+
+fn parse_compound_selector<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CompoundSelector, ParseError<'i>> {
     input.skip_whitespace();
 
+    let mut selectors = vec![
+        parse_simple_selector(input)?
+    ];
+
+    while let Ok(selector) = input.try_parse(parse_simple_selector) {
+        selectors.push(selector);
+    }
+
+    Ok(CompoundSelector(selectors))
+}
+
+fn parse_simple_selector<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<SimpleSelector, ParseError<'i>> {
     if input.try_parse(Parser::expect_square_bracket_block).is_ok() {
         return input.parse_nested_block(parse_attribute_selector);
     }
 
-    let first_token = input.next()?;
+    let first_token = input.next_including_whitespace()?;
     Ok(match first_token {
         Token::Colon => {
             let pseudo_class = input.expect_ident_cloned()?;
             let pseudo = PseudoClassSelectorKind::parse(pseudo_class.as_ref())
                 .ok_or_else(|| input.new_custom_error(RetinaStyleParseError::UnknownSelectorPseudoClass(pseudo_class)))?;
-            Selector::Simple(SimpleSelector::PseudoClass(pseudo))
+            SimpleSelector::PseudoClass(pseudo)
         }
 
-        Token::Delim('*') => Selector::Simple(SimpleSelector::Universal),
+        Token::Delim('*') => SimpleSelector::Universal,
 
-        Token::Ident(ident) => Selector::Simple(SimpleSelector::TypeSelector(ident.as_ref().into())),
+        Token::Ident(ident) => SimpleSelector::TypeSelector(ident.as_ref().into()),
 
-        Token::IDHash(ident) if !ident.is_empty() => Selector::Simple(SimpleSelector::Id(ident.as_ref().into())),
+        Token::IDHash(ident) if !ident.is_empty() => SimpleSelector::Id(ident.as_ref().into()),
 
-        Token::Delim('.') => Selector::Simple(SimpleSelector::Class(input.expect_ident()?.as_ref().into())),
+        Token::Delim('.') => SimpleSelector::Class(input.expect_ident()?.as_ref().into()),
 
         _ => {
             let first_token = first_token.clone();

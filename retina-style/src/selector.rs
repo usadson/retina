@@ -80,9 +80,15 @@ pub enum AttributeSelectorKind {
 }
 
 /// # References
+/// * [CSS - Selectors Level 4 - 3.1](https://www.w3.org/TR/selectors-4/#compound)
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct CompoundSelector(pub Vec<SimpleSelector>);
+
+/// # References
 /// * [CSS - Selectors Level 4 - 3.1](https://www.w3.org/TR/selectors-4/#simple)
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Selector {
+    Compound(CompoundSelector),
     Simple(SimpleSelector),
 }
 

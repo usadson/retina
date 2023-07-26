@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Selectors</title>
+    <style>
+        p {
+            color: tomato;
+        }
+        p.blue {
+            color: blue;
+        }
+        .blue {
+            color: aqua;
+        }
+        h1 {
+            color: burlywood;
+        }
+        p.blue.special {
+            text-decoration: underline;
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            font-size: 1.3rem;
+        }
+    </style>
+</head>
+<body>
+    <p>
+        Normal paragraph
+    </p>
+    <p class="blue">
+        Blue paragraph
+    </p>
+    <p class="blue special">
+        Blue paragraph, but special
+    </p>
+    <h1>Heading</h1>
+    <h1><span>Another heading</span></h1>
+    <h1><span><span>Another heading</span></span></h1>
+</body>
+</html>

@@ -1,7 +1,11 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::cmp::Ordering;
+use std::{
+    cmp::Ordering,
+    iter::Sum,
+    ops::{Add, AddAssign},
+};
 
 use retina_style::{Selector, SimpleSelector};
 
@@ -30,6 +34,34 @@ impl SelectorSpecificity {
             class_attribute_pseudo_class_selectors: usize::MAX,
             type_and_pseudo_element_selectors: usize::MAX,
         }
+    }
+}
+
+impl Add for SelectorSpecificity {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            id_selectors: self.id_selectors + rhs.id_selectors,
+            class_attribute_pseudo_class_selectors: self.class_attribute_pseudo_class_selectors + rhs.class_attribute_pseudo_class_selectors,
+            type_and_pseudo_element_selectors: self.type_and_pseudo_element_selectors + rhs.type_and_pseudo_element_selectors,
+        }
+    }
+}
+
+impl AddAssign for SelectorSpecificity {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = self.add(rhs);
+    }
+}
+
+impl Sum for SelectorSpecificity {
+    fn sum<I: Iterator<Item = Self>>(mut iter: I) -> Self {
+        let mut value = Self::default();
+        while let Some(next) = iter.next() {
+            value += next;
+        }
+        value
     }
 }
 
@@ -62,6 +94,7 @@ pub trait CalculateSpecificity {
 impl CalculateSpecificity for Selector {
     fn calculate_specificity(&self) -> SelectorSpecificity {
         match self {
+            Selector::Compound(compound) => compound.0.iter().map(CalculateSpecificity::calculate_specificity).sum(),
             Selector::Simple(simple) => simple.calculate_specificity(),
         }
     }
