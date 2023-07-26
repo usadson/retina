@@ -322,6 +322,9 @@ impl retina_gfx::Font for FontKitFont {
         // Offset the position to the baseline.
         position.y += self.metrics.ascent / typographic_unit_conversion_factor;
 
+        let renderer = FontTextureMaterialRenderer::get(&painter.artwork().context);
+        renderer.prepare(painter, color);
+
         self.glyph_iter(font_size, text, hints, |glyph_position, glyph| {
             let x_offset = glyph_position.x_offset as f32 / typographic_unit_conversion_factor;
             let y_offset = glyph_position.y_offset as f32 / typographic_unit_conversion_factor;
@@ -335,13 +338,10 @@ impl retina_gfx::Font for FontKitFont {
 
             // If the texture is absent, this glyph is invisible (e.g. whitespace).
             if let Some(texture_view) = glyph.texture_view.as_ref() {
-                let renderer = FontTextureMaterialRenderer::get(&painter.artwork().context);
                 let bind_group_entry = wgpu::BindGroupEntry {
                     binding: 3,
                     resource: renderer.uniform_buffer.as_entire_binding(),
                 };
-
-                renderer.prepare(painter, color);
 
                 painter.paint_rect_textured_with(
                     glyph_rect,
