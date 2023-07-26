@@ -4,11 +4,14 @@
 mod color;
 mod texture;
 
+use tracing::instrument;
+
 pub use self::{
     color::ColorMaterialRenderer,
     texture::TextureMaterialRenderer,
 };
 
+#[derive(Debug)]
 pub struct MaterialRendererBase {
     pub(crate) render_pipeline: wgpu::RenderPipeline,
     pub(crate) vertex_buffer: wgpu::Buffer,
@@ -17,12 +20,14 @@ pub struct MaterialRendererBase {
 }
 
 impl MaterialRendererBase {
+    #[instrument]
     pub fn bind_to_render_pass<'this>(&'this self, render_pass: &mut wgpu::RenderPass<'this>) {
         render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
         render_pass.set_pipeline(&self.render_pipeline);
         render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
     }
 
+    #[instrument]
     pub fn draw_once(&self, render_pass: &mut wgpu::RenderPass) {
         render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
     }

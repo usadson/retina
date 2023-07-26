@@ -10,6 +10,7 @@ use super::{
     MaterialRendererBase,
 };
 
+#[derive(Debug)]
 pub struct ColorMaterialRenderer {
     pub(crate) base: MaterialRendererBase,
     pub(crate) color_buffer: wgpu::Buffer,

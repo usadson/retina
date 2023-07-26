@@ -3064,6 +3064,7 @@ dependencies = [
  "rayon",
  "retina-common",
  "retina-gfx",
+ "tracing",
  "wgpu",
 ]
 

@@ -11,7 +11,7 @@ use std::{
     path::Path,
 };
 
-use log::error;
+use log::{error, trace};
 use retina_common::LoadTime;
 
 use crate::{

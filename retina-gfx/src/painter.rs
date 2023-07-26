@@ -10,7 +10,7 @@ use euclid::default::{
 };
 
 use retina_common::Color;
-use tracing::instrument;
+use tracing::{instrument, trace_span};
 
 use crate::material::MaterialRenderer;
 use crate::{
@@ -24,6 +24,7 @@ use crate::{
 
 use crate::math;
 
+#[derive(Debug)]
 pub struct Artwork {
     pub context: Context,
     pub texture_view: wgpu::TextureView,
@@ -50,6 +51,7 @@ impl Artwork {
     }
 }
 
+#[derive(Debug)]
 pub struct Painter<'art> {
     artwork: &'art mut Artwork,
     viewport_size: Size2D<u32>,
@@ -203,6 +205,7 @@ impl<'art> Painter<'art> {
         self.paint_rect_textured_with(rect, texture_view, None, None)
     }
 
+    #[instrument]
     pub fn paint_rect_textured_with<Unit>(
         &mut self,
         rect: euclid::Rect<f64, Unit>,
@@ -216,7 +219,7 @@ impl<'art> Painter<'art> {
 
         let renderer = renderer.unwrap_or(&self.artwork.texture_material_renderer);
 
-        {
+        trace_span!("upload buffer").in_scope(|| {
             let mut uniform_buffer_view = self.artwork.staging_belt.write_buffer(
                 &mut self.command_encoder,
                 &renderer.uniform_buffer,
@@ -225,16 +228,18 @@ impl<'art> Painter<'art> {
                 self.artwork.context.device(),
             );
             uniform_buffer_view.copy_from_slice(uniform);
-        }
+        });
 
-        let sampler = self.artwork.context.device().create_sampler(&wgpu::SamplerDescriptor {
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            ..Default::default()
+        let sampler = trace_span!("create sampler").in_scope(|| {
+            self.artwork.context.device().create_sampler(&wgpu::SamplerDescriptor {
+                address_mode_u: wgpu::AddressMode::ClampToEdge,
+                address_mode_v: wgpu::AddressMode::ClampToEdge,
+                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                mag_filter: wgpu::FilterMode::Linear,
+                min_filter: wgpu::FilterMode::Nearest,
+                mipmap_filter: wgpu::FilterMode::Nearest,
+                ..Default::default()
+            })
         });
 
         let mut bind_group_entries = [
@@ -265,36 +270,41 @@ impl<'art> Painter<'art> {
             &bind_group_entries[0..3]
         };
 
-        let bind_group = self.artwork.context.device().create_bind_group(
-            &wgpu::BindGroupDescriptor {
-                layout: &renderer.texture_bind_group_layout,
-                entries: bind_group_entries,
-                label: Some("(retina-gfx) Textured Material Bind Group"),
-            }
-        );
+        let bind_group = trace_span!("create bind group").in_scope(|| {
+            self.artwork.context.device().create_bind_group(
+                &wgpu::BindGroupDescriptor {
+                    layout: &renderer.texture_bind_group_layout,
+                    entries: bind_group_entries,
+                    label: Some("(retina-gfx) Textured Material Bind Group"),
+                }
+            )
+        });
 
-        let mut render_pass = self.command_encoder.begin_render_pass(
-            &wgpu::RenderPassDescriptor {
-                label: Some("(retina-gfx) Textured Material Render Pass"),
-                color_attachments: &[Some(
-                    wgpu::RenderPassColorAttachment {
-                        view: &self.artwork.texture_view,
-                        resolve_target: None,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Load,
-                            store: true,
+        let mut render_pass = trace_span!("create render pass").in_scope(|| {
+            self.command_encoder.begin_render_pass(
+                &wgpu::RenderPassDescriptor {
+                    label: Some("(retina-gfx) Textured Material Render Pass"),
+                    color_attachments: &[Some(
+                        wgpu::RenderPassColorAttachment {
+                            view: &self.artwork.texture_view,
+                            resolve_target: None,
+                            ops: wgpu::Operations {
+                                load: wgpu::LoadOp::Load,
+                                store: true,
+                            },
                         },
-                    },
-                )],
-                depth_stencil_attachment: None,
-            },
-        );
+                    )],
+                    depth_stencil_attachment: None,
+                },
+            )
+        });
 
         renderer.base().bind_to_render_pass(&mut render_pass);
         render_pass.set_bind_group(0, &bind_group, &[]);
         renderer.base().draw_once(&mut render_pass);
     }
 
+    #[instrument(skip(font, size))]
     pub fn paint_text<PositionUnit, Size>(
         &mut self,
         font: &dyn Font,

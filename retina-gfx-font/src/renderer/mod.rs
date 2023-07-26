@@ -11,10 +11,12 @@ use retina_gfx::{
     Painter,
 };
 
+use tracing::instrument;
 use wgpu::util::DeviceExt;
 
 static INSTANCE: OnceLock<FontTextureMaterialRenderer> = OnceLock::new();
 
+#[derive(Debug)]
 pub struct FontTextureMaterialRenderer {
     pub(crate) renderer: TextureMaterialRenderer,
     pub(crate) uniform_buffer: wgpu::Buffer,
@@ -27,6 +29,7 @@ impl FontTextureMaterialRenderer {
         })
     }
 
+    #[instrument]
     pub fn prepare(&self, painter: &mut Painter, color: Color) {
         let uniform_data = [
             color.red() as f32,

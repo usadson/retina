@@ -16,4 +16,5 @@ log = "*"
 ouroboros = "*"
 pathfinder_geometry = "*"
 rayon = "*"
+tracing = "*"
 wgpu = { version = "*", features = ["trace"] }

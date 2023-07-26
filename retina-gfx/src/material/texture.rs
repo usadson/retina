@@ -10,6 +10,7 @@ use super::{
     MaterialRendererBase,
 };
 
+#[derive(Debug)]
 pub struct TextureMaterialRenderer {
     pub(crate) base: MaterialRendererBase,
     pub(crate) texture_bind_group_layout: wgpu::BindGroupLayout,

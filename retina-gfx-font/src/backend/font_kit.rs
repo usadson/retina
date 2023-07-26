@@ -10,7 +10,7 @@ use std::{
     sync::{
         Arc,
         RwLock,
-    },
+    }, fmt::Debug,
 };
 
 use euclid::default::{
@@ -41,6 +41,8 @@ use retina_gfx::{
     TextHintingOptions,
     TypographicPositionMode,
 };
+
+use tracing::instrument;
 
 use wgpu::util::DeviceExt;
 
@@ -81,6 +83,7 @@ impl FontKitFont {
         }
     }
 
+    #[instrument(skip(f))]
     fn with_size<F, RetVal>(&self, size: f32, f: F) -> RetVal
             where F: FnOnce(&mut GlyphAtlas) -> RetVal {
         let atlases = self.atlases.read().unwrap();
@@ -107,6 +110,7 @@ impl FontKitFont {
         return_value
     }
 
+    #[instrument(skip(f))]
     fn glyph_iter<F>(
         &self,
         point_size: f32,
@@ -140,6 +144,7 @@ impl FontKitFont {
     }
 }
 
+#[instrument]
 fn resolve_hints_to_harfbuzz(hints: TextHintingOptions) -> Vec<harfbuzz_rs::Feature> {
     use harfbuzz_rs::Feature;
     use crate::harfbuzz_util::*;
@@ -302,6 +307,7 @@ impl retina_gfx::Font for FontKitFont {
         self.metrics.underline_thickness / typographic_unit_conversion_factor
     }
 
+    #[instrument(skip_all)]
     fn paint(
         &self,
         text: &str,
@@ -347,6 +353,16 @@ impl retina_gfx::Font for FontKitFont {
 
             position.x += glyph_position.x_advance as f32 / typographic_unit_conversion_factor;
         });
+    }
+}
+
+impl Debug for FontKitFont {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FontKitFont")
+            .field("descriptor", &self.descriptor)
+            .field("gfx_context", &self.gfx_context)
+            .field("metrics", &self.metrics)
+            .finish()
     }
 }
 
