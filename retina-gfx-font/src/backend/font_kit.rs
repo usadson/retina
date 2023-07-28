@@ -402,10 +402,11 @@ impl GlyphAtlas {
 
     #[inline]
     pub fn prepare_basic_latin(&mut self, context: &Context, font: &Backend) {
-        self.prepare_chars(context, font, '!'..='~');
+        self.prepare_chars(context, font, ' '..='~');
     }
 
-    pub fn prepare_chars(&mut self, context: &Context, font: &Backend, range: RangeInclusive<char>) {
+    pub fn prepare_chars<It>(&mut self, context: &Context, font: &Backend, range: It)
+            where It: IntoParallelIterator<Item = char> {
         let glyphs = range.into_par_iter()
             .filter_map(|character| {
                 let context = context.clone();
