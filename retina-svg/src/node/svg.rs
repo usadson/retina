@@ -2,7 +2,6 @@
 // All Rights Reserved.
 
 use crate::{
-    DomNode,
     Point2D,
     Rect,
 };
@@ -10,9 +9,7 @@ use crate::{
 /// This is the main [`<svg>`][spec] element.
 ///
 /// [spec]: https://svgwg.org/svg2-draft/struct.html#SVGElement
-pub struct SvgLayoutNodeSvg {
-    dom_node: DomNode,
-
+pub struct SvgNodeSvg {
     coordinates: Point2D,
     view_box: Rect,
 }

@@ -5,13 +5,12 @@ mod node;
 mod paint;
 mod unit;
 
-pub use retina_dom::Node as DomNode;
-
 pub use self::{
     node::{
-        SvgLayoutNode,
-        SvgLayoutNodeKind,
-        SvgLayoutNodeSvg,
+        SvgNode,
+        SvgNodeKind,
+        SvgNodeRect,
+        SvgNodeSvg,
     },
     paint::{
         SvgPaint

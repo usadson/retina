@@ -3080,7 +3080,6 @@ dependencies = [
  "thiserror",
  "tracing",
  "wgpu",
- "windows 0.48.0",
  "winit",
  "winsafe",
 ]
@@ -3203,13 +3202,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "retina-svg-layout"
+name = "retina-svg"
 version = "0.2.0"
 dependencies = [
  "euclid",
  "log",
  "retina-common",
- "retina-dom",
  "retina-fetch",
  "retina-gfx-font",
  "retina-style",
