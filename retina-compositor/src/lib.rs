@@ -38,8 +38,9 @@ impl Compositor {
 
     #[instrument(skip_all)]
     pub async fn paint(&mut self, layout_box: &LayoutBox, painter: &mut Painter<'_>) {
-        let vertical_tiles = divide_and_round_up(painter.viewport_size().height, TILE_SIZE.height);
-        let horizontal_tiles = divide_and_round_up(painter.viewport_size().width, TILE_SIZE.width);
+        let viewport = painter.viewport_rect().cast();
+        let vertical_tiles = divide_and_round_up(viewport.max_y() as _, TILE_SIZE.height);
+        let horizontal_tiles = divide_and_round_up(viewport.max_x(), TILE_SIZE.width);
 
         self.tiles.resize_with(vertical_tiles as _, || Vec::with_capacity(horizontal_tiles as _));
 
