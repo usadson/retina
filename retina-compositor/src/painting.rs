@@ -3,8 +3,21 @@
 
 use std::sync::OnceLock;
 
-use retina_dom::{HtmlElementKind, ImageData};
-use retina_gfx::{Painter, euclid::{Rect, Point2D, Size2D, UnknownUnit}, Texture, Color};
+use retina_dom::{
+    HtmlElementKind,
+    ImageData,
+};
+use retina_gfx::{
+    Color,
+    euclid::{
+        Point2D,
+        Rect,
+        Size2D,
+        UnknownUnit,
+    },
+    Painter,
+    Texture,
+};
 use retina_layout::LayoutBox;
 use retina_style::{
     CssColor,
