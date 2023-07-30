@@ -3,6 +3,7 @@
 
 use crate::Context;
 
+#[derive(Debug)]
 pub struct SubmissionFuture {
     context: Context,
     submission_index: wgpu::SubmissionIndex,
@@ -25,11 +26,9 @@ impl std::future::Future for SubmissionFuture {
         _: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Self::Output> {
         let maintain = wgpu::Maintain::WaitForSubmissionIndex(self.submission_index.clone());
-        log::info!("Polling ready!");
-        if self.context.device().poll(maintain) {
-            std::task::Poll::Ready(())
-        } else {
-            std::task::Poll::Pending
-        }
+        _ = self.context.device().poll(maintain.clone());
+
+        // Maintain::WaitForSubmissionIndex always blocks. See docs.
+        std::task::Poll::Ready(())
     }
 }

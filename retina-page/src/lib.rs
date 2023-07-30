@@ -67,6 +67,8 @@ pub fn spawn(
                 font_provider.clone(),
             );
 
+            let compositor = Compositor::new(canvas.context().clone());
+
             let page = Page {
                 runtime,
                 message_sender,
@@ -81,7 +83,7 @@ pub fn spawn(
                 scroller: Scroller::new(canvas_size.cast().cast_unit()),
                 canvas,
                 font_provider,
-                compositor: Compositor::new(),
+                compositor,
                 fetch,
                 page_task_message_sender,
                 browsing_context: None,
