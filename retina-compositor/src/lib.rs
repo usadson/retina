@@ -4,7 +4,10 @@
 mod painting;
 mod tile;
 
-use std::sync::Mutex;
+use std::{
+    sync::Mutex,
+    time::Instant,
+};
 
 use retina_gfx::{
     Context,
@@ -44,6 +47,7 @@ impl Compositor {
 
         self.tiles.resize_with(vertical_tiles as _, || Vec::with_capacity(horizontal_tiles as _));
 
+        let begin = Instant::now();
         log::info!("Preparing tiles: {vertical_tiles} x {horizontal_tiles}");
         for y in 0..vertical_tiles {
             let row = &mut self.tiles[y as usize];
@@ -57,12 +61,13 @@ impl Compositor {
             }
         }
 
-        log::info!("Tiles prepared!");
+        log::info!("Tiles prepared in {} ms", begin.elapsed().as_millis());
         log::info!("Initiating paint...");
 
         let viewport_tile_vertical_range = (viewport.min_y() / TILE_SIZE.height)..divide_and_round_up(viewport.max_y(), TILE_SIZE.height);
         let viewport_tile_horizontal_range = (viewport.min_x() / TILE_SIZE.width)..divide_and_round_up(viewport.max_x(), TILE_SIZE.width);
 
+        let begin = Instant::now();
         crossbeam::thread::scope(|s| {
             for y in viewport_tile_vertical_range.clone() {
                 for x in viewport_tile_horizontal_range.clone() {
@@ -70,20 +75,21 @@ impl Compositor {
                     s.spawn(move |_| {
                         let mut tile = tile.lock().unwrap();
                         tile.paint(layout_box);
-                        log::info!("        Tile {y} x {x} ready!");
+                        log::info!("        Tile {y} x {x} ready in {} ms", begin.elapsed().as_millis());
                         if let Some(submission_future) = tile.submission_future.take() {
                             submission_future.wait();
-                            log::info!("        Tile {x} finished");
+                            log::info!("        Tile {y} x {x} finished in {} ms", begin.elapsed().as_millis());
                         }
                     });
                 }
-                log::info!("    Row {y} done...");
+                log::info!("    Row {y} done in {} ms", begin.elapsed().as_millis());
             }
         }).unwrap();
 
-        log::info!("Paint initiated!");
+        log::info!("Painted in {} ms", begin.elapsed().as_millis());
         log::info!("Compositing...");
 
+        let begin = Instant::now();
         for y in viewport_tile_vertical_range {
             log::info!("    Row {y}...");
             for x in viewport_tile_horizontal_range.clone() {
@@ -97,7 +103,7 @@ impl Compositor {
             log::info!("    Row {y} done!");
         }
 
-        log::info!("Compositor done ^_^");
+        log::info!("Compositor done ^_^ in {} ms", begin.elapsed().as_millis());
     }
 
     pub fn mark_tile_cache_dirty(&mut self) {
