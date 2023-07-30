@@ -16,6 +16,7 @@ use crate::{
     Painter,
 };
 
+#[derive(Debug)]
 pub struct CanvasPaintingContext {
     context: Context,
     render_format: wgpu::TextureFormat,

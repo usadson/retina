@@ -50,6 +50,8 @@ pub struct LayoutBox {
     pub(crate) line_box_fragments: Vec<LineBoxFragment>,
 }
 
+unsafe impl Sync for LayoutBox {}
+
 impl LayoutBox {
     pub fn new(
         kind: LayoutBoxKind,

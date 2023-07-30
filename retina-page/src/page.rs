@@ -197,6 +197,7 @@ impl Page {
         self.load_resources_from_style_lazily_in_background(&layout_root);
         self.layout_root = Some(layout_root);
 
+        self.compositor.mark_tile_cache_dirty();
         Ok(())
     }
 
@@ -642,7 +643,7 @@ impl Page {
         // > to be 'transparent'. The canvas's background is expected to be white.
         let mut painter = self.canvas.begin(layout_root.background_color_as_root(), self.scroller.viewport_position());
 
-        self.compositor.paint(layout_root, &mut painter);
+        self.compositor.paint(layout_root, &mut painter).await;
 
         painter.submit_async().await;
 
@@ -695,6 +696,7 @@ impl Page {
             );
             layout_root.run_layout(None, None);
             self.scroller.did_content_resize(layout_root.dimensions().size_margin_box());
+            self.compositor.mark_tile_cache_dirty();
         } else {
             self.generate_layout_tree().await?;
         }
