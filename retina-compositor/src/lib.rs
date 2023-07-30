@@ -60,14 +60,21 @@ impl Compositor {
         log::info!("Tiles prepared!");
         log::info!("Initiating paint...");
 
+        let viewport_tile_vertical_range = (viewport.min_y() / TILE_SIZE.height)..divide_and_round_up(viewport.max_y(), TILE_SIZE.height);
+        let viewport_tile_horizontal_range = (viewport.min_x() / TILE_SIZE.width)..divide_and_round_up(viewport.max_x(), TILE_SIZE.width);
+
         crossbeam::thread::scope(|s| {
-            for y in 0..(vertical_tiles as usize) {
-                for x in 0..(horizontal_tiles as usize) {
-                    let tile = &self.tiles[y][x];
+            for y in viewport_tile_vertical_range.clone() {
+                for x in viewport_tile_horizontal_range.clone() {
+                    let tile = &self.tiles[y as usize][x as usize];
                     s.spawn(move |_| {
                         let mut tile = tile.lock().unwrap();
                         tile.paint(layout_box);
                         log::info!("        Tile {y} x {x} ready!");
+                        if let Some(submission_future) = tile.submission_future.take() {
+                            submission_future.wait();
+                            log::info!("        Tile {x} finished");
+                        }
                     });
                 }
                 log::info!("    Row {y} done...");
@@ -77,16 +84,12 @@ impl Compositor {
         log::info!("Paint initiated!");
         log::info!("Compositing...");
 
-        for y in 0..vertical_tiles as usize {
+        for y in viewport_tile_vertical_range {
             log::info!("    Row {y}...");
-            for x in 0..horizontal_tiles as usize {
+            for x in viewport_tile_horizontal_range.clone() {
                 log::info!("        Tile {x}...");
-                let tile = &self.tiles[y][x];
-                let mut tile = tile.lock().unwrap();
-                if let Some(submission_future) = tile.submission_future.take() {
-                    submission_future.await;
-                    log::info!("        Tile {x} finished");
-                }
+                let tile = &self.tiles[y as usize][x as usize];
+                let tile = tile.lock().unwrap();
 
                 painter.paint_rect_textured(tile.rect.to_f64(), &tile.canvas.create_view());
                 log::info!("        Tile {x} composited");
