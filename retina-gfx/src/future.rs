@@ -16,6 +16,11 @@ impl SubmissionFuture {
             submission_index,
         }
     }
+
+    pub fn wait(&self) {
+        let maintain = wgpu::Maintain::WaitForSubmissionIndex(self.submission_index.clone());
+        _ = self.context.device().poll(maintain.clone());
+    }
 }
 
 impl std::future::Future for SubmissionFuture {
@@ -25,8 +30,7 @@ impl std::future::Future for SubmissionFuture {
         self: std::pin::Pin<&mut Self>,
         _: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Self::Output> {
-        let maintain = wgpu::Maintain::WaitForSubmissionIndex(self.submission_index.clone());
-        _ = self.context.device().poll(maintain.clone());
+        self.wait();
 
         // Maintain::WaitForSubmissionIndex always blocks. See docs.
         std::task::Poll::Ready(())
