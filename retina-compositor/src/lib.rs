@@ -49,35 +49,7 @@ impl Compositor {
     }
 
     #[instrument(skip_all)]
-    pub async fn composite(
-        &mut self,
-        painter: &mut Painter<'_>,
-    ) {
-        log::info!("Compositing...");
-
-        let viewport = painter.viewport_rect().cast();
-        let viewport_tile_vertical_range = (viewport.min_y() / TILE_SIZE.height)..divide_and_round_up(viewport.max_y(), TILE_SIZE.height);
-        let viewport_tile_horizontal_range = (viewport.min_x() / TILE_SIZE.width)..divide_and_round_up(viewport.max_x(), TILE_SIZE.width);
-
-        let begin = Instant::now();
-        for y in viewport_tile_vertical_range {
-            log::info!("    Row {y}...");
-            for x in viewport_tile_horizontal_range.clone() {
-                log::info!("        Tile {x}...");
-                let tile = &self.tiles[y as usize][x as usize];
-                let tile = tile.lock().unwrap();
-
-                painter.paint_rect_textured(tile.rect.to_f64(), &tile.canvas.create_view());
-                log::info!("        Tile {x} composited");
-            }
-            log::info!("    Row {y} done!");
-        }
-
-        log::info!("Compositor done ^_^ in {} ms", begin.elapsed().as_millis());
-    }
-
-    #[instrument(skip_all)]
-    pub async fn paint<Callback>(
+    pub async fn composite<Callback>(
         &mut self,
         layout_box: &LayoutBox,
         painter: &mut Painter<'_>,
