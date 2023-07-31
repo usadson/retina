@@ -108,10 +108,10 @@ impl Compositor {
         let tile_textures_ref = &mut tile_textures;
 
         let begin = Instant::now();
-        crossbeam::thread::scope(|s| {
+        std::thread::scope(|s| {
             let viewport_tile_vertical_range2 = viewport_tile_vertical_range.clone();
             let viewport_tile_horizontal_range2 = viewport_tile_horizontal_range.clone();
-            s.spawn(move |_| {
+            s.spawn(move || {
                 for y in viewport_tile_vertical_range2.clone() {
                     for x in viewport_tile_horizontal_range2.clone() {
                         let rect = tile_rect_by_coordinate(x, y).cast();
@@ -165,7 +165,7 @@ impl Compositor {
                 for x in viewport_tile_horizontal_range.clone() {
                     let tile = &self.tiles[y as usize][x as usize];
                     let sender = sender.clone();
-                    s.spawn(move |_| {
+                    s.spawn(move || {
                         let wait = begin.elapsed().as_millis();
 
                         let mut tile = tile.lock().unwrap();
@@ -193,7 +193,7 @@ impl Compositor {
                 log::trace!("    Row {y} done in {} ms", begin.elapsed().as_millis());
             }
             drop(sender);
-        }).unwrap();
+        });
 
         self.tile_textures = tile_textures;
     }
