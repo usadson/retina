@@ -8,6 +8,7 @@
 
 use euclid::default::Point2D;
 use retina_common::Color;
+use tracing::instrument;
 use wgpu::Extent3d;
 
 use crate::{
@@ -87,10 +88,12 @@ impl CanvasPaintingContext {
         &self.context
     }
 
+    #[instrument]
     pub fn create_view(&self) -> wgpu::TextureView {
         self.surface.create_view(&Default::default())
     }
 
+    #[instrument]
     pub fn resize(&mut self, size: euclid::Size2D<u32, u32>) {
         self.size = size;
 

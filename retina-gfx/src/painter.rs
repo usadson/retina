@@ -117,6 +117,7 @@ impl<'art> Painter<'art> {
         self.viewport_rect().intersects(&rect.cast().cast_unit())
     }
 
+    #[instrument]
     pub fn clear(&mut self, clear_color: Color) {
         self.command_encoder.begin_render_pass(
             &wgpu::RenderPassDescriptor {
@@ -320,6 +321,7 @@ impl<'art> Painter<'art> {
         font.paint(text, color, position.cast_unit(), size.into(), hints, self);
     }
 
+    #[instrument]
     #[must_use]
     fn post_submissions(&mut self) -> wgpu::SubmissionIndex {
         let encoder = self.artwork.context.device().create_command_encoder(&wgpu::CommandEncoderDescriptor {
@@ -334,6 +336,7 @@ impl<'art> Painter<'art> {
         submission_index
     }
 
+    #[instrument]
     pub fn submit_sync(mut self) {
         let submission_index = self.post_submissions();
         while self.artwork.context.device()
@@ -342,14 +345,17 @@ impl<'art> Painter<'art> {
         }
     }
 
+    #[instrument]
     pub fn submit_fast(mut self) {
         _ = self.post_submissions();
     }
 
+    #[instrument]
     pub fn submit_async(mut self) -> SubmissionFuture {
         self.submit_async_concurrently()
     }
 
+    #[instrument]
     pub fn submit_async_concurrently(&mut self) -> SubmissionFuture {
         let submission_index = self.post_submissions();
         SubmissionFuture::new(self.artwork.context.clone(), submission_index)

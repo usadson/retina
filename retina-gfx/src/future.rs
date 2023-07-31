@@ -1,6 +1,8 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use tracing::instrument;
+
 use crate::Context;
 
 #[derive(Debug)]
@@ -17,6 +19,8 @@ impl SubmissionFuture {
         }
     }
 
+    #[inline]
+    #[instrument]
     pub fn wait(&self) {
         let maintain = wgpu::Maintain::WaitForSubmissionIndex(self.submission_index.clone());
         _ = self.context.device().poll(maintain.clone());
@@ -26,6 +30,8 @@ impl SubmissionFuture {
 impl std::future::Future for SubmissionFuture {
     type Output = ();
 
+    #[inline]
+    #[instrument]
     fn poll(
         self: std::pin::Pin<&mut Self>,
         _: &mut std::task::Context<'_>,
