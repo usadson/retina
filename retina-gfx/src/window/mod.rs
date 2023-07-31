@@ -127,7 +127,7 @@ impl<EventType> Window<EventType>
                 }
 
                 winit::event::Event::RedrawRequested { .. } => {
-                    info!("Redraw requested!");
+                    info!("Redrawing surface of window...");
                     self.painter.paint(app.as_mut(), self.background_color);
                 }
 
