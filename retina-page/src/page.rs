@@ -646,7 +646,7 @@ impl Page {
         let viewport = painter.viewport_rect();
         let sender = self.message_sender.clone();
 
-        self.compositor.paint(layout_root, &mut painter, |painter| {
+        self.compositor.composite(layout_root, &mut painter, |painter| {
             _ = sender.send(PageMessage::PaintReceived {
                 texture_view: painter.texture().create_view(&wgpu::TextureViewDescriptor {
                     ..Default::default()
