@@ -119,6 +119,7 @@ impl WindowPainter {
         let mut painter = Painter::new(
             &mut self.artwork,
             command_encoder,
+            &surface_texture.texture,
             euclid::default::Size2D::new(
                 self.swap_chain.size.width,
                 self.swap_chain.size.height,

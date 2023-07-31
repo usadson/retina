@@ -56,6 +56,7 @@ pub struct Painter<'art> {
     artwork: &'art mut Artwork,
     viewport_size: Size2D<u32>,
     viewport_position: Point2D<f64>,
+    texture: &'art wgpu::Texture,
 
     command_encoder: wgpu::CommandEncoder,
 }
@@ -64,15 +65,22 @@ impl<'art> Painter<'art> {
     pub(crate) fn new(
         artwork: &'art mut Artwork,
         command_encoder: wgpu::CommandEncoder,
+        texture: &'art wgpu::Texture,
         viewport_size: Size2D<u32>,
     ) -> Self {
         Self {
             artwork,
             viewport_size,
             viewport_position: Point2D::new(0.0, 0.0),
+            texture,
 
             command_encoder,
         }
+    }
+
+    #[inline]
+    pub const fn texture(&self) -> &wgpu::Texture {
+        self.texture
     }
 
     pub(crate) fn with_viewport_position(self, position: Point2D<f64>) -> Self {
@@ -335,6 +343,10 @@ impl<'art> Painter<'art> {
     }
 
     pub fn submit_async(mut self) -> SubmissionFuture {
+        self.submit_async_concurrently()
+    }
+
+    pub fn submit_async_concurrently(&mut self) -> SubmissionFuture {
         let submission_index = self.post_submissions();
         SubmissionFuture::new(self.artwork.context.clone(), submission_index)
     }
