@@ -156,8 +156,11 @@ impl Compositor {
                         let mut tile = tile.lock().unwrap();
                         if !tile.dirty {
                             log::info!("        Tile {y} x {x} cached {} ms (waited {wait} ms)", begin.elapsed().as_millis());
-                            // TODO: we don't really have to send the tile, no?
-                            _ = sender.send((tile.canvas.create_view(), tile.rect, y, x)).ok();
+
+                            // It isn't necessary to send the tile surface to
+                            // the compositor thread, since the compositor can
+                            // use the cached version in
+                            // `Compositor::tile_texture_views`.
                             return;
                         }
 
