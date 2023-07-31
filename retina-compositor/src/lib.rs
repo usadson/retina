@@ -3,6 +3,7 @@
 
 mod painting;
 mod tile;
+mod trace;
 
 use std::{
     sync::{
@@ -72,6 +73,9 @@ impl Compositor {
         upload_image_callback: Callback,
     )
             where Callback: Fn(&mut Painter<'_>) + Send + Sync {
+        let _guard = trace::CompositorTracingGuard::new();
+        let _span = tracing::trace_span!("Composition").entered();
+
         let viewport = painter.viewport_rect().cast();
         let vertical_tiles = divide_and_round_up(viewport.max_y() as _, TILE_SIZE.height);
         let horizontal_tiles = divide_and_round_up(viewport.max_x(), TILE_SIZE.width);
@@ -111,7 +115,11 @@ impl Compositor {
         std::thread::scope(|s| {
             let viewport_tile_vertical_range2 = viewport_tile_vertical_range.clone();
             let viewport_tile_horizontal_range2 = viewport_tile_horizontal_range.clone();
+            let dispatcher = tracing::dispatcher::get_default(|d| d.clone());
+
+            let dispatcher2 = dispatcher.clone();
             s.spawn(move || {
+                let _trace_guard = tracing::dispatcher::set_default(&dispatcher2);
                 for y in viewport_tile_vertical_range2.clone() {
                     for x in viewport_tile_horizontal_range2.clone() {
                         let rect = tile_rect_by_coordinate(x, y).cast();
@@ -165,7 +173,9 @@ impl Compositor {
                 for x in viewport_tile_horizontal_range.clone() {
                     let tile = &self.tiles[y as usize][x as usize];
                     let sender = sender.clone();
+                    let dispatcher = dispatcher.clone();
                     s.spawn(move || {
+                        let _trace_guard = tracing::dispatcher::set_default(&dispatcher);
                         let wait = begin.elapsed().as_millis();
 
                         let mut tile = tile.lock().unwrap();
@@ -200,6 +210,7 @@ impl Compositor {
 
     /// Marking the tile cache as dirty ensures the compositor needs repaint and
     /// re-composite all of its tiles.
+    #[instrument]
     pub fn mark_tile_cache_dirty(&mut self) {
         for row in &mut self.tiles {
             for tile in row {
