@@ -20,14 +20,15 @@ use std::{
 
 use retina_gfx::{
     Context,
-    Painter, euclid::Rect,
+    euclid::Rect,
+    Painter,
 };
 use retina_layout::LayoutBox;
-use tile::TileSpace;
 use tracing::instrument;
 
 use self::tile::{
     Tile,
+    TileSpace,
     tile_rect_by_coordinate,
     TILE_SIZE,
 };
@@ -102,11 +103,11 @@ impl Compositor {
                         painter.paint_rect_textured(rect, &tile_textures_ref[y as usize][x as usize]);
                     }
                 }
-                painter.submit_async_concurrently().wait();
-                upload_image_callback(painter);
+                let mut submission = Some(painter.submit_async_concurrently());
 
                 let mut has_new_images = false;
 
+                let loop_time = Instant::now();
                 loop {
                     match receiver.recv_timeout(Duration::from_millis(50)) {
                         Ok((view, rect, y, x)) => {
@@ -117,9 +118,13 @@ impl Compositor {
                         }
 
                         Err(RecvTimeoutError::Timeout) => {
-                            if has_new_images {
-                                painter.submit_async_concurrently().wait();
+                            if let Some(submission) = submission.take() {
+                                submission.wait();
                                 upload_image_callback(painter);
+                            }
+
+                            if has_new_images {
+                                submission = Some(painter.submit_async_concurrently());
                                 has_new_images = false;
                             } else {
                                 log::info!("Still waiting...");
@@ -127,7 +132,14 @@ impl Compositor {
                         }
 
                         Err(RecvTimeoutError::Disconnected) => {
-                            log::info!("Compositor has no more tiles left!");
+                            if let Some(submission) = submission.take() {
+                                submission.wait();
+                                upload_image_callback(painter);
+                            }
+
+                            log::info!("Compositor done in {} ms, looped for {} ms",
+                                begin.elapsed().as_millis(),
+                                loop_time.elapsed().as_millis());
                             return;
                         }
                     }
