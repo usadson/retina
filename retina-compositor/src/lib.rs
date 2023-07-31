@@ -82,7 +82,7 @@ impl Compositor {
         }
 
         let begin = Instant::now();
-        log::info!("Preparing tiles: {vertical_tiles} x {horizontal_tiles}");
+        log::trace!("Preparing tiles: {vertical_tiles} x {horizontal_tiles}");
         for y in 0..vertical_tiles {
             let row = &mut self.tiles[y as usize];
 
@@ -96,8 +96,8 @@ impl Compositor {
             }
         }
 
-        log::info!("Tiles prepared in {} ms", begin.elapsed().as_millis());
-        log::info!("Initiating paint...");
+        log::trace!("Tiles prepared in {} ms", begin.elapsed().as_millis());
+        log::trace!("Initiating paint...");
 
         let viewport_tile_vertical_range = (viewport.min_y() / TILE_SIZE.height)..divide_and_round_up(viewport.max_y(), TILE_SIZE.height);
         let viewport_tile_horizontal_range = (viewport.min_x() / TILE_SIZE.width)..divide_and_round_up(viewport.max_x(), TILE_SIZE.width);
@@ -142,7 +142,7 @@ impl Compositor {
                                 submission = Some(painter.submit_async_concurrently());
                                 has_new_images = false;
                             } else {
-                                log::info!("Still waiting...");
+                                log::trace!("Still waiting...");
                             }
                         }
 
@@ -170,7 +170,7 @@ impl Compositor {
 
                         let mut tile = tile.lock().unwrap();
                         if !tile.dirty {
-                            log::info!("        Tile {y} x {x} cached {} ms (waited {wait} ms)", begin.elapsed().as_millis());
+                            log::trace!("        Tile {y} x {x} cached {} ms (waited {wait} ms)", begin.elapsed().as_millis());
 
                             // It isn't necessary to send the tile surface to
                             // the compositor thread, since the compositor can
@@ -180,24 +180,22 @@ impl Compositor {
                         }
 
                         tile.paint(layout_box);
-                        log::info!("        Tile {y} x {x} ready in {} ms (waited {wait} ms)", begin.elapsed().as_millis());
+                        log::trace!("        Tile {y} x {x} ready in {} ms (waited {wait} ms)", begin.elapsed().as_millis());
 
                         if let Some(submission_future) = tile.submission_future.take() {
                             submission_future.wait();
-                            log::info!("        Tile {y} x {x} finished in {} ms (waited {wait} ms)", begin.elapsed().as_millis());
+                            log::trace!("        Tile {y} x {x} finished in {} ms (waited {wait} ms)", begin.elapsed().as_millis());
                         }
 
                         _ = sender.send((tile.canvas.create_view(), tile.rect, y, x)).ok();
                     });
                 }
-                log::info!("    Row {y} done in {} ms", begin.elapsed().as_millis());
+                log::trace!("    Row {y} done in {} ms", begin.elapsed().as_millis());
             }
             drop(sender);
         }).unwrap();
 
         self.tile_textures = tile_textures;
-
-        log::info!("Painted in {} ms", begin.elapsed().as_millis());
     }
 
     /// Marking the tile cache as dirty ensures the compositor needs repaint and
