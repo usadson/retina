@@ -60,8 +60,10 @@ impl Compositor {
         let vertical_tiles = divide_and_round_up(viewport.max_y() as _, TILE_SIZE.height);
         let horizontal_tiles = divide_and_round_up(viewport.max_x(), TILE_SIZE.width);
 
-        self.tiles.resize_with(vertical_tiles as _, || Vec::with_capacity(horizontal_tiles as _));
-        self.tile_textures.resize_with(vertical_tiles as _, || Vec::with_capacity(horizontal_tiles as _));
+        if self.tiles.len() < vertical_tiles as _ {
+            self.tiles.resize_with(vertical_tiles as _, || Vec::with_capacity(horizontal_tiles as _));
+            self.tile_textures.resize_with(vertical_tiles as _, || Vec::with_capacity(horizontal_tiles as _));
+        }
 
         let begin = Instant::now();
         log::info!("Preparing tiles: {vertical_tiles} x {horizontal_tiles}");
