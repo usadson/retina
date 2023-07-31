@@ -221,6 +221,10 @@ impl<'art> Painter<'art> {
         renderer: Option<&TextureMaterialRenderer>,
         extra_bind_group_entry: Option<wgpu::BindGroupEntry>,
     ) {
+        if !self.viewport_rect().cast_unit().intersects(&rect) {
+            return;
+        }
+
         let rect = self.offset_rect(rect);
         let transformation = math::project(self.viewport_size.cast(), rect);
         let uniform: &[u8] = bytemuck::cast_slice(&transformation);
