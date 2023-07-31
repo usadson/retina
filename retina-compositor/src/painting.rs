@@ -340,8 +340,8 @@ struct CompositorTracingGuard {
     _tracing_subscriber_guard: tracing::subscriber::DefaultGuard,
 }
 
+static ENABLE_TRACING: OnceLock<bool> = OnceLock::new();
 impl CompositorTracingGuard {
-    const ENABLED: OnceLock<bool> = OnceLock::new();
 
     pub fn new() -> Option<Self> {
         if !Self::is_enabled() {
@@ -365,7 +365,7 @@ impl CompositorTracingGuard {
 
     #[inline]
     pub fn is_enabled() -> bool {
-        *Self::ENABLED.get_or_init(|| {
+        *ENABLE_TRACING.get_or_init(|| {
             std::env::var("RETINA_TRACE")
                 .is_ok_and(|val| val.trim().eq_ignore_ascii_case("1"))
         })

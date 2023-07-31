@@ -203,7 +203,7 @@ impl Compositor {
     pub fn mark_tile_cache_dirty(&mut self) {
         for row in &mut self.tiles {
             for tile in row {
-                tile.lock().unwrap().dirty = true;
+                tile.get_mut().unwrap().dirty = true;
             }
         }
     }
