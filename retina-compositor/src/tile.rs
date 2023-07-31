@@ -57,14 +57,7 @@ impl Tile {
             return;
         }
 
-        let color = match (self.rect.origin.x / TILE_SIZE.width, self.rect.origin.y / TILE_SIZE.height) {
-            (0, 0) => Color::RED,
-            (0, 1) => Color::GREEN,
-            (1, 0) => Color::BLUE,
-            (1, 1) => Color::MAGENTA,
-            _ => Color::rgb(0.2, 0.5, 0.4),
-        };
-        let mut painter = self.canvas.begin(color, self.rect.origin.cast().cast_unit());
+        let mut painter = self.canvas.begin(Color::WHITE, self.rect.origin.cast().cast_unit());
 
         let invoker = PaintInvoker::new();
         invoker.paint(layout_box, &mut painter);
