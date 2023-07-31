@@ -658,14 +658,6 @@ impl Page {
             }).ok();
         }).await;
 
-        painter.submit_async_concurrently().await;
-
-        self.message_sender.send(PageMessage::PaintReceived {
-            texture_view: self.canvas.create_view(),
-            texture_size: self.canvas.size(),
-            background_color: layout_root.background_color_as_root(),
-        })?;
-
         let time_taken = begin_time.elapsed();
         if time_taken.as_millis() > 200 {
             warn!("Page paint took {} milliseconds!", time_taken.as_millis());
