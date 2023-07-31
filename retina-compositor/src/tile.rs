@@ -4,7 +4,7 @@
 use retina_gfx::{
     canvas::CanvasPaintingContext,
     Context,
-    euclid::{Rect, Size2D}, Color, SubmissionFuture,
+    euclid::{Rect, Size2D, Point2D}, Color, SubmissionFuture,
 };
 use retina_layout::LayoutBox;
 use tracing::instrument;
@@ -14,6 +14,15 @@ use crate::painting::PaintInvoker;
 pub struct TileSpace;
 
 pub const TILE_SIZE: Size2D<u32, TileSpace> = Size2D::new(256, 256);
+
+#[inline]
+pub fn tile_rect_by_coordinate<T>(x: T, y: T) -> Rect<u32, TileSpace>
+        where T: Into<u32> {
+    let x = x.into();
+    let y = y.into();
+    let point = Point2D::new(x * TILE_SIZE.width, y * TILE_SIZE.height);
+    Rect::new(point, TILE_SIZE)
+}
 
 #[derive(Debug)]
 pub struct Tile {
