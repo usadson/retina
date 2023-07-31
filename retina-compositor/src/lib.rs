@@ -33,14 +33,28 @@ use self::tile::{
     TILE_SIZE,
 };
 
+/// The compositor is responsible for painting the page and putting it all into
+/// one texture. The term 'compositing' comes from the idea that the page is
+/// split into square sections (_tiles_) that need to be put together to form
+/// a single picture.
 #[derive(Debug)]
 pub struct Compositor {
     context: Context,
+
+    /// The tiles are stored in a vector of rows and then columns, meaning the
+    /// indexing order is __y__ first, and the __x__. They are also wrapped in
+    /// a [`Mutex`] to allow for parallelization.
     tiles: Vec<Vec<Mutex<Tile>>>,
+
+    /// This field has the same layout as [`tiles`](Compositor::tiles), and
+    /// contains the cached versions of each tile.
     tile_textures: Vec<Vec<wgpu::TextureView>>,
 }
 
 impl Compositor {
+    /// Creates a new [`Compositor`]. There really should only be one compositor
+    /// per page, since it's job is also to be efficient and aggressively cache
+    /// things.
     pub fn new(context: Context) -> Self {
         Self {
             context,
@@ -49,6 +63,7 @@ impl Compositor {
         }
     }
 
+    /// See the [documentation for this structure][Compositor].
     #[instrument(skip_all)]
     pub async fn composite<Callback>(
         &mut self,
@@ -185,6 +200,8 @@ impl Compositor {
         log::info!("Painted in {} ms", begin.elapsed().as_millis());
     }
 
+    /// Marking the tile cache as dirty ensures the compositor needs repaint and
+    /// re-composite all of its tiles.
     pub fn mark_tile_cache_dirty(&mut self) {
         for row in &mut self.tiles {
             for tile in row {
@@ -194,6 +211,10 @@ impl Compositor {
     }
 }
 
-fn divide_and_round_up(lhs: u32, rhs: u32) -> u32 {
+/// The default integer division will inherently round down, so this function
+/// can be used to round up, and has the advantage of avoiding floating point
+/// arithmetic, and converting to and from float/integers.
+#[inline]
+const fn divide_and_round_up(lhs: u32, rhs: u32) -> u32 {
     (lhs + rhs - 1) / rhs
 }

@@ -29,6 +29,15 @@ pub struct Tile {
     pub(crate) canvas: CanvasPaintingContext,
     pub(crate) rect: Rect<u32, TileSpace>,
     pub(crate) submission_future: Option<SubmissionFuture>,
+
+    /// The dirty flag signifies whether or not this tile should be repainted
+    /// or not. It is initially `true`, since the initial pixels are fully
+    /// transparent, but can be reset to `true` when a whole page
+    /// repaint is requested.
+    ///
+    /// When accounting for new tiles (e.g. because the viewport has increased)
+    /// this default value of `true` is useful for resizing a vector using
+    /// `Vec::resize_with`, and you don't have to loop the tile table again.
     pub(crate) dirty: bool,
 }
 
