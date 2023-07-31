@@ -306,6 +306,10 @@ impl PaintInvoker {
         for line_box_fragment in layout_box.line_box_fragments() {
             let position = line_box_fragment.position();
 
+            if !painter.viewport_rect().cast_unit().intersects(&Rect::new(line_box_fragment.position(), line_box_fragment.size())) {
+                return;
+            }
+
             painter.paint_text(
                 layout_box.font().as_ref(),
                 line_box_fragment.text(),
