@@ -22,6 +22,7 @@ use tracing::instrument;
 
 use self::tile::{
     Tile,
+    TileSpace,
     TILE_SIZE,
 };
 
@@ -40,8 +41,42 @@ impl Compositor {
     }
 
     #[instrument(skip_all)]
-    pub async fn paint(&mut self, layout_box: &LayoutBox, painter: &mut Painter<'_>) {
+    pub async fn composite(
+        &mut self,
+        painter: &mut Painter<'_>,
+    ) {
+        log::info!("Compositing...");
+
         let viewport = painter.viewport_rect().cast();
+        let viewport_tile_vertical_range = (viewport.min_y() / TILE_SIZE.height)..divide_and_round_up(viewport.max_y(), TILE_SIZE.height);
+        let viewport_tile_horizontal_range = (viewport.min_x() / TILE_SIZE.width)..divide_and_round_up(viewport.max_x(), TILE_SIZE.width);
+
+        let begin = Instant::now();
+        for y in viewport_tile_vertical_range {
+            log::info!("    Row {y}...");
+            for x in viewport_tile_horizontal_range.clone() {
+                log::info!("        Tile {x}...");
+                let tile = &self.tiles[y as usize][x as usize];
+                let tile = tile.lock().unwrap();
+
+                painter.paint_rect_textured(tile.rect.to_f64(), &tile.canvas.create_view());
+                log::info!("        Tile {x} composited");
+            }
+            log::info!("    Row {y} done!");
+        }
+
+        log::info!("Compositor done ^_^ in {} ms", begin.elapsed().as_millis());
+    }
+
+    #[instrument(skip_all)]
+    pub async fn paint<Unit, Callback>(
+        &mut self,
+        layout_box: &LayoutBox,
+        viewport: Rect<f64, Unit>,
+        tile_ready_callback: &Callback,
+    )
+            where Callback: Fn(wgpu::TextureView, Rect<u32, TileSpace>) -> () + Sync {
+        let viewport = viewport.cast();
         let vertical_tiles = divide_and_round_up(viewport.max_y() as _, TILE_SIZE.height);
         let horizontal_tiles = divide_and_round_up(viewport.max_x(), TILE_SIZE.width);
 
@@ -74,12 +109,18 @@ impl Compositor {
                     let tile = &self.tiles[y as usize][x as usize];
                     s.spawn(move |_| {
                         let mut tile = tile.lock().unwrap();
+                        if !tile.dirty {
+                            log::info!("        Tile {y} x {x} cached {} ms", begin.elapsed().as_millis());
+                            return;
+                        }
+
                         tile.paint(layout_box);
                         log::info!("        Tile {y} x {x} ready in {} ms", begin.elapsed().as_millis());
                         if let Some(submission_future) = tile.submission_future.take() {
                             submission_future.wait();
                             log::info!("        Tile {y} x {x} finished in {} ms", begin.elapsed().as_millis());
                         }
+                        tile_ready_callback(tile.canvas.create_view(), tile.rect);
                     });
                 }
                 log::info!("    Row {y} done in {} ms", begin.elapsed().as_millis());
@@ -87,23 +128,6 @@ impl Compositor {
         }).unwrap();
 
         log::info!("Painted in {} ms", begin.elapsed().as_millis());
-        log::info!("Compositing...");
-
-        let begin = Instant::now();
-        for y in viewport_tile_vertical_range {
-            log::info!("    Row {y}...");
-            for x in viewport_tile_horizontal_range.clone() {
-                log::info!("        Tile {x}...");
-                let tile = &self.tiles[y as usize][x as usize];
-                let tile = tile.lock().unwrap();
-
-                painter.paint_rect_textured(tile.rect.to_f64(), &tile.canvas.create_view());
-                log::info!("        Tile {x} composited");
-            }
-            log::info!("    Row {y} done!");
-        }
-
-        log::info!("Compositor done ^_^ in {} ms", begin.elapsed().as_millis());
     }
 
     pub fn mark_tile_cache_dirty(&mut self) {

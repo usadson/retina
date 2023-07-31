@@ -7,7 +7,7 @@ use std::{
         mpsc::{
             Receiver as SyncReceiver,
             SyncSender,
-        },
+        }, Mutex,
     },
     time::{
         Duration,
@@ -16,6 +16,7 @@ use std::{
 };
 
 use log::{error, info, warn};
+use retina_common::Color;
 use retina_compositor::Compositor;
 use retina_dom::{HtmlElementKind, LinkType, Node, event::queue::EventQueue, ImageData, image::ImageDataState};
 use retina_fetch::{Fetch, Request};
@@ -641,11 +642,33 @@ impl Page {
         // > The initial value for the 'color' property is expected to be black.
         // > The initial value for the 'background-color' property is expected
         // > to be 'transparent'. The canvas's background is expected to be white.
+        let painter = self.canvas.begin(layout_root.background_color_as_root(), self.scroller.viewport_position());
+        let viewport = painter.viewport_rect();
+        let painter = Arc::new(Mutex::new(painter));
+
+        let sender = self.message_sender.clone();
+        self.compositor.paint(
+            layout_root,
+            viewport,
+            &|texture_view, rect| {
+                let mut painter = painter.lock().unwrap();
+                painter.paint_rect_textured(rect.cast(), &texture_view);
+                painter.submit_async_concurrently().wait();
+                _ = sender.send(PageMessage::PaintReceived {
+                    texture_view: painter.texture().create_view(&wgpu::TextureViewDescriptor {
+                        ..Default::default()
+                    }),
+                    texture_size: viewport.cast().cast_unit().size,
+                    // texture_view,
+                    // texture_size: rect.size.cast_unit(),
+                    background_color: Color::MAGENTA,
+                });
+            }).await;
+
         let mut painter = self.canvas.begin(layout_root.background_color_as_root(), self.scroller.viewport_position());
+        self.compositor.composite(&mut painter).await;
 
-        self.compositor.paint(layout_root, &mut painter).await;
-
-        painter.submit_async().await;
+        painter.submit_async_concurrently().await;
 
         self.message_sender.send(PageMessage::PaintReceived {
             texture_view: self.canvas.create_view(),

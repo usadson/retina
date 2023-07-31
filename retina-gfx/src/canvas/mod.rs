@@ -73,8 +73,12 @@ impl CanvasPaintingContext {
             ..Default::default()
         });
 
-        let mut painter = Painter::new(&mut self.artwork, encoder, self.size.cast_unit())
-            .with_viewport_position(viewport_position);
+        let mut painter = Painter::new(
+            &mut self.artwork,
+            encoder,
+            &self.surface,
+            self.size.cast_unit(),
+        ).with_viewport_position(viewport_position);
         painter.clear(clear_color);
         painter
     }
