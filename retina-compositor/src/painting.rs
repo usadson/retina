@@ -164,8 +164,7 @@ impl PaintInvoker {
     ) {
         let background_color = layout_box.actual_values().background_color;
 
-        /// TODO temporarily disabled this stuff
-        if background_color.alpha() <= 10.0 {
+        if background_color.alpha() <= 0.0 {
             return;
         }
 
