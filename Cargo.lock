@@ -737,6 +737,7 @@ dependencies = [
  "lock_api",
  "once_cell",
  "parking_lot_core",
+ "rayon",
 ]
 
 [[package]]
@@ -3055,6 +3056,7 @@ name = "retina-gfx-font"
 version = "0.2.0"
 dependencies = [
  "bytemuck",
+ "dashmap",
  "euclid",
  "font-kit",
  "harfbuzz_rs",

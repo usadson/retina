@@ -2,14 +2,15 @@
 // All Rights Reserved.
 
 use std::{
-    collections::HashMap,
+    fmt::Debug,
     ops::Deref,
     sync::{
         Arc,
         RwLock,
-    }, fmt::Debug,
+    },
 };
 
+use dashmap::DashMap;
 use euclid::default::{
     Point2D,
     Rect,
@@ -52,7 +53,7 @@ pub struct FontKitFont {
     descriptor: FontDescriptor,
     font: Backend,
     metrics: BackendMetrics,
-    atlases: RwLock<Vec<RwLock<GlyphAtlas>>>,
+    atlases: RwLock<Vec<GlyphAtlas>>,
 }
 
 unsafe impl Send for FontKitFont {}
@@ -82,21 +83,21 @@ impl FontKitFont {
 
     #[instrument(skip(f))]
     fn with_size<F, RetVal>(&self, size: f32, f: F) -> RetVal
-            where F: FnOnce(&mut GlyphAtlas) -> RetVal {
+            where F: FnOnce(&GlyphAtlas) -> RetVal {
         let atlases = trace_span!("Getting atlas read lock")
             .in_scope(|| self.atlases.read().unwrap());
         let _finding_span_guard = trace_span!("Finding existing atlas").entered();
         for atlas in atlases.iter() {
-            if atlas.read().unwrap().is_size(size) {
+            if atlas.is_size(size) {
                 drop(_finding_span_guard);
-                return f(&mut atlas.write().unwrap());
+                return f(atlas);
             }
         }
 
         drop(_finding_span_guard);
         drop(atlases);
 
-        let mut atlas = trace_span!("Creating glyph atlas").in_scope(|| {
+        let atlas = trace_span!("Creating glyph atlas").in_scope(|| {
             let mut atlas = GlyphAtlas::new(size, self.metrics.units_per_em);
             atlas.prepare_basic_latin(&self.gfx_context, &self.font);
             atlas
@@ -107,9 +108,9 @@ impl FontKitFont {
         // TODO: dropping the mutable lock of `atlases` here can improve
         // concurrent read performance, but it is probably nicer to use a
         // concurrent HashMap for that instead.
-        let return_value = f(&mut atlas);
+        let return_value = f(&atlas);
 
-        atlases.push(RwLock::new(atlas));
+        atlases.push(atlas);
 
         return_value
     }
@@ -139,10 +140,11 @@ impl FontKitFont {
                 for (position, info) in positions.iter().zip(infos) {
                     let glyph_id = GlyphId(info.codepoint);
 
-                    let glyph = atlas.glyph(&self.gfx_context, &self.font, glyph_id)
-                        .expect(&format!("Failed to lookup Glyph that HarfBuzz _did_ find: {glyph_id:?}"));
+                    atlas.with_glyph(&self.gfx_context, &self.font, glyph_id, |glyph| {
+                        let glyph = glyph.expect(&format!("Failed to lookup Glyph that HarfBuzz _did_ find: {glyph_id:?}"));
+                        f(*position, glyph);
+                    });
 
-                    f(*position, glyph);
                 }
             });
         });
@@ -380,7 +382,7 @@ struct GlyphId(pub u32);
 struct GlyphAtlas {
     size: f32,
     units_per_em: u32,
-    glyphs: HashMap<GlyphId, Option<Glyph>>,
+    glyphs: DashMap<GlyphId, Option<Glyph>>,
 }
 
 impl GlyphAtlas {
@@ -393,13 +395,21 @@ impl GlyphAtlas {
         }
     }
 
-    #[instrument(skip(font))]
-    pub fn glyph(&mut self, context: &Context, font: &Backend, glyph_id: GlyphId) -> Option<&Glyph> {
-        if !self.glyphs.contains_key(&glyph_id) {
-            self.glyphs.insert(glyph_id, Glyph::new_opt(context, font, self.units_per_em, glyph_id, self.size));
+    #[instrument(skip(font, callback))]
+    pub fn with_glyph<Callback, T>(&self, context: &Context, font: &Backend, glyph_id: GlyphId, callback: Callback) -> T
+            where Callback: FnOnce(Option<&Glyph>) -> T {
+        if let Some(glyph) = self.glyphs.get(&glyph_id) {
+            return callback(glyph.as_ref());
         }
 
-        self.glyphs.get(&glyph_id).unwrap().as_ref()
+        let glyph = Glyph::new_opt(context, font, self.units_per_em, glyph_id, self.size);
+
+        // TODO is it possible that `callback` takes too long, and another
+        //      thread will come in and also create this glyph?
+        let result = callback(glyph.as_ref());
+
+        self.glyphs.insert(glyph_id, glyph);
+        result
     }
 
     #[inline]

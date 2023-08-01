@@ -9,6 +9,7 @@ retina-common = { path = "../retina-common" }
 retina-gfx = { path = "../retina-gfx" }
 
 bytemuck = "*"
+dashmap = { version = "*", features = ["rayon"] }
 euclid = "*"
 font-kit = "*"
 harfbuzz_rs = "*"
