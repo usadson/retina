@@ -3,10 +3,7 @@
 
 use std::{
     collections::HashMap,
-    ops::{
-        Deref,
-        RangeInclusive,
-    },
+    ops::Deref,
     sync::{
         Arc,
         RwLock,
@@ -42,7 +39,7 @@ use retina_gfx::{
     TypographicPositionMode,
 };
 
-use tracing::instrument;
+use tracing::{instrument, trace_span};
 
 use wgpu::util::DeviceExt;
 
@@ -86,17 +83,24 @@ impl FontKitFont {
     #[instrument(skip(f))]
     fn with_size<F, RetVal>(&self, size: f32, f: F) -> RetVal
             where F: FnOnce(&mut GlyphAtlas) -> RetVal {
-        let atlases = self.atlases.read().unwrap();
+        let atlases = trace_span!("Getting atlas read lock")
+            .in_scope(|| self.atlases.read().unwrap());
+        let _finding_span_guard = trace_span!("Finding existing atlas").entered();
         for atlas in atlases.iter() {
             if atlas.read().unwrap().is_size(size) {
+                drop(_finding_span_guard);
                 return f(&mut atlas.write().unwrap());
             }
         }
 
+        drop(_finding_span_guard);
         drop(atlases);
 
-        let mut atlas = GlyphAtlas::new(size, self.metrics.units_per_em);
-        atlas.prepare_basic_latin(&self.gfx_context, &self.font);
+        let mut atlas = trace_span!("Creating glyph atlas").in_scope(|| {
+            let mut atlas = GlyphAtlas::new(size, self.metrics.units_per_em);
+            atlas.prepare_basic_latin(&self.gfx_context, &self.font);
+            atlas
+        });
 
         let mut atlases = self.atlases.write().unwrap();
 
@@ -120,14 +124,15 @@ impl FontKitFont {
     )
             where F: FnMut(harfbuzz_rs::GlyphPosition, &Glyph) {
         self.with_size(point_size, |atlas| {
+            let _harfbuzz_guard = trace_span!("with_harfbuzz_font").entered();
             self.font.with_harfbuzz_font(|font| {
                 let unicode_buffer = harfbuzz_rs::UnicodeBuffer::new()
                     .add_str(text)
                     .guess_segment_properties();
 
                 let features = resolve_hints_to_harfbuzz(hints);
-
-                let glyph_buffer = harfbuzz_rs::shape(font, unicode_buffer, &features);
+                let glyph_buffer = trace_span!("harfbuzz_rs::shape")
+                    .in_scope(|| harfbuzz_rs::shape(font, unicode_buffer, &features));
                 let positions = glyph_buffer.get_glyph_positions();
                 let infos = glyph_buffer.get_glyph_infos();
 
@@ -371,6 +376,7 @@ struct GlyphId(pub u32);
 
 /// TODO: this doesn't actually use a texture atlas, for simplicity reasons,
 /// but this can/should be implemented in the future.
+#[derive(Debug)]
 struct GlyphAtlas {
     size: f32,
     units_per_em: u32,
@@ -378,6 +384,7 @@ struct GlyphAtlas {
 }
 
 impl GlyphAtlas {
+    #[instrument]
     pub fn new(size: f32, units_per_em: u32) -> Self {
         Self {
             size,
@@ -386,6 +393,7 @@ impl GlyphAtlas {
         }
     }
 
+    #[instrument(skip(font))]
     pub fn glyph(&mut self, context: &Context, font: &Backend, glyph_id: GlyphId) -> Option<&Glyph> {
         if !self.glyphs.contains_key(&glyph_id) {
             self.glyphs.insert(glyph_id, Glyph::new_opt(context, font, self.units_per_em, glyph_id, self.size));
@@ -401,10 +409,12 @@ impl GlyphAtlas {
     }
 
     #[inline]
+    #[instrument(skip(font))]
     pub fn prepare_basic_latin(&mut self, context: &Context, font: &Backend) {
         self.prepare_chars(context, font, ' '..='~');
     }
 
+    #[instrument(skip(font, range))]
     pub fn prepare_chars<It>(&mut self, context: &Context, font: &Backend, range: It)
             where It: IntoParallelIterator<Item = char> {
         let glyphs = range.into_par_iter()
@@ -425,6 +435,7 @@ impl GlyphAtlas {
 }
 
 /// TODO: this should obviously be in a texture atlas
+#[derive(Debug)]
 struct Glyph {
     size: Size2D<u32>,
     typographic_bounds: RectF,
@@ -437,6 +448,7 @@ struct Glyph {
 }
 
 impl Glyph {
+    #[instrument(skip(font))]
     pub fn new(
         context: &Context,
         font: &Backend,
@@ -513,6 +525,7 @@ impl Glyph {
         })
     }
 
+    #[instrument(skip(font))]
     pub fn new_opt(
         context: &Context,
         font: &Backend,
