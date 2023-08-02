@@ -155,7 +155,10 @@ impl Compositor {
                         }
 
                         Err(RecvTimeoutError::Disconnected) => {
-                            if let Some(submission) = submission.take() {
+                            if has_new_images {
+                                painter.submit_async_concurrently().wait();
+                                upload_image_callback(painter);
+                            } else if let Some(submission) = submission.take() {
                                 submission.wait();
                                 upload_image_callback(painter);
                             }
