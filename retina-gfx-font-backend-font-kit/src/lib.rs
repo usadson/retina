@@ -8,9 +8,9 @@ pub(crate) mod provider;
 
 pub use self::provider::FontProvider;
 
-use retina_gfx::{
+use retina_gfx_font::{
     FamilyName,
-    FontWeight,
+    FontWeight
 };
 
 pub(crate) fn convert_font_kit_name(value: FamilyName) -> font_kit::family_name::FamilyName {

@@ -29,11 +29,12 @@ use pathfinder_geometry::{
 
 use rayon::prelude::*;
 
-use retina_gfx::{
+use retina_gfx::Context;
+
+use retina_gfx_font::{
     CapitalLetterMode,
     EastAsianGlyphForm,
     EastAsianGlyphWidth,
-    Context,
     FontDescriptor,
     LigatureMode,
     TextHintingOptions,
@@ -276,7 +277,7 @@ fn resolve_hints_to_harfbuzz(hints: TextHintingOptions) -> Vec<harfbuzz_rs::Feat
     features
 }
 
-impl retina_gfx::Font for FontKitFont {
+impl retina_gfx_font::Font for FontKitFont {
     fn calculate_size(&self, point_size: f32, text: &str, hints: TextHintingOptions) -> Size2D<f32> {
         let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / point_size;
 

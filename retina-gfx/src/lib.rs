@@ -3,9 +3,6 @@
 
 pub mod canvas;
 pub mod context;
-pub(crate) mod features;
-mod font;
-mod font_descriptor;
 mod future;
 pub(crate) mod math;
 pub mod material;
@@ -20,9 +17,6 @@ use raw_window_handle::{RawWindowHandle, RawDisplayHandle, HasRawWindowHandle, H
 pub use retina_common::Color;
 pub use self::{
     context::Context,
-    features::*,
-    font::Font,
-    font_descriptor::{FamilyName, FontDescriptor, FontWeight},
     future::SubmissionFuture,
     painter::Painter,
     texture::Texture,

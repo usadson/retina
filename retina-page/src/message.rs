@@ -4,8 +4,8 @@
 use retina_gfx::{
     Color,
     euclid::Size2D,
-    FontDescriptor,
 };
+use retina_gfx_font::FontDescriptor;
 
 use retina_style::Stylesheet;
 

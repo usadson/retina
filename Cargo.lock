@@ -2987,6 +2987,8 @@ dependencies = [
  "log",
  "retina-dom",
  "retina-gfx",
+ "retina-gfx-font",
+ "retina-gfx-font-renderer",
  "retina-layout",
  "retina-style",
  "retina-style-computation",
@@ -3056,6 +3058,7 @@ dependencies = [
 name = "retina-gfx-font"
 version = "0.2.0"
 dependencies = [
+ "euclid",
  "retina-common",
  "retina-gfx",
 ]

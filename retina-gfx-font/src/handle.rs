@@ -7,7 +7,7 @@ use std::{
     sync::Arc,
 };
 
-use retina_gfx::Font;
+use crate::Font;
 
 #[derive(Clone)]
 pub struct FontHandle {
@@ -38,8 +38,8 @@ impl Deref for FontHandle {
     }
 }
 
-impl AsRef<dyn retina_gfx::Font + 'static> for FontHandle {
-    fn as_ref(&self) -> &(dyn retina_gfx::Font + 'static) {
+impl AsRef<dyn Font + 'static> for FontHandle {
+    fn as_ref(&self) -> &(dyn Font + 'static) {
         &*self.font
     }
 }

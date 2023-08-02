@@ -5,8 +5,7 @@ use std::collections::HashMap;
 
 use log::trace;
 use retina_fetch::Fetch;
-use retina_gfx::{FamilyName, FontDescriptor, FontWeight};
-use retina_gfx_font::FontProvider;
+use retina_gfx_font::{FontProvider, FamilyName, FontDescriptor, FontWeight};
 use retina_layout::LayoutBox;
 use retina_style::{CssFontFamilyName, Stylesheet};
 use tokio::sync::mpsc::Sender;

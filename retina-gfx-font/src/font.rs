@@ -3,17 +3,21 @@
 
 use euclid::default::{Point2D, Size2D};
 use retina_common::Color;
+use retina_gfx::Painter;
 
 use crate::{
     FontDescriptor,
-    Painter,
-    TextHintingOptions,
+    features::TextHintingOptions,
 };
 
 pub trait Font {
     fn calculate_size(&self, size: f32, text: &str, hints: TextHintingOptions) -> Size2D<f32>;
 
     fn descriptor(&self) -> &FontDescriptor;
+
+    fn baseline_offset(&self, point_size: f32) -> f32;
+    fn underline_position(&self, point_size: f32) -> f32;
+    fn underline_thickness(&self, point_size: f32) -> f32;
 
     fn paint(
         &self,
@@ -24,8 +28,4 @@ pub trait Font {
         hints: TextHintingOptions,
         painter: &mut Painter
     );
-
-    fn baseline_offset(&self, point_size: f32) -> f32;
-    fn underline_position(&self, point_size: f32) -> f32;
-    fn underline_thickness(&self, point_size: f32) -> f32;
 }

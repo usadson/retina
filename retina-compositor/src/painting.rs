@@ -307,13 +307,13 @@ impl PaintInvoker {
                 return;
             }
 
-            painter.paint_text(
-                layout_box.font().as_ref(),
+            layout_box.font().paint(
                 line_box_fragment.text(),
                 color,
                 position.cast(),
                 size,
                 layout_box.actual_values().text_hinting_options,
+                painter,
             );
 
             match line {

@@ -16,9 +16,7 @@ use crate::material::MaterialRenderer;
 use crate::{
     ColorMaterialRenderer,
     Context,
-    Font,
     SubmissionFuture,
-    TextHintingOptions,
     TextureMaterialRenderer,
 };
 
@@ -305,20 +303,6 @@ impl<'art> Painter<'art> {
             render_pass.set_bind_group(0, &bind_group, &[]);
             renderer.base().draw_once(&mut render_pass);
         });
-    }
-
-    #[instrument(skip(font, size))]
-    pub fn paint_text<PositionUnit, Size>(
-        &mut self,
-        font: &dyn Font,
-        text: &str,
-        color: Color,
-        position: euclid::Point2D<f32, PositionUnit>,
-        size: Size,
-        hints: TextHintingOptions,
-    )
-            where Size: Into<f32> {
-        font.paint(text, color, position.cast_unit(), size.into(), hints, self);
     }
 
     #[instrument]
