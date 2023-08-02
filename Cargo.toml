@@ -9,6 +9,7 @@ members = [
     "retina-gfx",
     "retina-gfx-font",
     "retina-gfx-font-backend-font-kit",
+    "retina-gfx-font-renderer",
     "retina-gfx-gui",
     "retina-i18n",
     "retina-layout",

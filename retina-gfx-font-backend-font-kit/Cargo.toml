@@ -8,6 +8,7 @@ license.workspace = true
 retina-common = { path = "../retina-common" }
 retina-gfx = { path = "../retina-gfx" }
 retina-gfx-font = { path = "../retina-gfx-font" }
+retina-gfx-font-renderer = { path = "../retina-gfx-font-renderer" }
 
 bytemuck = "*"
 dashmap = { version = "*", features = ["rayon"] }

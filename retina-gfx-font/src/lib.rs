@@ -4,7 +4,6 @@
 pub mod descriptor;
 pub(crate) mod handle;
 pub(crate) mod provider;
-pub(crate) mod renderer;
 
 pub use self:: {
     descriptor::*,
@@ -13,5 +12,4 @@ pub use self:: {
         FontProvider,
         FontProviderBackend,
     },
-    renderer::FontTextureMaterialRenderer,
 };

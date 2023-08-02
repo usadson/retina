@@ -3056,12 +3056,8 @@ dependencies = [
 name = "retina-gfx-font"
 version = "0.2.0"
 dependencies = [
- "bytemuck",
- "log",
  "retina-common",
  "retina-gfx",
- "tracing",
- "wgpu",
 ]
 
 [[package]]
@@ -3080,6 +3076,19 @@ dependencies = [
  "retina-common",
  "retina-gfx",
  "retina-gfx-font",
+ "retina-gfx-font-renderer",
+ "tracing",
+ "wgpu",
+]
+
+[[package]]
+name = "retina-gfx-font-renderer"
+version = "0.2.0"
+dependencies = [
+ "bytemuck",
+ "log",
+ "retina-common",
+ "retina-gfx",
  "tracing",
  "wgpu",
 ]
