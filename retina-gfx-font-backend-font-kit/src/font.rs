@@ -338,8 +338,8 @@ impl retina_gfx_font::Font for FontKitFont {
             let y_offset = glyph_position.y_offset as f32 / typographic_unit_conversion_factor;
             let glyph_rect = Rect::new(
                 Point2D::new(
-                    position.x + glyph.origin.x() + x_offset,
-                    position.y - glyph.typographic_bounds.max_y() + y_offset,
+                    (position.x + glyph.origin.x() + x_offset).round(),
+                    (position.y - glyph.typographic_bounds.max_y() + y_offset).round(),
                 ),
                 glyph.size.cast(),
             ).cast();
