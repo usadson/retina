@@ -18,8 +18,8 @@ static INSTANCE: OnceLock<FontTextureMaterialRenderer> = OnceLock::new();
 
 #[derive(Debug)]
 pub struct FontTextureMaterialRenderer {
-    pub(crate) renderer: TextureMaterialRenderer,
-    pub(crate) uniform_buffer: wgpu::Buffer,
+    pub renderer: TextureMaterialRenderer,
+    pub uniform_buffer: wgpu::Buffer,
 }
 
 impl FontTextureMaterialRenderer {

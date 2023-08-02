@@ -2966,6 +2966,7 @@ dependencies = [
  "retina-fetch",
  "retina-gfx",
  "retina-gfx-font",
+ "retina-gfx-font-backend-font-kit",
  "retina-gfx-gui",
  "retina-page",
  "url",
@@ -3056,6 +3057,18 @@ name = "retina-gfx-font"
 version = "0.2.0"
 dependencies = [
  "bytemuck",
+ "log",
+ "retina-common",
+ "retina-gfx",
+ "tracing",
+ "wgpu",
+]
+
+[[package]]
+name = "retina-gfx-font-backend-font-kit"
+version = "0.2.0"
+dependencies = [
+ "bytemuck",
  "dashmap",
  "euclid",
  "font-kit",
@@ -3066,6 +3079,7 @@ dependencies = [
  "rayon",
  "retina-common",
  "retina-gfx",
+ "retina-gfx-font",
  "tracing",
  "wgpu",
 ]

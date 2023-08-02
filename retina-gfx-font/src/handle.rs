@@ -14,6 +14,15 @@ pub struct FontHandle {
     pub(crate) font: Arc<dyn Font>,
 }
 
+impl FontHandle {
+    #[inline]
+    pub const fn new(font: Arc<dyn Font>) -> Self {
+        Self {
+            font,
+        }
+    }
+}
+
 impl Debug for FontHandle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("FontHandle")

@@ -1,6 +1,8 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use std::sync::Arc;
+
 use copypasta::{ClipboardContext, ClipboardProvider};
 
 use log::{info, error};
@@ -36,7 +38,8 @@ impl Application {
 
         window.set_title(&format!("{} — Retina", url.as_str()));
 
-        let font_provider = FontProvider::new(window.context());
+        let font_provider_backend = retina_gfx_font_backend_font_kit::FontProvider::new(window.context());
+        let font_provider = FontProvider::new(Arc::new(font_provider_backend));
         font_provider.load_defaults();
 
         let page_handle = retina_page::spawn(

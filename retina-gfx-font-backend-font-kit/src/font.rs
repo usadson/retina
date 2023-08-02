@@ -46,7 +46,7 @@ use wgpu::util::DeviceExt;
 
 use font_kit::metrics::Metrics as BackendMetrics;
 
-use crate::renderer::FontTextureMaterialRenderer;
+use retina_gfx_font::FontTextureMaterialRenderer;
 
 pub struct FontKitFont {
     gfx_context: Context,

@@ -1,5 +1,5 @@
 [package]
-name = "retina-gfx-font"
+name = "retina-gfx-font-backend-font-kit"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -7,8 +7,16 @@ license.workspace = true
 [dependencies]
 retina-common = { path = "../retina-common" }
 retina-gfx = { path = "../retina-gfx" }
+retina-gfx-font = { path = "../retina-gfx-font" }
 
 bytemuck = "*"
+dashmap = { version = "*", features = ["rayon"] }
+euclid = "*"
+font-kit = "*"
+harfbuzz_rs = "*"
 log = "*"
+ouroboros = "*"
+pathfinder_geometry = "*"
+rayon = "*"
 tracing = "*"
 wgpu = { version = "*", features = ["trace"] }
