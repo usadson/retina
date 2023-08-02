@@ -241,18 +241,27 @@ impl LayoutBox {
 
             fragment_begin_index += self.line_box_fragments.last().unwrap().text.len32();
 
+            let text = match text.try_subtendril(fragment_begin_index, word.len() as u32)  {
+                Ok(text) => text,
+                Err(_) => match text.try_subtendril(fragment_begin_index, original_word.len() as u32) {
+                    Ok(text) => text,
+                    Err(e) => {
+                        warn!("Failed to subtendril: {e:?}");
+                        warn!("  text.len={}", text.len());
+                        warn!("  begin_index={fragment_begin_index}");
+                        warn!("  length={}", word.len());
+                        warn!("  end={}", fragment_begin_index + word.len() as u32);
+                        warn!("  with word=\"{word}\"");
+                        warn!("  originally=\"{original_word}\"");
+                        warn!("  full text=\"{text}\"");
+                        break;
+                    }
+                }
+            };
+
             self.line_box_fragments.push(LineBoxFragment {
                 position,
-                text: text.try_subtendril(fragment_begin_index, word.len() as u32)
-                    .unwrap_or_else(|_| {
-                        text.try_subtendril(fragment_begin_index, original_word.len() as u32)
-                            .expect(&format!(
-                                "Failed to subtendril: text.len={}, begin_index={fragment_begin_index} length={} end={} with word=\"{word}\"",
-                                text.len(),
-                                word.len(),
-                                fragment_begin_index + word.len() as u32,
-                            ))
-                    }),
+                text,
                 size: self.font().calculate_size(font_size, word, hinting_options).cast(),
             });
         }

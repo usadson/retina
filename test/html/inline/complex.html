@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complex Inline Layout</title>
+    <style>
+        body {
+            color: white;
+            font-size: 1.1rem;
+            background-color: black;
+        }
+        div {
+            width: 2em;
+            background-color: red;
+        }
+        span {
+            background-color: orange;
+        }
+        b {
+            padding: 2px;
+            background-color: green;
+        }
+        i {
+            padding: 2px;
+            background-color: blue;
+            opacity: .6;
+        }
+        i > span {
+            padding: 2px;
+            background-color: blueviolet;
+            opacity: .7;
+        }
+        span > i {
+            background-color: yellow;
+            opacity: .8;
+        }
+        i > b {
+            background-color: grey;
+            opacity: .9;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        Hello,
+        <span>
+            <b>
+                <i>
+                    <span>
+                        <i>
+                            <b>
+                                w o rl d!
+                            </b>
+                            this
+                        </i>
+                        is
+                    </span>
+                    a
+                </i>
+                test
+            </b>
+            page
+        </span>
+    </div>
+</body>
+</html>
