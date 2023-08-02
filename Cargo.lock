@@ -2988,7 +2988,6 @@ dependencies = [
  "retina-dom",
  "retina-gfx",
  "retina-gfx-font",
- "retina-gfx-font-renderer",
  "retina-layout",
  "retina-style",
  "retina-style-computation",

@@ -8,7 +8,6 @@ license.workspace = true
 retina-dom = { path = "../retina-dom" }
 retina-gfx = { path = "../retina-gfx" }
 retina-gfx-font = { path = "../retina-gfx-font" }
-retina-gfx-font-renderer = { path = "../retina-gfx-font-renderer" }
 retina-layout = { path = "../retina-layout" }
 retina-style = { path = "../retina-style" }
 retina-style-computation = { path = "../retina-style-computation" }
