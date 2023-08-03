@@ -3,7 +3,7 @@
 
 use std::time::{Instant, Duration};
 
-const MAXIMUM_DELAY_BETWEEN_CLEANSING: Duration = Duration::from_millis(250);
+const MAXIMUM_DELAY_BETWEEN_CLEANSING: Duration = Duration::from_millis(30);
 
 #[derive(Debug)]
 pub(crate) struct DirtyState {
