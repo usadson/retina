@@ -304,7 +304,7 @@ impl PaintInvoker {
             let position = line_box_fragment.position();
 
             if !painter.viewport_rect().cast_unit().intersects(&Rect::new(line_box_fragment.position(), line_box_fragment.size())) {
-                return;
+                continue;
             }
 
             line_box_fragment.font().paint(
