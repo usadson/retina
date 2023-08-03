@@ -143,6 +143,9 @@ impl Compositor {
                         Err(RecvTimeoutError::Timeout) => {
                             if let Some(submission) = submission.take() {
                                 submission.wait();
+                                tracing::trace_span!("Recalling Staging Belt").in_scope(|| {
+                                    painter.artwork_and_command_encoder().0.staging_belt.recall();
+                                });
                                 upload_image_callback(painter);
                             }
 
@@ -162,6 +165,10 @@ impl Compositor {
                                 submission.wait();
                                 upload_image_callback(painter);
                             }
+
+                            tracing::trace_span!("Recalling Staging Belt").in_scope(|| {
+                                painter.artwork_and_command_encoder().0.staging_belt.recall();
+                            });
 
                             log::info!("Compositor done in {} ms, looped for {} ms",
                                 begin.elapsed().as_millis(),
