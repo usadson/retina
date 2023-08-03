@@ -13,6 +13,7 @@ retina-style = { path = "../retina-style" }
 retina-style-computation = { path = "../retina-style-computation" }
 
 log = "*"
+profiling = { version = "*", features = ["profile-with-tracing"] }
 tracing = "*"
 tracing-chrome = "*"
 tracing-subscriber = "*"
