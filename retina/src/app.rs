@@ -7,6 +7,7 @@ use copypasta::{ClipboardContext, ClipboardProvider};
 
 use log::{info, error};
 use retina_gfx::{
+    Color,
     euclid::{Point2D, default::Rect, Size2D},
     Painter,
     VirtualKeyCode,
@@ -15,7 +16,7 @@ use retina_gfx::{
     WindowEventProxy,
     WindowKeyPressEvent,
 };
-use retina_gfx_font::FontProvider;
+use retina_gfx_font::{FontProvider, FontDescriptor, FamilyName, FontWeight};
 use retina_page::*;
 
 use crate::event::RetinaEvent;
@@ -26,6 +27,8 @@ pub struct Application {
     texture_view: Option<wgpu::TextureView>,
     title: Option<String>,
     clipboard: Option<ClipboardContext>,
+    font_provider: FontProvider,
+    crash_message: Option<String>,
 }
 
 impl Application {
@@ -44,7 +47,7 @@ impl Application {
 
         let page_handle = retina_page::spawn(
             url,
-            font_provider,
+            font_provider.clone(),
             window.context(),
             window.size(),
         );
@@ -98,6 +101,10 @@ impl Application {
 impl WindowApplication<RetinaEvent> for Application {
     fn on_event(&mut self, event: RetinaEvent, window: &mut Window<RetinaEvent>) {
         match event {
+            RetinaEvent::Disconnected => {
+                self.crash_message = Some(String::from("Page channel disconnected!"));
+                window.request_repaint();
+            }
             RetinaEvent::PageEvent { message } => self.on_page_message(message, window),
         }
     }
@@ -138,18 +145,29 @@ impl WindowApplication<RetinaEvent> for Application {
 
     fn on_paint(&mut self, render_pass: &mut Painter) {
         if let Some(texture_view) = &self.texture_view {
-            render_pass.paint_rect_textured(
-                Rect::new(
-                    Point2D::new(0.0, 0.0),
-                    self.texture_size.cast(),
-                ),
-                texture_view,
+            let rect = Rect::new(
+                Point2D::new(0.0, 0.0),
+                self.texture_size.cast(),
             );
+            render_pass.paint_rect_textured(rect, texture_view);
+
+            if self.crash_message.is_some() {
+                render_pass.paint_rect_colored(rect, Color::rgba(0.0, 0.0, 0.0, 0.3));
+            }
+        }
+
+        if let Some(crash_message) = &self.crash_message {
+            let font = self.font_provider.get(FontDescriptor {
+                name: FamilyName::SansSerif,
+                weight: FontWeight::BOLD,
+            }).unwrap();
+
+            font.paint(crash_message, Color::RED, Point2D::new(10.0, 10.0), 22.0, Default::default(), render_pass);
         }
     }
 
     fn on_resize(&mut self, size: Size2D<u32, u32>) {
-        self.page_send_half.send_command(PageCommand::ResizeCanvas { size }).unwrap();
+        _ = self.page_send_half.send_command(PageCommand::ResizeCanvas { size }).ok();
     }
 }
 
@@ -166,7 +184,10 @@ fn spawn_page_event_forward_proxy(mut receive_handle: PageHandleReceiveHalf, pro
                         return;
                     }
                 }
-                Err(PageHandleCommunicationError::Disconnected) => return,
+                Err(PageHandleCommunicationError::Disconnected) => {
+                    _ = proxy.send(RetinaEvent::Disconnected);
+                    return;
+                }
                 Err(PageHandleCommunicationError::Timeout) => std::thread::yield_now(),
             }
         }

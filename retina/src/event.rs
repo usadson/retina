@@ -5,6 +5,7 @@ use retina_page::PageMessage;
 
 #[derive(Debug)]
 pub enum RetinaEvent {
+    Disconnected,
     PageEvent {
         message: PageMessage,
     },
