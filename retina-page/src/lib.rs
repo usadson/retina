@@ -51,6 +51,13 @@ pub fn spawn(
     let canvas = CanvasPaintingContext::new(graphics_context, "Page Canvas", canvas_size);
 
     std::thread::spawn(move || {
+        let panic_message_sender = message_sender.clone();
+        std::panic::set_hook(Box::new(move |info| {
+            _ = panic_message_sender.try_send(PageMessage::Crash {
+                message: info.to_string(),
+            }).ok();
+        }));
+
         let runtime = Arc::new(
             tokio::runtime::Builder::new_multi_thread()
                 .enable_all()

@@ -77,6 +77,11 @@ impl Application {
     fn on_page_message(&mut self, message: PageMessage, window: &mut Window<RetinaEvent>) {
         info!("[on_update] Received message from page: {message:#?}");
         match message {
+            PageMessage::Crash { message } => {
+                self.crash_message = Some(message);
+                window.request_repaint();
+            }
+
             PageMessage::Title { title } => {
                 window.set_title(format!("{title} — Retina").as_str());
                 self.title = Some(title);
@@ -86,14 +91,14 @@ impl Application {
                 self.title = Some(String::new());
             }
 
+            PageMessage::Progress { .. } => (),
+
             PageMessage::PaintReceived { texture_view, background_color, texture_size } => {
                 self.texture_view = Some(texture_view);
                 self.texture_size = texture_size.cast_unit();
                 window.set_background_color(background_color);
                 window.request_repaint();
             }
-
-            _ => (),
         }
     }
 }
@@ -102,7 +107,9 @@ impl WindowApplication<RetinaEvent> for Application {
     fn on_event(&mut self, event: RetinaEvent, window: &mut Window<RetinaEvent>) {
         match event {
             RetinaEvent::Disconnected => {
-                self.crash_message = Some(String::from("Page channel disconnected!"));
+                if self.crash_message.is_none() {
+                    self.crash_message = Some(String::from("Page channel disconnected!"));
+                }
                 window.request_repaint();
             }
             RetinaEvent::PageEvent { message } => self.on_page_message(message, window),

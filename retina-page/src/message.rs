@@ -17,6 +17,10 @@ use crate::{
 /// The page sends messages to the browser to inform it of it's status.
 #[derive(Debug)]
 pub enum PageMessage {
+    Crash {
+        message: String,
+    },
+
     PaintReceived {
         texture_view: wgpu::TextureView,
         texture_size: Size2D<u32, u32>,
