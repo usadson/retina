@@ -9,6 +9,7 @@ use retina_common::StrTendril;
 pub enum FamilyName {
     Title(StrTendril),
     Cursive,
+    Emoji,
     Fantasy,
     Monospace,
     SansSerif,

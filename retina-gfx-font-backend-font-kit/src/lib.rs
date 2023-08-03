@@ -17,6 +17,7 @@ pub(crate) fn convert_font_kit_name(value: FamilyName) -> font_kit::family_name:
     match value {
         FamilyName::Title(name) => font_kit::family_name::FamilyName::Title(name.to_string()),
         FamilyName::Cursive => font_kit::family_name::FamilyName::Cursive,
+        FamilyName::Emoji => font_kit::family_name::FamilyName::Title(String::from("Segoe UI Emoji")),
         FamilyName::Fantasy => font_kit::family_name::FamilyName::Fantasy,
         FamilyName::Monospace => font_kit::family_name::FamilyName::Monospace,
         FamilyName::SansSerif => font_kit::family_name::FamilyName::SansSerif,

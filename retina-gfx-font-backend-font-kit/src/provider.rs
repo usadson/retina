@@ -171,6 +171,11 @@ impl FontProviderBackend for FontProvider {
         });
 
         self.load_default_in_background(FontDescriptor {
+            name: FamilyName::Emoji,
+            weight: FontWeight::REGULAR,
+        });
+
+        self.load_default_in_background(FontDescriptor {
             name: FamilyName::Serif,
             weight: FontWeight::REGULAR,
         });
