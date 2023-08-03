@@ -408,6 +408,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         let font = self.resolve_font(&node, parent, &computed_style);
         let font_size = self.resolve_length(parent.font_size, parent.font_size, computed_style.font_size(), &computed_style);
         let actual_value_map = self.compute_actual_values(parent, &computed_style);
+        let font_emoji = parent.font_emoji.clone();
 
         if node.is_text() {
             let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent, font_size);
@@ -416,11 +417,11 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
 
             return match parent_display {
                 CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => Some(
-                    LayoutBox::new(LayoutBoxKind::Anonymous, FormattingContextKind::Inline, node, computed_style, actual_value_map, dimensions, font, font_size)
+                    LayoutBox::new(LayoutBoxKind::Anonymous, FormattingContextKind::Inline, node, computed_style, actual_value_map, dimensions, font, font_emoji, font_size)
                 ),
 
                 CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => Some(
-                    LayoutBox::new(LayoutBoxKind::Anonymous, FormattingContextKind::Inline, node, computed_style, actual_value_map, dimensions, font, font_size)
+                    LayoutBox::new(LayoutBoxKind::Anonymous, FormattingContextKind::Inline, node, computed_style, actual_value_map, dimensions, font, font_emoji, font_size)
                 ),
 
                 _ => {
@@ -436,12 +437,12 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             // `display: inline`
             CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => {
                 let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent, font_size);
-                LayoutBox::new(LayoutBoxKind::Normal, FormattingContextKind::Inline, node, computed_style, actual_value_map, dimensions, font, font_size)
+                LayoutBox::new(LayoutBoxKind::Normal, FormattingContextKind::Inline, node, computed_style, actual_value_map, dimensions, font, font_emoji, font_size)
             }
 
             CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => {
                 let dimensions = self.calculate_dimensions_for_block_flow(&computed_style, parent, font_size);
-                LayoutBox::new(LayoutBoxKind::Normal, FormattingContextKind::Block, node, computed_style, actual_value_map, dimensions, font, font_size)
+                LayoutBox::new(LayoutBoxKind::Normal, FormattingContextKind::Block, node, computed_style, actual_value_map, dimensions, font, font_emoji, font_size)
             }
 
             _ => {
@@ -494,6 +495,11 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             weight: FontWeight::REGULAR,
         }).expect("failed to load serif font");
 
+        let font_emoji = self.font_provider.get(FontDescriptor {
+            name: retina_gfx_font::FamilyName::Emoji,
+            weight: FontWeight::REGULAR,
+        });
+
         let font_size = self.resolve_length(default_reference_pixels, default_reference_pixels, computed_style.font_size(), &computed_style);
 
         let actual_value_map = ActualValueMap {
@@ -510,6 +516,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             actual_value_map,
             self.calculate_dimensions_for_initial_containing_block(),
             font,
+            font_emoji,
             font_size
         )
     }

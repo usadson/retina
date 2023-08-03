@@ -20,12 +20,18 @@ use retina_dom::{ImageData, HtmlElementKind};
 use retina_gfx_font::{FontHandle, TextHintingOptions};
 use retina_style::{CssReferencePixels, CssLength};
 
-use crate::{formatting_context::{
-    BlockFormattingContext,
-    FormattingContext,
-    FormattingContextKind,
-    InlineFormattingContext, FormattingContextWhitespaceState, inline::InlineFormattingContextState,
-}, ActualValueMap};
+use crate::{
+    ActualValueMap,
+    formatting_context::{
+        BlockFormattingContext,
+        FormattingContext,
+        FormattingContextKind,
+        FormattingContextWhitespaceState,
+        InlineFormattingContext,
+        inline::InlineFormattingContextState,
+    },
+    text::is_emoji,
+};
 
 pub use self::line::{
     LineBox,
@@ -45,6 +51,7 @@ pub struct LayoutBox {
     pub(crate) dimensions: LayoutBoxDimensions,
     pub(crate) children: Vec<LayoutBox>,
     pub(crate) font: FontHandle,
+    pub(crate) font_emoji: Option<FontHandle>,
     pub(crate) font_size: CssReferencePixels,
     pub(crate) background_image: Option<ImageData>,
     pub(crate) line_box_fragments: Vec<LineBoxFragment>,
@@ -61,6 +68,7 @@ impl LayoutBox {
         actual_value_map: ActualValueMap,
         dimensions: LayoutBoxDimensions,
         font: FontHandle,
+        font_emoji: Option<FontHandle>,
         font_size: CssReferencePixels,
     ) -> Self {
         Self {
@@ -72,6 +80,7 @@ impl LayoutBox {
             dimensions,
             children: Vec::new(),
             font,
+            font_emoji,
             font_size,
             background_image: None,
             line_box_fragments: Vec::new(),
@@ -187,18 +196,32 @@ impl LayoutBox {
         let mut fragment_begin_index: u32 = 0;
 
         use unicode_segmentation::UnicodeSegmentation;
+        let mut was_last_word_emoji = false;
         for word in text.split_word_bounds() {
+            if word.chars().all(char::is_whitespace) {
+                continue;
+            }
+            let is_word_emoji = is_emoji(word);
+            let was_last_word_emoji = std::mem::replace(&mut was_last_word_emoji, is_word_emoji);
+
+            let font = if is_word_emoji {
+                self.font_emoji.as_ref().unwrap_or(&self.font).clone()
+            } else {
+                self.font.clone()
+            };
+
             let original_word = word;
             let word = text.try_include_following_space(word).unwrap_or(word);
 
             let Some(fragment) = self.line_box_fragments.last_mut() else {
-                let word_size = self.font.calculate_size(self.font_size().value() as _, word, hinting_options);
+                let word_size = font.calculate_size(self.font_size().value() as _, word, hinting_options);
                 debug_assert!(fragment_begin_index == 0);
 
                 self.line_box_fragments.push(LineBoxFragment {
                     position: self.dimensions.content_position,
                     text: text.subtendril(0, word.len() as u32),
                     size: word_size.cast(),
+                    font,
                 });
                 continue;
             };
@@ -215,15 +238,13 @@ impl LayoutBox {
                 new_fragment_text_length,
             );
 
-            let fragment_size = self.font.calculate_size(font_size, &fragment_text, hinting_options).cast();
+            let fragment_size = font.calculate_size(font_size, &fragment_text, hinting_options).cast();
 
             // Does this word already fit on the last fragment?
-            if let Some(max_width) = max_width {
-                if fragment_size.width < max_width.value() {
-                    fragment.size = fragment_size;
-                    fragment.text = fragment_text;
-                    continue;
-                }
+            if !is_word_emoji && !was_last_word_emoji && (max_width.is_none() || max_width.is_some_and(|max_width| fragment_size.width < max_width.value())) {
+                fragment.size = fragment_size;
+                fragment.text = fragment_text;
+                continue;
             }
 
             // No, create a new line box
@@ -245,6 +266,7 @@ impl LayoutBox {
                         warn!("  with word=\"{word}\"");
                         warn!("  originally=\"{original_word}\"");
                         warn!("  full text=\"{text}\"");
+                        warn!("  fragment text=\"{fragment_text}\"");
                         break;
                     }
                 }
@@ -253,7 +275,8 @@ impl LayoutBox {
             self.line_box_fragments.push(LineBoxFragment {
                 position,
                 text,
-                size: self.font().calculate_size(font_size, word, hinting_options).cast(),
+                size: font.calculate_size(font_size, word, hinting_options).cast(),
+                font,
             });
         }
     }

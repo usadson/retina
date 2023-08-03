@@ -307,7 +307,7 @@ impl PaintInvoker {
                 return;
             }
 
-            layout_box.font().paint(
+            line_box_fragment.font().paint(
                 line_box_fragment.text(),
                 color,
                 position.cast(),

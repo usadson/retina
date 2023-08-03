@@ -3,6 +3,7 @@
 
 use euclid::default::{Point2D, Size2D};
 use retina_common::StrTendril;
+use retina_gfx_font::FontHandle;
 use retina_style::CssDecimal;
 
 /// The rectangular area that contains the boxes that form a line is called a
@@ -25,6 +26,7 @@ pub struct LineBoxFragment {
     pub(crate) position: Point2D<CssDecimal>,
     pub(crate) text: StrTendril,
     pub(crate) size: Size2D<CssDecimal>,
+    pub(crate) font: FontHandle,
 }
 
 impl LineBoxFragment {
@@ -41,5 +43,10 @@ impl LineBoxFragment {
     #[inline]
     pub fn text(&self) -> &str {
         &self.text
+    }
+
+    #[inline]
+    pub fn font(&self) -> &FontHandle {
+        &self.font
     }
 }
