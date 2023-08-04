@@ -12,7 +12,6 @@ pub(crate) mod swap_chain;
 use std::time::{Instant, Duration};
 
 use euclid::Size2D;
-use log::info;
 use retina_common::Color;
 
 use self::{
@@ -127,7 +126,6 @@ impl<EventType> Window<EventType>
                 }
 
                 winit::event::Event::RedrawRequested { .. } => {
-                    info!("Redrawing surface of window...");
                     self.painter.paint(app.as_mut(), self.background_color);
                 }
 

@@ -222,8 +222,6 @@ impl Page {
     }
 
     pub(crate) async fn handle_command(&mut self, command: PageCommand) -> Result<(), ErrorKind> {
-        info!("Received command: {command:#?}");
-
         match command {
             PageCommand::Action(action) => self.handle_action(action)?,
 

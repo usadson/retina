@@ -5,7 +5,7 @@ use std::{sync::Arc, time::{Instant, Duration}};
 
 use copypasta::{ClipboardContext, ClipboardProvider};
 
-use log::{info, error};
+use log::error;
 use retina_gfx::{
     Color,
     euclid::{Point2D, default::Rect, Size2D},
@@ -83,7 +83,6 @@ impl Application {
 
 impl Application {
     fn on_page_message(&mut self, message: PageMessage, window: &mut Window<RetinaEvent>) {
-        info!("[on_update] Received message from page: {message:#?}");
         match message {
             PageMessage::Crash { message } => {
                 self.crash_message = Some(message);
