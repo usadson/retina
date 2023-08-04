@@ -1,17 +1,31 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::{sync::{Arc, RwLock}, any::Any, fmt::Debug};
+use std::{
+    any::Any,
+    fmt::Debug,
+    sync::{Arc, RwLock},
+};
 
-use image::{DynamicImage, AnimationDecoder};
+use image::{
+    AnimationDecoder,
+    DynamicImage,
+};
+
 use log::{warn, info};
-use retina_fetch::{Fetch, Request, Url, RequestInitiator, RequestDestination};
+use retina_fetch::{
+    Fetch,
+    Request,
+    RequestDestination,
+    RequestInitiator,
+    Url,
+};
 
 #[derive(Debug, Clone)]
 pub struct ImageData {
     state: Arc<RwLock<ImageDataState>>,
     internal: Arc<RwLock<ImageDataKind>>,
-    graphics: Arc<RwLock<Box<dyn Any + Send + Sync>>>,
+    graphics: Arc<RwLock<Arc<dyn Any + Send + Sync>>>,
 }
 
 impl PartialEq for ImageData {
@@ -25,7 +39,7 @@ impl ImageData {
         Self {
             state: Arc::new(ImageDataState::Initial.into()),
             internal: Arc::new(RwLock::new(ImageDataKind::None)),
-            graphics: Arc::new(RwLock::new(Box::new(()))),
+            graphics: Arc::new(RwLock::new(Arc::new(()))),
         }
     }
 
@@ -33,7 +47,7 @@ impl ImageData {
         &self.internal
     }
 
-    pub fn graphics(&self) -> &Arc<RwLock<Box<dyn Any + Send + Sync>>> {
+    pub fn graphics(&self) -> &Arc<RwLock<Arc<dyn Any + Send + Sync>>> {
         &self.graphics
     }
 
@@ -117,6 +131,7 @@ impl ImageData {
 
                 *self.internal.write().unwrap() = ImageDataKind::Animated(AnimatedImage {
                     frames,
+                    frames_graphics: Vec::new(),
                 });
             }
 
@@ -186,6 +201,7 @@ impl ImageDataKind {
 
 pub struct AnimatedImage {
     frames: Vec<image::Frame>,
+    pub frames_graphics: Vec<Arc<dyn Any + Send + Sync>>,
 }
 
 impl AnimatedImage {
@@ -203,6 +219,11 @@ impl AnimatedImage {
             .map(image::Frame::buffer)
             .map(image::RgbaImage::height)
             .unwrap_or(0)
+    }
+
+    #[inline]
+    pub fn frames(&self) -> &[image::Frame] {
+        &self.frames
     }
 }
 

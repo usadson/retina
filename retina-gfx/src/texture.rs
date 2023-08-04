@@ -20,12 +20,6 @@ impl Texture {
         let width = image.width();
         let height = image.height();
 
-        let size = wgpu::Extent3d {
-            width,
-            height,
-            depth_or_array_layers: 1,
-        };
-
         let image_buffer;
         let (image, format) = match image.color() {
             ColorType::Rgba8 => (image, wgpu::TextureFormat::Rgba8UnormSrgb),
@@ -35,6 +29,22 @@ impl Texture {
                 image_buffer = image.to_rgba8().into();
                 (&image_buffer, wgpu::TextureFormat::Rgba8UnormSrgb)
             }
+        };
+
+        Self::create_from_image_bytes(context, width, height, format, image.as_bytes())
+    }
+
+    pub fn create_from_image_bytes(
+        context: &Context,
+        width: u32,
+        height: u32,
+        format: wgpu::TextureFormat,
+        data: &[u8],
+    ) -> Self {
+        let size = wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: 1,
         };
 
         let texture = context.device().create_texture_with_data(
@@ -53,7 +63,7 @@ impl Texture {
 
                 view_formats: &[],
             },
-            image.as_bytes(),
+            data,
         );
 
         let texture_view = texture.create_view(&wgpu::TextureViewDescriptor {

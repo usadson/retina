@@ -12,7 +12,7 @@ use std::{
     time::{
         Duration,
         Instant,
-    },
+    }, any::Any,
 };
 
 use log::{error, info, warn};
@@ -476,9 +476,9 @@ impl Page {
     }
 
     async fn load_image_in_background_update_graphics(gfx_context: Context, data: ImageData, source: &str) -> bool {
-        let image = data.image().read().unwrap();
+        let mut image = data.image().write().unwrap();
 
-        match &*image {
+        match &mut *image {
             ImageDataKind::None => {
                 warn!("Failed to decode image! URL: {source}");
                 false
@@ -486,14 +486,33 @@ impl Page {
 
             ImageDataKind::Bitmap(image) => {
                 let texture = retina_gfx::Texture::create_from_image(&gfx_context, image);
-                *data.graphics().write().unwrap() = Box::new(texture);
+                let texture = Arc::new(texture);
+                *data.graphics().write().unwrap() = texture;
 
                 info!("Loaded image: {source}");
 
                 true
             }
 
-            ImageDataKind::Animated(..) => false,
+            ImageDataKind::Animated(image) => {
+                image.frames_graphics = image.frames().iter()
+                    .map(|frame| {
+                        let texture = retina_gfx::Texture::create_from_image_bytes(
+                            &gfx_context,
+                            frame.buffer().width(),
+                            frame.buffer().height(),
+                            wgpu::TextureFormat::Rgba8UnormSrgb,
+                            frame.buffer().as_raw(),
+                        );
+
+                        let ret: Arc<dyn Any + Send + Sync> = Arc::new(texture);
+                        ret
+                    })
+                    .collect();
+
+                *data.graphics().write().unwrap() = Arc::clone(&image.frames_graphics[0]);
+                true
+            }
         }
     }
 
