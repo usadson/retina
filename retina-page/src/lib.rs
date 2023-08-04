@@ -97,6 +97,7 @@ pub fn spawn(
                 event_queue: None,
                 dirty_state: DirtyState::new(),
                 font_loader,
+                earliest_scroll_request: None,
             };
 
             page.start(command_receiver, page_task_message_receiver).await.unwrap()

@@ -72,6 +72,7 @@ pub(crate) struct Page {
     pub(crate) dirty_state: DirtyState,
 
     pub(crate) font_loader: FontLoader,
+    pub(crate) earliest_scroll_request: Option<Instant>,
 }
 
 enum ActionResult {
@@ -288,6 +289,9 @@ impl Page {
                     };
 
                     if scroll_result.was_changed() {
+                        if self.earliest_scroll_request.is_none() {
+                            self.earliest_scroll_request = Some(Instant::now());
+                        }
                         self.dirty_state.request(DirtyPhase::Paint);
                     }
                 }
@@ -713,6 +717,10 @@ impl Page {
     }
 
     pub(crate) async fn paint(&mut self) -> Result<(), ErrorKind> {
+        let request_time = self.earliest_scroll_request.take();
+        if let Some(time) = request_time {
+            info!("Scroll request until paint was {} ms", time.elapsed().as_millis());
+        }
         self.dirty_state.mark_painted();
 
         let Some(layout_root) = self.layout_root.as_ref() else {
@@ -745,6 +753,10 @@ impl Page {
         let time_taken = begin_time.elapsed();
         if time_taken.as_millis() > 200 {
             warn!("Page paint took {} milliseconds!", time_taken.as_millis());
+        }
+
+        if let Some(time) = request_time {
+            info!("Scroll request until paint finished was {} ms", time.elapsed().as_millis());
         }
 
         Ok(())
