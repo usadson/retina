@@ -345,9 +345,7 @@ impl LayoutBox {
             HtmlElementKind::Img(img) => {
                 let mut image_size = Size2D::default();
                 if let Ok(image) = img.data_ref().image().read() {
-                    if let Some(image) = image.as_ref() {
-                        image_size = Size2D::new(image.width(), image.height());
-                    }
+                    image_size = Size2D::new(image.width(), image.height());
                 }
 
                 self.run_replaced_layout_for_image(image_size);

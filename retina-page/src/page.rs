@@ -18,7 +18,7 @@ use std::{
 use log::{error, info, warn};
 use retina_common::Color;
 use retina_compositor::Compositor;
-use retina_dom::{HtmlElementKind, LinkType, Node, event::queue::EventQueue, ImageData, image::ImageDataState};
+use retina_dom::{HtmlElementKind, LinkType, Node, event::queue::EventQueue, ImageData, image::ImageDataState, ImageDataKind};
 use retina_fetch::{Fetch, Request};
 use retina_gfx::{canvas::CanvasPaintingContext, Context};
 use retina_gfx_font::FontProvider;
@@ -477,17 +477,24 @@ impl Page {
 
     async fn load_image_in_background_update_graphics(gfx_context: Context, data: ImageData, source: &str) -> bool {
         let image = data.image().read().unwrap();
-        let Some(image) = image.as_ref() else {
-            warn!("Failed to decode image! URL: {source}");
-            return false;
-        };
 
-        let texture = retina_gfx::Texture::create_from_image(&gfx_context, image);
-        *data.graphics().write().unwrap() = Box::new(texture);
+        match &*image {
+            ImageDataKind::None => {
+                warn!("Failed to decode image! URL: {source}");
+                false
+            }
 
-        info!("Loaded image: {source}");
+            ImageDataKind::Bitmap(image) => {
+                let texture = retina_gfx::Texture::create_from_image(&gfx_context, image);
+                *data.graphics().write().unwrap() = Box::new(texture);
 
-        true
+                info!("Loaded image: {source}");
+
+                true
+            }
+
+            ImageDataKind::Animated(..) => false,
+        }
     }
 
     pub(crate) async fn load_page(&mut self) -> Result<(), ErrorKind> {

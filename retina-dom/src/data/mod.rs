@@ -3,4 +3,9 @@
 
 pub mod image;
 
-pub use image::ImageData;
+pub use self::image::{
+    AnimatedImage,
+    ImageData,
+    ImageDataKind,
+    ImageDataState,
+};

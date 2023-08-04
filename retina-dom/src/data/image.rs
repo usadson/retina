@@ -1,16 +1,16 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::{sync::{Arc, RwLock}, any::Any};
+use std::{sync::{Arc, RwLock}, any::Any, fmt::Debug};
 
-use image::DynamicImage;
+use image::{DynamicImage, AnimationDecoder};
 use log::{warn, info};
 use retina_fetch::{Fetch, Request, Url, RequestInitiator, RequestDestination};
 
 #[derive(Debug, Clone)]
 pub struct ImageData {
     state: Arc<RwLock<ImageDataState>>,
-    internal: Arc<RwLock<Option<DynamicImage>>>,
+    internal: Arc<RwLock<ImageDataKind>>,
     graphics: Arc<RwLock<Box<dyn Any + Send + Sync>>>,
 }
 
@@ -24,12 +24,12 @@ impl ImageData {
     pub fn new() -> Self {
         Self {
             state: Arc::new(ImageDataState::Initial.into()),
-            internal: Arc::new(None.into()),
+            internal: Arc::new(RwLock::new(ImageDataKind::None)),
             graphics: Arc::new(RwLock::new(Box::new(()))),
         }
     }
 
-    pub fn image(&self) -> &Arc<RwLock<Option<DynamicImage>>> {
+    pub fn image(&self) -> &Arc<RwLock<ImageDataKind>> {
         &self.internal
     }
 
@@ -95,18 +95,49 @@ impl ImageData {
             return;
         };
 
-        let image = match image::io::Reader::with_format(&mut reader, image_format).decode() {
-            Ok(image) => image,
-            Err(e) => {
-                warn!("Image: {src} failed to decode: {e}");
-                *self.state.write().unwrap() = ImageDataState::DecodeFailed;
-                return;
+        match image_format {
+            image::ImageFormat::Gif => {
+                let image = match image::codecs::gif::GifDecoder::new(&mut reader) {
+                    Ok(image) => image,
+                    Err(e) => {
+                        warn!("Image(GIF): {src} failed to decode: {e}");
+                        *self.state.write().unwrap() = ImageDataState::DecodeFailed;
+                        return;
+                    }
+                };
+
+                let frames = match image.into_frames().collect_frames() {
+                    Ok(frames) => frames,
+                    Err(e) => {
+                        warn!("Image(GIF): {src} failed to decode frame: {e}");
+                        *self.state.write().unwrap() = ImageDataState::DecodeFailed;
+                        return;
+                    }
+                };
+
+                *self.internal.write().unwrap() = ImageDataKind::Animated(AnimatedImage {
+                    frames,
+                });
             }
-        };
+
+            // TODO APNG and WebP support animated images too
+
+            _ => {
+                let image = match image::io::Reader::with_format(&mut reader, image_format).decode() {
+                    Ok(image) => image,
+                    Err(e) => {
+                        warn!("Image: {src} failed to decode: {e}");
+                        *self.state.write().unwrap() = ImageDataState::DecodeFailed;
+                        return;
+                    }
+                };
+
+                *self.internal.write().unwrap() = ImageDataKind::Bitmap(image);
+            }
+        }
 
         info!("Image: {src} successfully loaded & decoded!");
         *self.state.write().unwrap() = ImageDataState::Ready;
-        *self.internal.write().unwrap() = Some(image);
     }
 
     #[inline]
@@ -123,6 +154,63 @@ impl ImageData {
             }
             Err(..) => true,
         }
+    }
+}
+
+#[derive(Debug)]
+pub enum ImageDataKind {
+    None,
+    Bitmap(DynamicImage),
+    Animated(AnimatedImage),
+}
+
+impl ImageDataKind {
+    #[inline]
+    pub fn width(&self) -> u32 {
+        match self {
+            Self::None => 0,
+            Self::Bitmap(bitmap) => bitmap.width(),
+            Self::Animated(animated) => animated.width(),
+        }
+    }
+
+    #[inline]
+    pub fn height(&self) -> u32 {
+        match self {
+            Self::None => 0,
+            Self::Bitmap(bitmap) => bitmap.height(),
+            Self::Animated(animated) => animated.height(),
+        }
+    }
+}
+
+pub struct AnimatedImage {
+    frames: Vec<image::Frame>,
+}
+
+impl AnimatedImage {
+    #[inline]
+    pub fn width(&self) -> u32 {
+        self.frames.get(0)
+            .map(image::Frame::buffer)
+            .map(image::RgbaImage::width)
+            .unwrap_or(0)
+    }
+
+    #[inline]
+    pub fn height(&self) -> u32 {
+        self.frames.get(0)
+            .map(image::Frame::buffer)
+            .map(image::RgbaImage::height)
+            .unwrap_or(0)
+    }
+}
+
+impl Debug for AnimatedImage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AnimatedImage")
+            .field("frames", &format!("len({})", self.frames.len()))
+            .finish()
     }
 }
 
