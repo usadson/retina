@@ -70,6 +70,9 @@ pub(crate) enum PageTaskMessage {
         state: FontState,
     },
 
+    /// An image switched to a new frame.
+    ImageFrame,
+
     /// A new image was loaded.
     ImageLoaded,
 

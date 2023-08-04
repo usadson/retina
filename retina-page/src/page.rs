@@ -344,6 +344,17 @@ impl Page {
                 }
             }
 
+            PageTaskMessage::ImageFrame => {
+                // TODO we should selectively update the region that the image takes up
+                // But this requires the following:
+                // 1. Associate an LayoutNode to a DOM node (currently it is unidirectional)
+                // 2. Request the compositor to update the tile(s) that cover the LayoutNode
+                // 3. Compositor should only repaint those tiles.
+
+                self.compositor.mark_tile_cache_dirty();
+                self.dirty_state.request(DirtyPhase::Paint);
+            }
+
             PageTaskMessage::ImageLoaded => {
                 info!("Image loaded!");
                 self.dirty_state.request(DirtyPhase::GenerateLayoutTree);
@@ -421,7 +432,7 @@ impl Page {
                 tokio::task::yield_now().await;
             }
 
-            if Self::load_image_in_background_update_graphics(gfx_context, background_image, "background-image").await {
+            if Self::load_image_in_background_update_graphics(gfx_context, background_image, "background-image", &task_message_sender).await {
                 _ = task_message_sender.send(PageTaskMessage::ImageLoaded).await;
             }
         });
@@ -451,7 +462,7 @@ impl Page {
                 let task_message_sender = task_message_sender.clone();
                 let base_url = base_url.clone();
                 tokio::task::spawn(async move {
-                    if Self::load_image_in_background(base_url, gfx_context, fetch, node).await {
+                    if Self::load_image_in_background(base_url, gfx_context, fetch, node, &task_message_sender).await {
                         _ = task_message_sender.send(PageTaskMessage::ImageLoaded).await;
                     }
                 });
@@ -459,7 +470,7 @@ impl Page {
         });
     }
 
-    async fn load_image_in_background(base_url: Url, gfx_context: Context, fetch: Fetch, node: Node) -> bool {
+    async fn load_image_in_background(base_url: Url, gfx_context: Context, fetch: Fetch, node: Node, sender: &AsyncSender<PageTaskMessage>) -> bool {
         let (source, data) = {
             let Some(html_element) = node.as_html_element_kind() else { return false };
             let HtmlElementKind::Img(img) = html_element else { return false };
@@ -467,15 +478,20 @@ impl Page {
             (img.src().to_string(), img.data())
         };
 
-        Self::load_image_in_background_update_data(base_url, gfx_context, fetch, source, data).await
+        Self::load_image_in_background_update_data(base_url, gfx_context, fetch, source, data, sender).await
     }
 
-    async fn load_image_in_background_update_data(base_url: Url, gfx_context: Context, fetch: Fetch, source: String, data: ImageData) -> bool {
+    async fn load_image_in_background_update_data(base_url: Url, gfx_context: Context, fetch: Fetch, source: String, data: ImageData, sender: &AsyncSender<PageTaskMessage>) -> bool {
         data.update(base_url, fetch, &source).await;
-        Self::load_image_in_background_update_graphics(gfx_context, data, &source).await
+        Self::load_image_in_background_update_graphics(gfx_context, data, &source, sender).await
     }
 
-    async fn load_image_in_background_update_graphics(gfx_context: Context, data: ImageData, source: &str) -> bool {
+    async fn load_image_in_background_update_graphics(
+        gfx_context: Context,
+        data: ImageData,
+        source: &str,
+        sender: &AsyncSender<PageTaskMessage>,
+    ) -> bool {
         let mut image = data.image().write().unwrap();
 
         match &mut *image {
@@ -510,10 +526,52 @@ impl Page {
                     })
                     .collect();
 
-                *data.graphics().write().unwrap() = Arc::clone(&image.frames_graphics[0]);
+                *data.graphics().write().unwrap() = Arc::clone(&image.frames_graphics.last().unwrap());
+
+                let page_task_message_sender: AsyncSender<PageTaskMessage> = sender.clone();
+                Self::load_image_in_background_spawn_frame_switcher(page_task_message_sender, image, data.clone());
+
                 true
             }
         }
+    }
+
+    fn load_image_in_background_spawn_frame_switcher(
+        page_task_message_sender: AsyncSender<PageTaskMessage>,
+        image: &retina_dom::AnimatedImage,
+        data: ImageData,
+    ) {
+        let mut durations = Vec::with_capacity(image.frames().len());
+        for frame in image.frames() {
+            durations.push(Duration::from(frame.delay()));
+        }
+
+        tokio::task::spawn(async move {
+            loop {
+                for (idx, duration) in durations.iter().enumerate() {
+                    tokio::time::sleep(*duration).await;
+
+                    let frame_index = if durations.len() == idx + 1 {
+                        0
+                    } else {
+                        idx + 1
+                    };
+                    log::trace!("GIF: frame {frame_index} after {} ms", duration.as_millis());
+
+                    if let ImageDataKind::Animated(animated) = &*data.image().read().unwrap() {
+                        *data.graphics().write().unwrap() = Arc::clone(&animated.frames_graphics[frame_index]);
+                    }
+
+                    let result = page_task_message_sender.send(PageTaskMessage::ImageFrame {
+                        // TODO
+                    }).await;
+
+                    if result.is_err() {
+                        return;
+                    }
+                }
+            }
+        });
     }
 
     pub(crate) async fn load_page(&mut self) -> Result<(), ErrorKind> {
