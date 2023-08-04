@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::sync::Arc;
+use std::{sync::Arc, time::{Instant, Duration}};
 
 use copypasta::{ClipboardContext, ClipboardProvider};
 
@@ -29,6 +29,9 @@ pub struct Application {
     clipboard: Option<ClipboardContext>,
     font_provider: FontProvider,
     crash_message: Option<String>,
+    last_second: Instant,
+    repaint_requests: usize,
+    frame_count: usize,
 }
 
 impl Application {
@@ -71,6 +74,9 @@ impl Application {
             clipboard,
             font_provider,
             crash_message: None,
+            frame_count: 0,
+            last_second: Instant::now(),
+            repaint_requests: 0,
         }
     }
 }
@@ -96,6 +102,7 @@ impl Application {
             PageMessage::Progress { .. } => (),
 
             PageMessage::PaintReceived { texture_view, background_color, texture_size } => {
+                self.repaint_requests += 1;
                 self.texture_view = Some(texture_view);
                 self.texture_size = texture_size.cast_unit();
                 window.set_background_color(background_color);
@@ -159,6 +166,7 @@ impl WindowApplication<RetinaEvent> for Application {
                 self.texture_size.cast(),
             );
             render_pass.paint_rect_textured(rect, texture_view);
+            self.frame_count += 1;
 
             if self.crash_message.is_some() {
                 render_pass.paint_rect_colored(rect, Color::rgba(0.0, 0.0, 0.0, 0.3));
@@ -172,6 +180,14 @@ impl WindowApplication<RetinaEvent> for Application {
             }).unwrap();
 
             font.paint(crash_message, Color::RED, Point2D::new(10.0, 10.0), 22.0, Default::default(), render_pass);
+        }
+
+        let now = Instant::now();
+        if (now - self.last_second) >= Duration::from_secs(1) {
+            log::trace!("{} fps, {} repaint requests", self.frame_count, self.repaint_requests);
+            self.last_second = now;
+            self.frame_count = 0;
+            self.repaint_requests = 0;
         }
     }
 
