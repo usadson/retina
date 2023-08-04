@@ -69,6 +69,8 @@ impl Application {
             texture_view: None,
             title: None,
             clipboard,
+            font_provider,
+            crash_message: None,
         }
     }
 }
