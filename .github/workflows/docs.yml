@@ -1,0 +1,45 @@
+name: Docs
+
+on:
+  push:
+    branches: [ "deploy-docs" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ${{  }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Linux packages
+      run: sudo apt install -y libxcb-shape0
+
+    - name: Install nightly Rust toolchain
+      continue-on-error: true
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        default: true
+        override: true
+
+    - uses: Swatinem/rust-cache@v2
+
+    - name: cargo doc
+      run: cargo doc --workspace --verbose
+
+    - name: copy stuff
+      run: cp ./docs/deploy/* ./target/docs/
+
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./target/docs
+        destination_dir: docs
