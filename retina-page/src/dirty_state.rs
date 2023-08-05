@@ -5,6 +5,13 @@ use std::time::{Instant, Duration};
 
 const MAXIMUM_DELAY_BETWEEN_CLEANSING: Duration = Duration::from_millis(30);
 
+/// The dirty state is a mechanism for requesting a certain action (relayout,
+/// repaint), without doing it immediately. In a lot of scenario's, two parties
+/// can request a repaint in a short amount of time, which don't have to be
+/// painted twice. In another scenario, one party can request a repaint, whilst
+/// two milliseconds later, another requests a full page layout. Both these
+/// scenarios can be optimized by stalling these [`DirtyPhase`]s until
+/// appropriate.
 #[derive(Debug)]
 pub(crate) struct DirtyState {
     phase: DirtyPhase,

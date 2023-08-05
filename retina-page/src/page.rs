@@ -133,6 +133,7 @@ impl Page {
         Ok(())
     }
 
+    /// Cleans the [`DirtyState`].
     async fn clean_dirty_state(&mut self) -> Result<(), ErrorKind> {
         loop {
             match self.dirty_state.phase() {
