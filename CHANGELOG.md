@@ -4,6 +4,42 @@
 68ca5b7 `[rel]` Bump to version 0.3.0
 
 ## 0.2.0 - Released 2023-08-05
+This is the first official release!
+
+### General Information
+Version 0.1.0 was before the project was restructured to which it is today. In this version, there are a couple notable features:
+1. HTML is parsed into a reference-counted DOM
+2. Basic CSS parser
+3. Simple CSS selector matcher, only `<simple selector>`
+4. Style collection & cascading
+5. `@media` query support for `screen` and `all` types
+6. Text & whitespace transformations
+7. User Agent style sheet
+8. Internal Fetch API implementation
+9. Remote & local document & resource fetch
+10. Window resize is acted upon
+11. Logging using the `log` crate
+12. Window title is based upon the `<title>` element or the __URL__
+13. A simple DOM inspector with <kbd>F12</kbd>
+14. Basic CSS box-model
+15. Shortcuts like <kbd>Ctrl</kbd>+<kbd>W</kbd>, <kbd>F5</kbd>, <kbd>F12</kbd>
+16. Extensive Font API
+17. Text hints (e.g. ligatures, CJK character forms)
+18. Text shaping using harfbuzz
+19. Still bitmap image support (JPG, PNG, BMP, WebP, etc.)
+20. Animated GIF support
+21. HTML `<img>` element support
+22. CSS `background-image` support (non-gradients)
+23. Basic compositor with parallel tiles of 256x256
+24. <kbd>Ctrl</kbd>+<kbd>V</kbd> to paste a URL to open
+25. Scrolling support
+26. Parallelized glyph rasterization
+27. Improved text anti-aliasing
+28. Non-colored emoji support
+29. `text-decoration` support
+30. And a lot of performance improvements!
+
+### Changes
 - `[deps]` Update dependencies
 - `[page]` Accept continuous task messages when no timeout expired
 - `[page]` Document the DirtyState mechanism
