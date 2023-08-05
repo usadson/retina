@@ -228,8 +228,22 @@ fn matches_selector_complex_inner(
         }
 
         SelectorCombinator::Descendant => {
-            log::warn!("Descendant selector combinator not implemented");
-            false
+            let Some(mut parent) = node.as_node().parent().as_ref().and_then(Weak::upgrade) else {
+                return false;
+            };
+
+            loop {
+                let node = parent.as_ref();
+                if matches_selector_complex_inner(topmost, rest, node) {
+                    return true;
+                }
+
+                let Some(grandparent) = node.as_node().parent().as_ref().and_then(Weak::upgrade) else  {
+                    return false;
+                };
+
+                parent = grandparent;
+            }
         }
 
         SelectorCombinator::NextSibling | SelectorCombinator::SubsequentSibling => {
