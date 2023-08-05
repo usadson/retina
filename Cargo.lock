@@ -2979,7 +2979,7 @@ checksum = "216080ab382b992234dda86873c18d4c48358f5cfcb70fd693d7f6f2131b628b"
 
 [[package]]
 name = "retina"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "copypasta",
  "env_logger",
@@ -2997,14 +2997,14 @@ dependencies = [
 
 [[package]]
 name = "retina-common"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "tendril",
 ]
 
 [[package]]
 name = "retina-compositor"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "log",
  "profiling",
@@ -3022,7 +3022,7 @@ dependencies = [
 
 [[package]]
 name = "retina-debug"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "retina-dom",
  "winsafe",
@@ -3030,7 +3030,7 @@ dependencies = [
 
 [[package]]
 name = "retina-dom"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "html5ever",
  "image",
@@ -3046,7 +3046,7 @@ dependencies = [
 
 [[package]]
 name = "retina-fetch"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "futures-core",
  "hyper",
@@ -3062,7 +3062,7 @@ dependencies = [
 
 [[package]]
 name = "retina-gfx"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "bytemuck",
  "euclid",
@@ -3078,7 +3078,7 @@ dependencies = [
 
 [[package]]
 name = "retina-gfx-font"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "euclid",
  "retina-common",
@@ -3087,7 +3087,7 @@ dependencies = [
 
 [[package]]
 name = "retina-gfx-font-backend-font-kit"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "bytemuck",
  "dashmap",
@@ -3108,7 +3108,7 @@ dependencies = [
 
 [[package]]
 name = "retina-gfx-font-renderer"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "bytemuck",
  "log",
@@ -3120,7 +3120,7 @@ dependencies = [
 
 [[package]]
 name = "retina-gfx-gui"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "euclid",
  "log",
@@ -3136,11 +3136,11 @@ dependencies = [
 
 [[package]]
 name = "retina-i18n"
-version = "0.2.0"
+version = "0.3.0"
 
 [[package]]
 name = "retina-layout"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "euclid",
  "log",
@@ -3158,7 +3158,7 @@ dependencies = [
 
 [[package]]
 name = "retina-media-type"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "image",
  "mime",
@@ -3166,7 +3166,7 @@ dependencies = [
 
 [[package]]
 name = "retina-page"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "log",
  "retina-common",
@@ -3188,7 +3188,7 @@ dependencies = [
 
 [[package]]
 name = "retina-platform-object"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -3199,7 +3199,7 @@ dependencies = [
 
 [[package]]
 name = "retina-scrittura"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -3214,7 +3214,7 @@ dependencies = [
 
 [[package]]
 name = "retina-style"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "pretty_assertions",
  "retina-common",
@@ -3225,7 +3225,7 @@ dependencies = [
 
 [[package]]
 name = "retina-style-computation"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "log",
  "pretty_assertions",
@@ -3239,7 +3239,7 @@ dependencies = [
 
 [[package]]
 name = "retina-style-parser"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "cssparser",
  "log",
@@ -3253,7 +3253,7 @@ dependencies = [
 
 [[package]]
 name = "retina-svg-layout"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "euclid",
  "log",
@@ -3268,7 +3268,7 @@ dependencies = [
 
 [[package]]
 name = "retina-user-agent"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "pretty_assertions",
  "retina-style",
@@ -3277,7 +3277,7 @@ dependencies = [
 
 [[package]]
 name = "retina-woff"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "brotli",
  "bytes",
