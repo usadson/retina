@@ -93,13 +93,10 @@ fn parse_attribute_selector_name<'i, 't>(
 fn parse_selector<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<Selector, ParseError<'i>> {
-    log::trace!("Parsing selector...");
     let mut complex = ComplexSelector {
         topmost: parse_compound_selector(input)?,
         combinators: Vec::new(),
     };
-
-    log::trace!("Topmost parsed...");
 
     loop {
         input.skip_whitespace();
@@ -137,13 +134,10 @@ fn parse_selector<'i, 't>(
             break;
         }
 
-        log::trace!("Parsing rhs...");
         complex.combinators.push((
             combinator,
             parse_compound_selector(input)?
         ));
-
-        log::trace!("Next!");
     }
 
     Ok(parse_selector_try_simplify(complex))
