@@ -410,45 +410,46 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         let actual_value_map = self.compute_actual_values(parent, &computed_style);
         let font_emoji = parent.font_emoji.clone();
 
+        let mut layout_box = LayoutBox::new(
+            LayoutBoxKind::Normal,
+            FormattingContextKind::Inline,
+            node.clone(),
+            computed_style,
+            actual_value_map,
+            Default::default(),
+            font,
+            font_emoji,
+            font_size,
+        );
+
         if node.is_text() {
-            let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent, font_size);
-
-            let parent_display = parent.computed_style().display();
-
-            return match parent_display {
-                CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => Some(
-                    LayoutBox::new(LayoutBoxKind::Anonymous, FormattingContextKind::Inline, node, computed_style, actual_value_map, dimensions, font, font_emoji, font_size)
-                ),
-
-                CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => Some(
-                    LayoutBox::new(LayoutBoxKind::Anonymous, FormattingContextKind::Inline, node, computed_style, actual_value_map, dimensions, font, font_emoji, font_size)
-                ),
-
-                _ => {
-                    warn!("[layout] Warning: text node was omitted because of an unknown parent box `display` value: {parent_display:?}");
-                    None
-                }
-            }
+            layout_box.kind = LayoutBoxKind::Anonymous;
+            layout_box.dimensions = self.calculate_dimensions_for_inline_flow(layout_box.computed_style(), parent, font_size);
+            return Some(layout_box);
         }
 
-        let mut layout_box = match computed_style.display() {
+        let mut layout_box = match layout_box.computed_style().display() {
             CssDisplay::Box(CssDisplayBox::None) => return None,
 
             // `display: inline`
-            CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } => {
-                let dimensions = self.calculate_dimensions_for_inline_flow(&computed_style, parent, font_size);
-                LayoutBox::new(LayoutBoxKind::Normal, FormattingContextKind::Inline, node, computed_style, actual_value_map, dimensions, font, font_emoji, font_size)
+            CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } |
+            CssDisplay::Normal { inside: CssDisplayInside::FlowRoot, outside: CssDisplayOutside::Inline, .. } => {
+                layout_box.dimensions = self.calculate_dimensions_for_inline_flow(layout_box.computed_style(), parent, font_size);
+                layout_box.formatting_context = FormattingContextKind::Inline;
+                layout_box
             }
 
-            CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } => {
-                let dimensions = self.calculate_dimensions_for_block_flow(&computed_style, parent, font_size);
-                LayoutBox::new(LayoutBoxKind::Normal, FormattingContextKind::Block, node, computed_style, actual_value_map, dimensions, font, font_emoji, font_size)
+            CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } |
+            CssDisplay::Normal { inside: CssDisplayInside::FlowRoot, outside: CssDisplayOutside::Block, .. } => {
+                layout_box.dimensions = self.calculate_dimensions_for_block_flow(layout_box.computed_style(), parent, font_size);
+                layout_box.formatting_context = FormattingContextKind::Block;
+                layout_box
             }
 
             _ => {
                 warn!(
                     "Element was omitted because of an unknown `display` value: {:?}",
-                    computed_style.display()
+                    layout_box.computed_style().display()
                 );
                 return None;
             }
