@@ -118,7 +118,15 @@ impl Page {
 
         loop {
             match self.listen_for_page_task_message(&mut page_task_message_receiver).await? {
-                PageTaskMessageListenResult::Ok => (),
+                PageTaskMessageListenResult::Ok => {
+                    while self.dirty_state.must_act_now_without_timeout() {
+                        let Ok(task_message) = page_task_message_receiver.try_recv() else {
+                            break;
+                        };
+
+                        self.handle_task_message(task_message).await?;
+                    }
+                }
                 PageTaskMessageListenResult::PipelineClosed => break,
                 PageTaskMessageListenResult::Timeout => self.clean_dirty_state().await?,
             }

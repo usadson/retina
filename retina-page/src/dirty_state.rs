@@ -4,6 +4,7 @@
 use std::time::{Instant, Duration};
 
 const MAXIMUM_DELAY_BETWEEN_CLEANSING: Duration = Duration::from_millis(30);
+const MAXIMUM_DELAY_BETWEEN_CLEANSING_WITHOUT_TIMEOUT: Duration = Duration::from_millis(100);
 
 /// The dirty state is a mechanism for requesting a certain action (relayout,
 /// repaint), without doing it immediately. In a lot of scenario's, two parties
@@ -29,6 +30,15 @@ impl DirtyState {
     pub(crate) fn must_act_now(&mut self) -> bool {
         match self.last_update {
             Some(instant) => self.phase != DirtyPhase::Ready && instant.elapsed() > MAXIMUM_DELAY_BETWEEN_CLEANSING,
+            None => true,
+        }
+    }
+
+    /// Returns whether or not the DirtyState must be acted upon, whilst
+    /// messages are still coming in, without a timeout.
+    pub(crate) fn must_act_now_without_timeout(&mut self) -> bool {
+        match self.last_update {
+            Some(instant) => self.phase != DirtyPhase::Ready && instant.elapsed() > MAXIMUM_DELAY_BETWEEN_CLEANSING_WITHOUT_TIMEOUT,
             None => true,
         }
     }
