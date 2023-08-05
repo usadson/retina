@@ -37,8 +37,6 @@ pub use url::{
 pub type FetchResponse = Result<Response, Error>;
 
 pub fn parse_page_url(input: &str) -> Result<Url, url::ParseError> {
-    log::info!("url: {input}");
-    log::info!("hoi: {}", &input[1..3]);
     if input.len() > 3 && &input[1..3] == ":\\" {
         let url = format!("file:///{}", input.replace('\\', "/"));
         return Url::parse(&url);
