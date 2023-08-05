@@ -13,9 +13,11 @@ use retina_style::{
     AttributeSelector,
     AttributeSelectorCaseSensitivity,
     AttributeSelectorKind,
+    ComplexSelector,
     CompoundSelector,
     PseudoClassSelectorKind,
     Selector,
+    SelectorCombinator,
     SelectorList,
     SimpleSelector,
 };
@@ -91,13 +93,60 @@ fn parse_attribute_selector_name<'i, 't>(
 fn parse_selector<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<Selector, ParseError<'i>> {
-    let mut compound = parse_compound_selector(input)?;
+    log::trace!("Parsing selector...");
+    let mut complex = ComplexSelector {
+        topmost: parse_compound_selector(input)?,
+        combinators: Vec::new(),
+    };
 
-    if compound.0.len() == 1 {
-        Ok(Selector::Simple(compound.0.pop().unwrap()))
-    } else {
-        Ok(Selector::Compound(compound))
+    log::trace!("Topmost parsed...");
+
+    loop {
+        input.skip_whitespace();
+        if input.is_exhausted() {
+            break;
+        }
+
+        let state_before_combinator_token = input.state();
+        let combinator_token = input.next()?;
+        let combinator = match combinator_token {
+            Token::Delim('>') => SelectorCombinator::Child,
+            Token::Delim('+') => SelectorCombinator::NextSibling,
+            Token::Delim('~') => SelectorCombinator::SubsequentSibling,
+
+            _ => {
+                input.reset(&state_before_combinator_token);
+                SelectorCombinator::Descendant
+            }
+        };
+
+        // The descendant combinator, which is represented by whitespace, can
+        // be mistaken for actual whitespace before the `{` token, so we need
+        // to make sure that isn't the case.
+        //
+        // ```text
+        // h1 > h2 { ... }
+        //   ^ ^
+        //   | |__ but this isn't
+        //   |
+        //   |_ this is whitespace
+        // ```
+
+        input.skip_whitespace();
+        if input.is_exhausted() && combinator == SelectorCombinator::Descendant {
+            break;
+        }
+
+        log::trace!("Parsing rhs...");
+        complex.combinators.push((
+            combinator,
+            parse_compound_selector(input)?
+        ));
+
+        log::trace!("Next!");
     }
+
+    Ok(Selector::Complex(complex))
 }
 
 fn parse_compound_selector<'i, 't>(
