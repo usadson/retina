@@ -146,7 +146,21 @@ fn parse_selector<'i, 't>(
         log::trace!("Next!");
     }
 
-    Ok(Selector::Complex(complex))
+    Ok(parse_selector_try_simplify(complex))
+}
+
+fn parse_selector_try_simplify(complex_selector: ComplexSelector) -> Selector {
+    if !complex_selector.combinators.is_empty() {
+        return Selector::Complex(complex_selector);
+    }
+
+    let compound = complex_selector.topmost;
+
+    match TryInto::<[SimpleSelector; 1]>::try_into(compound.0) {
+        Ok([selector]) => Selector::Simple(selector),
+
+        Err(compound) => Selector::Compound(CompoundSelector(compound)),
+    }
 }
 
 fn parse_compound_selector<'i, 't>(
