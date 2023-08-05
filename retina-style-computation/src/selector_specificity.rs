@@ -7,7 +7,12 @@ use std::{
     ops::{Add, AddAssign},
 };
 
-use retina_style::{Selector, SimpleSelector};
+use retina_style::{
+    ComplexSelector,
+    CompoundSelector,
+    Selector,
+    SimpleSelector,
+};
 
 /// [CSS Selectors Level 4][spec].
 ///
@@ -94,9 +99,26 @@ pub trait CalculateSpecificity {
 impl CalculateSpecificity for Selector {
     fn calculate_specificity(&self) -> SelectorSpecificity {
         match self {
-            Selector::Compound(compound) => compound.0.iter().map(CalculateSpecificity::calculate_specificity).sum(),
+            Selector::Complex(complex) => complex.calculate_specificity(),
+            Selector::Compound(compound) => compound.calculate_specificity(),
             Selector::Simple(simple) => simple.calculate_specificity(),
         }
+    }
+}
+
+impl CalculateSpecificity for ComplexSelector {
+    fn calculate_specificity(&self) -> SelectorSpecificity {
+        let topmost = self.topmost.calculate_specificity();
+        let rest = self.combinators.iter()
+                .map(|(_, selector)| selector.calculate_specificity())
+                .sum();
+        topmost + rest
+    }
+}
+
+impl CalculateSpecificity for CompoundSelector {
+    fn calculate_specificity(&self) -> SelectorSpecificity {
+        self.0.iter().map(CalculateSpecificity::calculate_specificity).sum()
     }
 }
 

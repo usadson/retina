@@ -1,14 +1,23 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_dom::{NodeKind, Element};
+use std::sync::Weak;
+
+use retina_dom::{
+    Element,
+    Node,
+    NodeKind,
+};
 
 use retina_style::{
     AttributeSelector,
     AttributeSelectorKind,
     AttributeSelectorCaseSensitivity,
+    ComplexSelector,
+    CompoundSelector,
     PseudoClassSelectorKind,
     Selector,
+    SelectorCombinator,
     SelectorList,
     SimpleSelector,
 };
@@ -151,9 +160,104 @@ fn matches_pseudo_class_selector(
 /// Checks whether or not the given node matches the selector.
 pub fn matches_selector(selector: &Selector, node: &NodeKind) -> bool {
     match selector {
+        Selector::Complex(selector) => matches_selector_complex(selector, node),
+        Selector::Compound(selectors) => matches_selector_compound(selectors, node),
         Selector::Simple(simple_selector) => matches_selector_simple(simple_selector, node),
-        Selector::Compound(selectors) => selectors.0.iter().all(|selector| matches_selector_simple(selector, node)),
     }
+}
+
+fn matches_selector_complex(selector: &ComplexSelector, node: &NodeKind) -> bool {
+    matches_selector_complex_inner(&selector.topmost, &selector.combinators, node)
+}
+
+/// Recursively go up the list of selectors.
+///
+/// ## Example
+/// HTML:
+/// ```html
+/// <h1>
+///     <p>Text...</p>
+/// </h1>
+/// ```
+///
+/// CSS:
+/// ```css
+/// h1 > p {
+///     color: green;
+/// }
+/// ```
+///
+/// Pseudo-code for this procedure is this:
+/// ```ignore
+/// matches_selector_complex(
+///         h1,
+///         [
+///             (>, <p>)
+///         ],
+///         <p>
+///     )
+///     matches_selector_complex(
+///             <p>,
+///             [],
+///             <p>
+///         )
+/// ```
+///
+fn matches_selector_complex_inner(
+    topmost: &CompoundSelector,
+    rest: &[(SelectorCombinator, CompoundSelector)],
+    node: &NodeKind,
+) -> bool {
+    let Some((combinator, last)) = rest.last() else {
+        return matches_selector_compound(topmost, node);
+    };
+
+    if !matches_selector_compound(last, node) {
+        return false;
+    }
+
+    let rest = &rest[0..rest.len() - 1];
+
+    match combinator {
+        SelectorCombinator::Child => {
+            if let Some(parent) = node.as_node().parent().as_ref().and_then(Weak::upgrade) {
+                matches_selector_complex_inner(topmost, rest, parent.as_ref())
+            } else {
+                false
+            }
+        }
+
+        SelectorCombinator::Descendant => {
+            log::warn!("Descendant selector combinator not implemented");
+            false
+        }
+
+        SelectorCombinator::NextSibling | SelectorCombinator::SubsequentSibling => {
+            let Some(parent) = node.as_node().parent().as_ref().and_then(Weak::upgrade) else {
+                return false;
+            };
+
+            let children = parent
+                .as_parent_node()
+                .unwrap()
+                .children();
+
+            let mut iter = children.iter()
+                .skip_while(|child| child.as_ref() as *const _ == node as *const _);
+
+            let pred = |child: &Node| matches_selector_complex_inner(topmost, rest, child);
+
+            if *combinator == SelectorCombinator::NextSibling {
+                iter.take(1).any(pred)
+            } else {
+                iter.any(pred)
+            }
+        }
+    }
+}
+
+fn matches_selector_compound(selectors: &CompoundSelector, node: &NodeKind) -> bool {
+    selectors.0.iter().all(|selector| matches_selector_simple(selector, node))
 }
 
 fn matches_selector_simple(simple_selector: &SimpleSelector, node: &NodeKind) -> bool {

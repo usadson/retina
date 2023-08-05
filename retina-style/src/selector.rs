@@ -80,6 +80,14 @@ pub enum AttributeSelectorKind {
 }
 
 /// # References
+/// * [CSS - Selectors Level 4 - 3.1](https://drafts.csswg.org/selectors/#complex)
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ComplexSelector {
+    pub topmost: CompoundSelector,
+    pub combinators: Vec<(SelectorCombinator, CompoundSelector)>,
+}
+
+/// # References
 /// * [CSS - Selectors Level 4 - 3.1](https://www.w3.org/TR/selectors-4/#compound)
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct CompoundSelector(pub Vec<SimpleSelector>);
@@ -88,8 +96,26 @@ pub struct CompoundSelector(pub Vec<SimpleSelector>);
 /// * [CSS - Selectors Level 4 - 3.1](https://www.w3.org/TR/selectors-4/#simple)
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Selector {
+    Complex(ComplexSelector),
     Compound(CompoundSelector),
     Simple(SimpleSelector),
+}
+
+/// # References
+/// * [CSS - Selectors Level 4 - 3.1](https://drafts.csswg.org/selectors/#selector-combinator)
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum SelectorCombinator {
+    /// ` ` (white space)
+    Descendant,
+
+    /// `>`
+    Child,
+
+    /// `+`
+    NextSibling,
+
+    /// `~`
+    SubsequentSibling,
 }
 
 /// # References
