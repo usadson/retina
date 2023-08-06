@@ -2,6 +2,7 @@
 // All Rights Reserved.
 
 use html5ever::{QualName, local_name};
+use retina_fetch::mime::{Mime, APPLICATION_OCTET_STREAM};
 
 use crate::{
     Element,
@@ -37,6 +38,15 @@ impl HtmlLinkElement {
 
     pub fn relationship(&self) -> LinkRelationship {
         LinkRelationship::for_link_element(self.rel())
+    }
+
+    pub fn type_(&self) -> Mime {
+        self.superclass_html_element.as_ref()
+            .attributes()
+            .find(&local_name!("type"))
+            .map(|str| str.parse().ok())
+            .flatten()
+            .unwrap_or(APPLICATION_OCTET_STREAM)
     }
 }
 
