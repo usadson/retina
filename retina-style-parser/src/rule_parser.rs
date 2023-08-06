@@ -6,8 +6,6 @@ use cssparser::{
     RuleBodyParser, ParseError, ParseErrorKind,
 };
 
-use log::warn;
-
 use retina_style::{
     AtMediaRule,
     CascadeOrigin,
@@ -17,6 +15,8 @@ use retina_style::{
     SelectorList,
     StyleRule,
 };
+
+use crate::error::display_parse_error;
 
 use super::{
     RetinaStyleParseError,
@@ -134,7 +134,7 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for RuleParser {
         while let Some(result) = declaration_parser.next() {
             match result {
                 Ok(declaration) => declarations.push(declaration),
-                Err(e) => warn!("Failed to parse declaration: {e:#?}"),
+                Err(e) => display_parse_error(declaration_parser.input, "declaration", e),
             }
         }
 

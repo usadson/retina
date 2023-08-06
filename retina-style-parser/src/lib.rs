@@ -8,6 +8,8 @@ mod selector_parser;
 mod util;
 mod value_parser;
 
+use crate::error::display_parse_error;
+
 pub use self::error::RetinaStyleParseError;
 pub use self::util::{
     CssParsable,
@@ -26,7 +28,6 @@ use cssparser::{
     QualifiedRuleParser,
     StyleSheetParser,
 };
-use log::warn;
 
 use retina_style::{
     CascadeOrigin,
@@ -74,22 +75,19 @@ pub(crate) fn parse_stylesheet_contents(cascade_origin: CascadeOrigin, parser: &
     let mut stylesheet = Stylesheet::new();
 
     while !stylesheet_parser.input.is_exhausted() {
+        stylesheet_parser.input.skip_whitespace();
         let Some(rule) = stylesheet_parser.next() else { continue };
         match rule {
             Ok(rule) => {
                 if let Rule::Style(style_rule) = &rule {
-                    if style_rule.declarations.is_empty() {
-                        if cfg!(test) && cascade_origin == CascadeOrigin::UserAgent {
-                            panic!("[CssParser] Declaration is empty: {:#?}", style_rule);
-                        }
-
-                        warn!("[CssParser] Declaration is empty: {:#?}", style_rule);
+                    if cfg!(test) && cascade_origin == CascadeOrigin::UserAgent && style_rule.declarations.is_empty() {
+                        panic!("[CssParser] Declaration is empty: {:#?}", style_rule);
                     }
                 }
 
                 stylesheet.push(rule);
             }
-            Err(err) => warn!("[CssParser] CSS parse error: {:#?}", err.0),
+            Err(err) => display_parse_error(stylesheet_parser.input, "rule", err),
         }
     }
 
