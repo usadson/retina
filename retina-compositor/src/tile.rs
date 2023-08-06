@@ -43,8 +43,14 @@ pub struct Tile {
 
 impl Tile {
     pub fn new(context: Context, rect: Rect<u32, TileSpace>) -> Self {
+        let name = format!(
+            "Compositor Tile (x={x}, y={y})",
+            x = rect.origin.x / TILE_SIZE.width,
+            y = rect.origin.y / TILE_SIZE.height,
+        );
+
         Self {
-            canvas: CanvasPaintingContext::new(context.clone(), "Compositor Tile", rect.size.cast_unit()),
+            canvas: CanvasPaintingContext::new(context.clone(), &name, rect.size.cast_unit()),
             rect,
             submission_future: None,
             dirty: true,
