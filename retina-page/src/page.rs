@@ -185,6 +185,7 @@ impl Page {
 
     pub(crate) async fn generate_layout_tree(&mut self) -> Result<(), ErrorKind> {
         self.dirty_state.mark_layout_tree_generated();
+        let begin_time = Instant::now();
 
         let document_url = self.url.clone();
         let fetch = self.fetch.clone();
@@ -200,6 +201,11 @@ impl Page {
         );
 
         self.scroller.did_content_resize(layout_root.dimensions().size_margin_box());
+
+        let time_taken = begin_time.elapsed();
+        if time_taken.as_millis() > 200 {
+            warn!("Layout took {} milliseconds!", time_taken.as_millis());
+        }
 
         self.message_sender.send(PageMessage::Progress {
             progress: PageProgress::LayoutGenerated,
