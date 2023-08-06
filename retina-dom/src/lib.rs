@@ -20,6 +20,7 @@ pub mod parent_node;
 pub mod parse;
 pub mod platform_messenger;
 pub mod text;
+pub mod wrapper;
 
 use std::{ops::Deref, sync::{Arc, Weak}};
 
@@ -35,6 +36,7 @@ pub use parent_node::ParentNode;
 pub use parse::Parser;
 pub use platform_messenger::{PlatformMessage, PlatformMessenger};
 pub use text::Text;
+pub use wrapper::*;
 
 use retina_common::DumpableNode;
 
