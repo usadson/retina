@@ -82,11 +82,25 @@ impl Application {
 }
 
 impl Application {
+    /// Load resources that are used in the crash screen.
+    fn load_crash_screen_resources(&self) {
+        let font_provider = self.font_provider.clone();
+
+        std::thread::spawn(move || {
+            font_provider.load_from_system(FontDescriptor {
+                name: FamilyName::Title("Cascadia Code".into()),
+                weight: FontWeight::BOLD,
+            });
+        });
+    }
+
     fn on_page_message(&mut self, message: PageMessage, window: &mut Window<RetinaEvent>) {
         match message {
             PageMessage::Crash { message } => {
                 self.crash_message = Some(message);
                 window.request_repaint();
+
+                self.load_crash_screen_resources();
             }
 
             PageMessage::Favicon { rgba, width, height } => {
@@ -178,11 +192,27 @@ impl WindowApplication<RetinaEvent> for Application {
 
         if let Some(crash_message) = &self.crash_message {
             let font = self.font_provider.get(FontDescriptor {
-                name: FamilyName::SansSerif,
+                name: FamilyName::Title("Cascadia Code".into()),
                 weight: FontWeight::BOLD,
-            }).unwrap();
+            }).unwrap_or_else(|| {
+                self.font_provider.get(FontDescriptor {
+                    name: FamilyName::Monospace,
+                    weight: FontWeight::BOLD,
+                }).unwrap_or_else(|| {
+                    self.font_provider.get(FontDescriptor {
+                        name: FamilyName::SansSerif,
+                        weight: FontWeight::BOLD,
+                    }).unwrap()
+                })
+            });
 
-            font.paint(crash_message, Color::RED, Point2D::new(10.0, 10.0), 22.0, Default::default(), render_pass);
+            let font_size = 22.0;
+            let mut position = Point2D::new(10.0, 10.0);
+
+            for line in crash_message.lines() {
+                font.paint(line, Color::RED, position, font_size, Default::default(), render_pass);
+                position.y += font_size;
+            }
         }
 
         let now = Instant::now();

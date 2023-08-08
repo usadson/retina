@@ -64,8 +64,10 @@ pub fn spawn(
 
     std::thread::spawn(move || {
         let panic_message_sender = message_sender.clone();
+        let old_hook = std::panic::take_hook();
         std::panic::set_hook(Box::new(move |info| {
             handle_panic(&panic_message_sender, info);
+            old_hook(info);
         }));
 
         let runtime = Arc::new(
@@ -121,7 +123,106 @@ fn handle_panic(
     sender: &SyncSender<PageMessage>,
     info: &PanicInfo<'_>,
 ) {
+    let message = format_panic_message(info)
+        .unwrap_or_else(|| info.to_string());
+
     _ = sender.try_send(PageMessage::Crash {
-        message: info.to_string(),
+        message,
     }).ok();
+}
+
+#[cfg(not(debug_assertions))]
+fn format_panic_message(info: &PanicInfo<'_>) -> Option<String> {
+    None
+}
+
+#[cfg(debug_assertions)]
+fn format_panic_message(info: &PanicInfo<'_>) -> Option<String> {
+    use std::{
+        fs::File,
+        io::{
+            BufReader,
+            BufRead,
+        },
+        path::Path,
+    };
+
+    const PREFIX_LINES: usize = 5;
+    const SUFFIX_LINES: usize = PREFIX_LINES;
+
+    use log::warn;
+
+    let Some(location) = info.location() else {
+        warn!("[panic] No panic location provided!");
+        return None;
+    };
+
+    let this_crate_manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
+
+    let Some(workspace_path) = this_crate_manifest.parent() else {
+        warn!("[panic] Crate manifest directory invalid: {}", this_crate_manifest.display());
+        return None;
+    };
+
+    if !workspace_path.exists() {
+        warn!("[panic] Workspace path does not exist: {}", workspace_path.display());
+        return None;
+    }
+
+    let file_location = {
+        let mut file_location = workspace_path.to_path_buf();
+        file_location.push(location.file());
+        file_location
+    };
+
+    if !file_location.exists() {
+        warn!("[panic] Panicking file does not exist: {}", file_location.display());
+        return None;
+    }
+
+    let file = match File::open(&file_location) {
+        Ok(file) => file,
+        Err(err) => {
+            warn!("[panic] Panicking file {} failed to open: {err}", file_location.display());
+            return None;
+        }
+    };
+
+    let mut message = info.to_string();
+
+    let first_shown_line = (location.line() as usize).saturating_sub(PREFIX_LINES);
+
+    let mut lines = BufReader::new(file)
+        .lines()
+        .skip(first_shown_line);
+
+    let mut append_line = |message: &mut String, n| {
+        let Some(line) = lines.next().map(|result| result.ok()).flatten() else {
+            return;
+        };
+
+        let line_number = first_shown_line + n + 1;
+        *message = format!("{}\n{line_number:>4}: {line}", *message);
+    };
+
+    for n in 0..PREFIX_LINES.min(location.line() as usize) {
+        append_line(&mut message, n);
+    }
+
+    let line_number_length = 4;
+    let space_count = location.column() + line_number_length;
+
+    let error_message = info.payload()
+        .downcast_ref::<&str>()
+        .map(|message| *message)
+        .unwrap_or("error occurred here");
+
+    let spaces = " ".repeat(space_count as usize);
+    message = format!("{message}\n{spaces}^ {error_message}");
+
+    for n in 0..SUFFIX_LINES {
+        append_line(&mut message, n);
+    }
+
+    Some(message)
 }
