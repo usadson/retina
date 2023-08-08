@@ -11,7 +11,6 @@ use retina_gfx_font::{
     CapitalLetterMode,
     EastAsianGlyphForm,
     EastAsianGlyphWidth,
-    FamilyName,
     FontDescriptor,
     FontHandle,
     FontProvider,
@@ -28,7 +27,6 @@ use retina_style::{
     CssDisplayBox,
     CssDisplayInside,
     CssDisplayOutside,
-    CssFontFamilyName,
     CssFontKerning,
     CssFontVariantEastAsian,
     CssFontVariantEastAsianValues,
@@ -36,7 +34,6 @@ use retina_style::{
     CssFontVariantCaps,
     CssFontVariantLigatures,
     CssFontVariantPosition,
-    CssGenericFontFamilyName,
     CssImage,
     CssLength,
     CssLineStyle,
@@ -339,24 +336,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
 
         if let Some(font_families) = &computed_style.font_family_list {
             for font_family in font_families {
-                let name = match font_family {
-                    CssFontFamilyName::Name(name) => name.clone().into(),
-                    CssFontFamilyName::Generic(generic) => match generic {
-                        CssGenericFontFamilyName::Cursive => FamilyName::Cursive,
-                        CssGenericFontFamilyName::Emoji => FamilyName::Emoji,
-                        CssGenericFontFamilyName::Fangsong => FamilyName::Fangsong,
-                        CssGenericFontFamilyName::Fantasy => FamilyName::Fantasy,
-                        CssGenericFontFamilyName::Math => FamilyName::Math,
-                        CssGenericFontFamilyName::Monospace => FamilyName::Monospace,
-                        CssGenericFontFamilyName::SansSerif => FamilyName::SansSerif,
-                        CssGenericFontFamilyName::Serif => FamilyName::Serif,
-                        CssGenericFontFamilyName::SystemUi => FamilyName::SystemUi,
-                        CssGenericFontFamilyName::UiMonospace => FamilyName::UiMonospace,
-                        CssGenericFontFamilyName::UiRounded => FamilyName::UiRounded,
-                        CssGenericFontFamilyName::UiSansSerif => FamilyName::UiSansSerif,
-                        CssGenericFontFamilyName::UiSerif => FamilyName::UiSerif,
-                    }
-                };
+                let name = crate::convert_font_family(font_family);
 
                 let descriptor = FontDescriptor {
                     name,
