@@ -7,6 +7,13 @@ use retina_style::Value;
 
 use crate::ParseError;
 
+/// If the line is too long - which is often the case for minified CSS files -
+/// we should only log so many characters
+const MAX_LINE_LENGTH_FOR_ERROR_LOGGING: usize = 80;
+
+const REDUCE_CONTEXT_PREFIX: usize = 20;
+const REDUCE_CONTEXT_SUFFIX: usize = 20;
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum RetinaStyleParseError<'i> {
     ColorUnknownValue(cssparser::Color),
@@ -71,12 +78,10 @@ pub fn display_parse_error<'i, 't>(
     // parser is at the same line as it was when it encountered the error,
     // because we can use the parser to get the whole line including
     // leading whitespace (indentation).
-    let line = if error.location.line == parser.current_source_location().line {
+    let mut line = if error.location.line == parser.current_source_location().line {
         let line = parser.current_line();
-        warn!("{}", parser.current_line());
         line
     } else {
-        warn!("{line}");
         line
     };
 
@@ -96,6 +101,11 @@ pub fn display_parse_error<'i, 't>(
         caret_count = new_caret_count;
     }
 
+    if line.len() > MAX_LINE_LENGTH_FOR_ERROR_LOGGING {
+        (space_count, line) = reduce_line_length(space_count, caret_count, line);
+    }
+
+    warn!("{line}");
     warn!("{spaces}^{tildes} {message:?}",
         spaces = " ".repeat(space_count),
         tildes = "~".repeat(caret_count - 1),
@@ -128,6 +138,26 @@ fn improve_caret_location<'i>(
         }
 
         _ => None
+    }
+}
+
+fn reduce_line_length(
+    space_count: usize,
+    caret_count: usize,
+    line: &str,
+) -> (usize, &str) {
+    if space_count == 0 {
+        return (space_count, line);
+    }
+
+    let prefix = space_count.checked_sub(REDUCE_CONTEXT_PREFIX).unwrap_or(space_count);
+    let new_space_count = REDUCE_CONTEXT_PREFIX;
+    let range = prefix..space_count + caret_count + REDUCE_CONTEXT_SUFFIX;
+
+    if let Some(line) = line.get(range) {
+        (new_space_count, line)
+    } else {
+        (space_count, line)
     }
 }
 
