@@ -24,7 +24,19 @@ use retina_compositor::Compositor;
 use retina_gfx::{canvas::CanvasPaintingContext, euclid::Size2D};
 use retina_gfx_font::FontProvider;
 
-use std::{sync::{mpsc::{channel, sync_channel}, Arc}, time::Duration};
+use std::{
+    panic::PanicInfo,
+    sync::{
+        Arc,
+        mpsc::{
+            channel,
+            sync_channel,
+            SyncSender,
+        },
+    },
+    time::Duration,
+};
+
 use url::Url;
 
 pub fn spawn(
@@ -53,9 +65,7 @@ pub fn spawn(
     std::thread::spawn(move || {
         let panic_message_sender = message_sender.clone();
         std::panic::set_hook(Box::new(move |info| {
-            _ = panic_message_sender.try_send(PageMessage::Crash {
-                message: info.to_string(),
-            }).ok();
+            handle_panic(&panic_message_sender, info);
         }));
 
         let runtime = Arc::new(
@@ -105,4 +115,13 @@ pub fn spawn(
     });
 
     handle
+}
+
+fn handle_panic(
+    sender: &SyncSender<PageMessage>,
+    info: &PanicInfo<'_>,
+) {
+    _ = sender.try_send(PageMessage::Crash {
+        message: info.to_string(),
+    }).ok();
 }
