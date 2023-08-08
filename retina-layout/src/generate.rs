@@ -340,7 +340,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         if let Some(font_families) = &computed_style.font_family_list {
             for font_family in font_families {
                 let name = match font_family {
-                    CssFontFamilyName::Name(name) => FamilyName::Title(name.clone()),
+                    CssFontFamilyName::Name(name) => name.clone().into(),
                     CssFontFamilyName::Generic(generic) => match generic {
                         CssGenericFontFamilyName::Cursive => FamilyName::Cursive,
                         CssGenericFontFamilyName::Fantasy => FamilyName::Fantasy,

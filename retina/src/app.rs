@@ -6,6 +6,7 @@ use std::{sync::Arc, time::{Instant, Duration}};
 use copypasta::{ClipboardContext, ClipboardProvider};
 
 use log::error;
+use retina_common::StrTendril;
 use retina_gfx::{
     Color,
     euclid::{Point2D, default::Rect, Size2D},
@@ -88,7 +89,7 @@ impl Application {
 
         std::thread::spawn(move || {
             font_provider.load_from_system(FontDescriptor {
-                name: FamilyName::Title("Cascadia Code".into()),
+                name: StrTendril::from("Cascadia Code").into(),
                 weight: FontWeight::BOLD,
             });
         });
@@ -192,7 +193,7 @@ impl WindowApplication<RetinaEvent> for Application {
 
         if let Some(crash_message) = &self.crash_message {
             let font = self.font_provider.get(FontDescriptor {
-                name: FamilyName::Title("Cascadia Code".into()),
+                name: StrTendril::from("Cascadia Code").into(),
                 weight: FontWeight::BOLD,
             }).unwrap_or_else(|| {
                 self.font_provider.get(FontDescriptor {

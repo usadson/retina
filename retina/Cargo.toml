@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+retina-common = { path = "../retina-common" }
 retina-fetch = { path = "../retina-fetch" }
 retina-gfx = { path = "../retina-gfx" }
 retina-gfx-font = { path = "../retina-gfx-font" }

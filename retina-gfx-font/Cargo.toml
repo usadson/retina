@@ -9,3 +9,4 @@ retina-common = { path = "../retina-common" }
 retina-gfx = { path = "../retina-gfx" }
 
 euclid = "*"
+unicase = "*"

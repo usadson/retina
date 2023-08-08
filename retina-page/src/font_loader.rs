@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use log::trace;
 use retina_fetch::Fetch;
-use retina_gfx_font::{FontProvider, FamilyName, FontDescriptor, FontWeight};
+use retina_gfx_font::{FontProvider, FontDescriptor, FontWeight};
 use retina_layout::LayoutBox;
 use retina_style::{CssFontFamilyName, Stylesheet};
 use tokio::sync::mpsc::Sender;
@@ -95,7 +95,7 @@ impl FontLoader {
             };
 
             let descriptor = FontDescriptor {
-                name: FamilyName::Title(desired_font.clone()),
+                name: desired_font.clone().into(),
 
                 weight: FontWeight::new(layout_box.computed_style().font_weight() as _),
             };

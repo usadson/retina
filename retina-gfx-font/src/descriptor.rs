@@ -4,16 +4,23 @@
 use std::hash::Hash;
 
 use retina_common::StrTendril;
+use unicase::UniCase;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum FamilyName {
-    Title(StrTendril),
+    Title(UniCase<StrTendril>),
     Cursive,
     Emoji,
     Fantasy,
     Monospace,
     SansSerif,
     Serif,
+}
+
+impl From<StrTendril> for FamilyName {
+    fn from(value: StrTendril) -> Self {
+        Self::Title(UniCase::new(value))
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
