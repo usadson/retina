@@ -14,6 +14,14 @@ use retina_style::*;
 
 use crate::{ParseError, RetinaStyleParseError, util::convert_color};
 
+const PIXELS_PER_CENTIMETER: CssDecimal = 96.0;
+const PIXELS_PER_MILLIMETER: CssDecimal = PIXELS_PER_CENTIMETER / 10.0;
+const PIXELS_PER_QUARTER_MILLIMETER: CssDecimal = PIXELS_PER_CENTIMETER / 40.0;
+const PIXELS_PER_INCH: CssDecimal = 96.0;
+const PIXELS_PER_PICA: CssDecimal = PIXELS_PER_INCH / 6.0;
+const PIXELS_PER_POINT: CssDecimal = PIXELS_PER_INCH / 72.0;
+
+
 pub(crate) fn parse_color<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<CssColor, ParseError<'i>> {
@@ -421,6 +429,14 @@ pub(crate) fn parse_length<'i, 't>(
                 "rem" => Ok(CssLength::FontSizeOfRootElement(value as _)),
                 "vh" => Ok(CssLength::UaDefaultViewportHeightPercentage(value as _)),
                 "vw" => Ok(CssLength::UaDefaultViewportWidthPercentage(value as _)),
+
+                "cm" => Ok(CssLength::Pixels(value as CssDecimal * PIXELS_PER_CENTIMETER)),
+                "mm" => Ok(CssLength::Pixels(value as CssDecimal * PIXELS_PER_MILLIMETER)),
+                "Q" => Ok(CssLength::Pixels(value as CssDecimal * PIXELS_PER_QUARTER_MILLIMETER)),
+                "in" => Ok(CssLength::Pixels(value as CssDecimal * PIXELS_PER_INCH)),
+                "pc" => Ok(CssLength::Pixels(value as CssDecimal * PIXELS_PER_PICA)),
+                "pt" => Ok(CssLength::Pixels(value as CssDecimal * PIXELS_PER_POINT)),
+
                 _ => Err(ParseError {
                     kind: ParseErrorKind::Custom(RetinaStyleParseError::LengthUnknownUnit(unit)),
                     location: token_location,
