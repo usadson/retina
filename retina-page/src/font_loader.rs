@@ -34,8 +34,10 @@ impl FontLoader {
     }
 
     pub fn process_enqueued(&mut self, stylesheets: &[Stylesheet]) {
-        for (descriptor, state) in &self.fonts {
+        for (descriptor, state) in &mut self.fonts {
             let FontState::Initial = state else { continue };
+
+            *state = FontState::Loading;
 
             let descriptor = descriptor.clone();
             let page_task_message_sender = self.page_task_message_sender.clone();
@@ -63,6 +65,7 @@ impl FontLoader {
     pub fn process_load_state(&mut self, descriptor: FontDescriptor, state: FontState) -> FontLoadResult {
         let result = match state {
             FontState::Initial => unreachable!(),
+            FontState::Loading => unreachable!(),
 
             FontState::InvalidReference => FontLoadResult {
                 rerun_algorithm: true,
@@ -111,6 +114,10 @@ impl FontLoader {
                 // again.
                 Some(FontState::Initial) => break,
 
+                // The font is already being loaded. Let's see if another font
+                // is already present, and use that one instead!
+                Some(FontState::Loading) => continue,
+
                 // The font cannot be resolved or failed to load. Ignore this
                 // one, and let's see if the next one can be loaded instead!
                 Some(FontState::InvalidReference) => continue,
@@ -124,7 +131,9 @@ impl FontLoader {
             }
 
             // Enqueue the font.
+            trace!("Enqueuing {descriptor:?}...");
             self.fonts.insert(descriptor, FontState::Initial);
+
 
             // The first non-loaded font was found, and is now enqueued.
             // We can stop for now, but if this failed to load, this algorithm
@@ -138,6 +147,9 @@ impl FontLoader {
 pub(crate) enum FontState {
     /// Nothing has been done with this font thus far.
     Initial,
+
+    /// The font is being loaded.
+    Loading,
 
     /// Tried to load this font, but it is neither in an `@font-face` rule
     /// nor in the system font list.
