@@ -840,9 +840,7 @@ impl Page {
                     ..Default::default()
                 }),
                 texture_size: viewport.cast().cast_unit().size,
-                // texture_view,
-                // texture_size: rect.size.cast_unit(),
-                background_color: Color::MAGENTA,
+                background_color: Color::WHITE,
             }).ok();
         }).await;
 
