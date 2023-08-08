@@ -10,9 +10,9 @@ retina-dom = { path = "../retina-dom" }
 retina-platform-object = { path = "../retina-platform-object" }
 
 log = "*"
-boa_engine = { git = "https://github.com/boa-dev/boa", features = ["intl"] }
-boa_gc = { git = "https://github.com/boa-dev/boa", features = [] }
-boa_runtime = { git = "https://github.com/boa-dev/boa" }
+boa_engine = { version = "*", features = ["intl"] }
+boa_gc = "*"
+boa_runtime = "*"
 
 [dev-dependencies]
 env_logger = "*"
