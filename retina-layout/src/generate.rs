@@ -347,6 +347,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
                         CssGenericFontFamilyName::Monospace => FamilyName::Monospace,
                         CssGenericFontFamilyName::SansSerif => FamilyName::SansSerif,
                         CssGenericFontFamilyName::Serif => FamilyName::Serif,
+                        CssGenericFontFamilyName::Emoji => FamilyName::Emoji,
                         _ => continue,
                     }
                 };
