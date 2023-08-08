@@ -184,6 +184,11 @@ impl FontProviderBackend for FontProvider {
             name: FamilyName::Serif,
             weight: FontWeight::BOLD,
         });
+
+        self.load_default_in_background(FontDescriptor {
+            name: FamilyName::Monospace,
+            weight: FontWeight::REGULAR,
+        });
     }
 
     fn load_from_file(&self, load_time: LoadTime, path: &Path, descriptor: FontDescriptor) -> bool {
