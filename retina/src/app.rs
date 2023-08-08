@@ -45,8 +45,7 @@ impl Application {
 
         window.set_title(&format!("{} — Retina", url.as_str()));
 
-        let static_font_aliases = Arc::new([
-        ]);
+        let static_font_aliases = create_static_font_aliases();
         let font_provider_backend = retina_gfx_font_backend_font_kit::FontProvider::new(window.context(), static_font_aliases);
         let font_provider = FontProvider::new(Arc::new(font_provider_backend));
         font_provider.load_defaults();
@@ -253,4 +252,18 @@ fn spawn_page_event_forward_proxy(mut receive_handle: PageHandleReceiveHalf, pro
             }
         }
     });
+}
+
+/// TODO: this assumes Windows 10, but should be ported to other operating
+/// systems.
+fn create_static_font_aliases() -> Arc<[(FamilyName, String)]> {
+    Arc::new([
+        (FamilyName::Fantasy, String::from("Comic Sans MS")),
+        (FamilyName::Math, String::from("Cambria Math")),
+        (FamilyName::Monospace, String::from("Cascadia Code")),
+        (FamilyName::Emoji, String::from("Segoe UI Emoji")),
+        (FamilyName::UiSansSerif, String::from("Segoe UI")),
+        (FamilyName::UiMonospace, String::from("Cascadia Code")),
+        (FamilyName::SystemUi, String::from("Segoe UI")),
+    ])
 }
