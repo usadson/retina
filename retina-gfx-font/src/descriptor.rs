@@ -11,10 +11,17 @@ pub enum FamilyName {
     Title(UniCase<StrTendril>),
     Cursive,
     Emoji,
+    Fangsong,
     Fantasy,
+    Math,
     Monospace,
     SansSerif,
     Serif,
+    SystemUi,
+    UiMonospace,
+    UiRounded,
+    UiSansSerif,
+    UiSerif,
 }
 
 impl From<StrTendril> for FamilyName {

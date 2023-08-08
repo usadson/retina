@@ -343,12 +343,18 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
                     CssFontFamilyName::Name(name) => name.clone().into(),
                     CssFontFamilyName::Generic(generic) => match generic {
                         CssGenericFontFamilyName::Cursive => FamilyName::Cursive,
+                        CssGenericFontFamilyName::Emoji => FamilyName::Emoji,
+                        CssGenericFontFamilyName::Fangsong => FamilyName::Fangsong,
                         CssGenericFontFamilyName::Fantasy => FamilyName::Fantasy,
+                        CssGenericFontFamilyName::Math => FamilyName::Math,
                         CssGenericFontFamilyName::Monospace => FamilyName::Monospace,
                         CssGenericFontFamilyName::SansSerif => FamilyName::SansSerif,
                         CssGenericFontFamilyName::Serif => FamilyName::Serif,
-                        CssGenericFontFamilyName::Emoji => FamilyName::Emoji,
-                        _ => continue,
+                        CssGenericFontFamilyName::SystemUi => FamilyName::SystemUi,
+                        CssGenericFontFamilyName::UiMonospace => FamilyName::UiMonospace,
+                        CssGenericFontFamilyName::UiRounded => FamilyName::UiRounded,
+                        CssGenericFontFamilyName::UiSansSerif => FamilyName::UiSansSerif,
+                        CssGenericFontFamilyName::UiSerif => FamilyName::UiSerif,
                     }
                 };
 

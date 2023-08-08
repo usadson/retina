@@ -17,7 +17,6 @@ use retina_common::LoadTime;
 use crate::{
     font::FontKitFont,
     family::FontFamily,
-    convert_font_kit_name,
     convert_font_kit_weight,
 };
 
@@ -37,15 +36,36 @@ use retina_gfx::Context as GfxContext;
 pub struct FontProvider {
     gfx_context: GfxContext,
     families: Arc<RwLock<HashMap<FamilyName, FontFamily>>>,
+    static_aliases: Arc<[(FamilyName, String)]>,
 }
 
 unsafe impl Send for FontProvider{}
 
 impl FontProvider {
-    pub fn new(gfx_context: GfxContext) -> Self {
+    pub fn new(gfx_context: GfxContext, static_aliases: Arc<[(FamilyName, String)]>) -> Self {
         Self {
             gfx_context,
             families: Arc::new(RwLock::new(HashMap::new())),
+            static_aliases,
+        }
+    }
+
+    fn convert_family_name(&self, value: FamilyName) -> font_kit::family_name::FamilyName {
+        use font_kit::family_name::FamilyName as FkName;
+        match value {
+            FamilyName::Title(name) => FkName::Title(name.to_string()),
+            FamilyName::Cursive => FkName::Cursive,
+            FamilyName::Fantasy => FkName::Fantasy,
+            FamilyName::Monospace => FkName::Monospace,
+            FamilyName::SansSerif => FkName::SansSerif,
+            FamilyName::Serif => FkName::Serif,
+            _ => {
+                self.static_aliases
+                    .iter()
+                    .find(|(alias, _)| alias == &value)
+                    .map(|(_, actual)| FkName::Title(actual.into()))
+                    .unwrap_or(FkName::Serif)
+            }
         }
     }
 
@@ -66,7 +86,7 @@ impl FontProvider {
             let desc = descriptor.clone();
 
             let handle = source.select_best_match(
-                &[convert_font_kit_name(desc.name)],
+                &[provider.convert_family_name(desc.name)],
                 &font_kit::properties::Properties {
                     weight: convert_font_kit_weight(desc.weight),
                     ..Default::default()
@@ -214,7 +234,7 @@ impl FontProviderBackend for FontProvider {
         let desc = descriptor.clone();
 
         let result = source.select_best_match(
-            &[convert_font_kit_name(desc.name)],
+            &[self.convert_family_name(desc.name)],
             &font_kit::properties::Properties {
                 weight: convert_font_kit_weight(desc.weight),
                 ..Default::default()
