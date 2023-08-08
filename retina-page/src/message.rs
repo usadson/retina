@@ -21,6 +21,15 @@ pub enum PageMessage {
         message: String,
     },
 
+    /// The icon of the webpage.
+    Favicon {
+        // RGBA pixels (4 bytes per pixel)
+        rgba: Vec<u8>,
+
+        width: u32,
+        height: u32
+    },
+
     PaintReceived {
         texture_view: wgpu::TextureView,
         texture_size: Size2D<u32, u32>,

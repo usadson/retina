@@ -89,6 +89,10 @@ impl Application {
                 window.request_repaint();
             }
 
+            PageMessage::Favicon { rgba, width, height } => {
+                window.set_icon(rgba, width, height);
+            }
+
             PageMessage::Title { title } => {
                 window.set_title(format!("{title} — Retina").as_str());
                 self.title = Some(title);

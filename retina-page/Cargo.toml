@@ -13,6 +13,7 @@ retina-fetch = { path = "../retina-fetch" }
 retina-gfx = { path = "../retina-gfx" }
 retina-gfx-font = { path = "../retina-gfx-font" }
 retina-layout = { path = "../retina-layout" }
+retina-media-type = { path = "../retina-media-type" }
 retina-scrittura = { path = "../retina-scrittura" }
 retina-style = { path = "../retina-style" }
 retina-style-parser = { path = "../retina-style-parser" }

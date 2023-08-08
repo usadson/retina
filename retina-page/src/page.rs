@@ -18,7 +18,18 @@ use std::{
 use log::{error, info, warn};
 use retina_common::Color;
 use retina_compositor::Compositor;
-use retina_dom::{HtmlElementKind, LinkType, Node, event::queue::EventQueue, ImageData, image::ImageDataState, ImageDataKind};
+
+use retina_dom::{
+    DocumentWrapper,
+    event::queue::EventQueue,
+    HtmlElementKind,
+    ImageData,
+    ImageDataState,
+    ImageDataKind,
+    LinkType,
+    Node,
+};
+
 use retina_fetch::{Fetch, Request};
 use retina_gfx::{canvas::CanvasPaintingContext, Context};
 use retina_gfx_font::FontProvider;
@@ -422,6 +433,7 @@ impl Page {
         self.load_stylesheets_in_background();
         self.load_images_in_background();
         self.find_title();
+        self.load_favicon_in_background();
 
         self.parse_stylesheets().await?;
 
@@ -452,6 +464,77 @@ impl Page {
             if Self::load_image_in_background_update_graphics(gfx_context, background_image, "background-image", &task_message_sender).await {
                 _ = task_message_sender.send(PageTaskMessage::ImageLoaded).await;
             }
+        });
+    }
+
+    fn load_favicon_in_background(&self) {
+        use retina_media_type::MimeExtensions;
+
+        let Some(document) = self.document.as_ref().cloned() else {
+            return;
+        };
+
+        let fetch = self.fetch.clone();
+        let sender = self.message_sender.clone();
+        let base_url = self.url.clone();
+
+        tokio::task::spawn(async move {
+            let document = DocumentWrapper(document);
+            let head = document.head();
+            let head = head.as_parent_node().unwrap();
+
+            // Load the hrefs before loading the content to ensure the children
+            // aren't staying locked.
+            let hrefs: Vec<_> = head.children()
+                .iter()
+                .filter_map(|node| {
+                    let Some(HtmlElementKind::Link(element)) = node.as_ref().as_html_element_kind() else {
+                        return None;
+                    };
+
+                    log::info!("<link> rel={}", element.rel());
+
+                    if !element.relationship().contains(LinkType::Icon) {
+                        return None;
+                    }
+
+                    if element.type_().is_svg() {
+                        warn!("Site provides SVG favicon, but this isn't supported!");
+                        return None;
+                    }
+
+                    Some(element.href().to_string())
+                })
+                .chain(["favicon.ico".to_string()].into_iter())
+                .collect();
+
+            let favicon_image_data = ImageData::new();
+            let url_count = hrefs.len();
+
+            for href in hrefs {
+                log::trace!("Loading favicon {href}...");
+                favicon_image_data.update(base_url.clone(), fetch.clone(), &href).await;
+
+                if favicon_image_data.state() != ImageDataState::Ready {
+                    continue;
+                }
+
+                let Ok(mut image) = favicon_image_data.image().write() else { continue };
+                let image = std::mem::replace(&mut *image, ImageDataKind::None);
+                let ImageDataKind::Bitmap(image) = image else { continue };
+
+                let width = image.width();
+                let height = image.height();
+                let rgba = image.into_rgba8().into_vec();
+
+                _ = sender.send(PageMessage::Favicon {
+                    rgba,
+                    width,
+                    height,
+                }).ok();
+            }
+
+            warn!("Failed to load favicon out of {url_count} URLs");
         });
     }
 

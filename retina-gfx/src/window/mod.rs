@@ -13,6 +13,7 @@ use std::time::{Instant, Duration};
 
 use euclid::Size2D;
 use retina_common::Color;
+use winit::window::Icon;
 
 use self::{
     event_proxy::WindowEventProxy,
@@ -138,6 +139,18 @@ impl<EventType> Window<EventType>
 
     pub fn set_background_color(&mut self, value: Color) {
         self.background_color = value;
+    }
+
+    pub fn set_icon(&self, rgba: Vec<u8>, width: u32, height: u32) {
+        match Icon::from_rgba(rgba, width, height) {
+            Ok(icon) => {
+                self.window.set_window_icon(Some(icon));
+            },
+
+            Err(e) => {
+                log::error!("Bad icon: {e}");
+            }
+        }
     }
 
     pub fn set_title(&self, title: &str) {

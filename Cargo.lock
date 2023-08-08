@@ -3175,6 +3175,7 @@ dependencies = [
  "retina-gfx",
  "retina-gfx-font",
  "retina-layout",
+ "retina-media-type",
  "retina-scrittura",
  "retina-style",
  "retina-style-parser",
