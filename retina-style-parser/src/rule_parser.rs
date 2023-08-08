@@ -16,7 +16,7 @@ use retina_style::{
     StyleRule,
 };
 
-use crate::error::display_parse_error;
+use crate::Context;
 
 use super::{
     RetinaStyleParseError,
@@ -27,15 +27,17 @@ pub enum AtRulePrelude {
     Media(Vec<MediaQuery>),
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) struct RuleParser {
+#[derive(Debug)]
+pub(crate) struct RuleParser<'context> {
     cascade_origin: CascadeOrigin,
+    pub(crate) context: &'context mut Context,
 }
 
-impl RuleParser {
-    pub const fn new(cascade_origin: CascadeOrigin) -> Self {
+impl<'context> RuleParser<'context> {
+    pub(crate) fn new(cascade_origin: CascadeOrigin, context: &'context mut Context) -> Self {
         Self {
-            cascade_origin
+            cascade_origin,
+            context,
         }
     }
 
@@ -83,7 +85,7 @@ impl RuleParser {
     }
 }
 
-impl<'i> cssparser::AtRuleParser<'i> for RuleParser {
+impl<'i, 'context> cssparser::AtRuleParser<'i> for RuleParser<'context> {
     type Prelude = AtRulePrelude;
     type AtRule = Rule;
     type Error = RetinaStyleParseError<'i>;
@@ -115,7 +117,7 @@ impl<'i> cssparser::AtRuleParser<'i> for RuleParser {
     }
 }
 
-impl<'i> cssparser::QualifiedRuleParser<'i> for RuleParser {
+impl<'i, 'context> cssparser::QualifiedRuleParser<'i> for RuleParser<'context> {
     type Error = RetinaStyleParseError<'i>;
     type Prelude = SelectorList;
     type QualifiedRule = Rule;
@@ -134,7 +136,7 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for RuleParser {
         while let Some(result) = declaration_parser.next() {
             match result {
                 Ok(declaration) => declarations.push(declaration),
-                Err(e) => display_parse_error(declaration_parser.input, "declaration", e),
+                Err(e) => self.context.parse_error(declaration_parser.input, "declaration", e),
             }
         }
 

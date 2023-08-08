@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+mod context;
 mod declaration_parser;
 mod error;
 mod rule_parser;
@@ -8,14 +9,13 @@ mod selector_parser;
 mod util;
 mod value_parser;
 
-use crate::error::display_parse_error;
-
 pub use self::error::RetinaStyleParseError;
 pub use self::util::{
     CssParsable,
     CssAttributeStrExtensions,
 };
 
+pub(crate) use self::context::Context;
 pub(crate) use self::rule_parser::RuleParser;
 pub(crate) use self::selector_parser::parse_selector_list;
 pub(crate) use self::value_parser::parse_value;
@@ -52,7 +52,8 @@ pub fn parse_style_attribute<'input>(
     let mut parser = Parser::new(&mut input);
     let start = parser.state();
 
-    let mut rule_parser = RuleParser::new(CascadeOrigin::Author);
+    let mut context = Context::default();
+    let mut rule_parser = RuleParser::new(CascadeOrigin::Author, &mut context);
     QualifiedRuleParser::parse_block(
         &mut rule_parser,
         SelectorList { items: Vec::new() },
@@ -69,7 +70,8 @@ pub fn parse_stylesheet(cascade_origin: CascadeOrigin, input: &str) -> Styleshee
 }
 
 pub(crate) fn parse_stylesheet_contents(cascade_origin: CascadeOrigin, parser: &mut Parser) -> Stylesheet {
-    let mut rule_parser = RuleParser::new(cascade_origin);
+    let mut context = Context::default();
+    let mut rule_parser = RuleParser::new(cascade_origin, &mut context);
     let mut stylesheet_parser = StyleSheetParser::new(parser, &mut rule_parser);
 
     let mut stylesheet = Stylesheet::new();
@@ -87,7 +89,9 @@ pub(crate) fn parse_stylesheet_contents(cascade_origin: CascadeOrigin, parser: &
 
                 stylesheet.push(rule);
             }
-            Err(err) => display_parse_error(stylesheet_parser.input, "rule", err),
+            Err(err) => {
+                stylesheet_parser.parser.context.parse_error(stylesheet_parser.input, "rule", err)
+            }
         }
     }
 
