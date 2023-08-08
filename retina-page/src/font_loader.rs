@@ -7,7 +7,7 @@ use log::trace;
 use retina_fetch::Fetch;
 use retina_gfx_font::{FontProvider, FontDescriptor, FontWeight};
 use retina_layout::LayoutBox;
-use retina_style::{CssFontFamilyName, Stylesheet};
+use retina_style::Stylesheet;
 use tokio::sync::mpsc::Sender;
 
 use crate::message::PageTaskMessage;
@@ -91,14 +91,10 @@ impl FontLoader {
         };
 
         for family in families {
-            let CssFontFamilyName::Name(desired_font) = &family else {
-                // The font was generic at this stage, so we can skip any font
-                // loading!
-                return;
-            };
+            let name = retina_layout::convert_font_family(family);
 
             let descriptor = FontDescriptor {
-                name: desired_font.clone().into(),
+                name,
 
                 weight: FontWeight::new(layout_box.computed_style().font_weight() as _),
             };
