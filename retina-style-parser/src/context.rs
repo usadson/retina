@@ -36,7 +36,7 @@ impl Drop for Context {
         }
 
         let errors_skipped = self.error_count - MAXIMUM_ERRORS_TO_DISPLAY;
-        let word = if errors_skipped == 1 { "error" } else { "skipped" };
+        let word = if errors_skipped == 1 { "error" } else { "errors" };
 
         log::warn!("{errors_skipped} {word} skipped");
     }
