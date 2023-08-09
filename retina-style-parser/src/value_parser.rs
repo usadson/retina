@@ -717,7 +717,10 @@ fn parse_wide_keywords<'i, 't>(input: &mut Parser<'i, 't>) -> Option<Result<Valu
     let reset_point = input.state();
     let todo_error = input.new_custom_error(RetinaStyleParseError::WideKeywordsNotYetSupported);
 
-    let ident = input.expect_ident_cloned().ok()?;
+    let Ok(ident) = input.expect_ident_cloned() else {
+        input.reset(&reset_point);
+        return None;
+    };
 
     if let Err(e) = input.expect_exhausted() {
         return Some(Err(e.into()));
