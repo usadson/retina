@@ -122,8 +122,8 @@ form {
 cite, dfn, em, i, var { font-style: italic; }
 b, strong { font-weight: bolder; }
 code, kbd, samp, tt { font-family: monospace; }
-big { font-size: larger; }
-small { font-size: smaller; }
+/* big { font-size: larger; } */
+/* small { font-size: smaller; } */
 
 sub { vertical-align: sub; }
 sup { vertical-align: super; }
