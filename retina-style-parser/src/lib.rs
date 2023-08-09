@@ -82,8 +82,12 @@ pub(crate) fn parse_stylesheet_contents(cascade_origin: CascadeOrigin, parser: &
         match rule {
             Ok(rule) => {
                 if let Rule::Style(style_rule) = &rule {
-                    if cfg!(test) && cascade_origin == CascadeOrigin::UserAgent && style_rule.declarations.is_empty() {
-                        panic!("[CssParser] Declaration is empty: {:#?}", style_rule);
+                    if style_rule.declarations.is_empty() {
+                        if cfg!(test) && cascade_origin == CascadeOrigin::UserAgent {
+                            panic!("[CssParser] Declaration is empty: {:#?}", style_rule);
+                        }
+
+                        continue;
                     }
                 }
 
