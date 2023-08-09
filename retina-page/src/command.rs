@@ -12,6 +12,8 @@ pub enum PageCommand {
 
     OpenLayoutTreeView,
 
+    OpenMemoryView,
+
     /// Show/dump the stylesheets.
     OpenStyleView,
 

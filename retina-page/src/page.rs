@@ -16,7 +16,7 @@ use std::{
 };
 
 use log::{error, info, warn};
-use retina_common::Color;
+use retina_common::{Color, DynamicSizeOf, ByteUnitFormat};
 use retina_compositor::Compositor;
 
 use retina_dom::{
@@ -273,6 +273,21 @@ impl Page {
                 if let Some(layout_root) = &self.layout_root {
                     layout_root.dump();
                 }
+            }
+
+            PageCommand::OpenMemoryView => {
+                log::info!("Calculated memory usage...");
+
+                let mut total_size = 0;
+
+                if let Some(layout_root) = &self.layout_root {
+                    let size = layout_root.dynamic_size_of();
+                    total_size += size;
+
+                    log::info!("Layout tree takes up {}", size.format_bytes());
+                }
+
+                log::info!("Total bytes taken up: {}", total_size.format_bytes());
             }
 
             PageCommand::OpenStyleView => {
