@@ -2,7 +2,7 @@
 // All Rights Reserved.
 
 use euclid::default::{Point2D, Size2D};
-use retina_common::StrTendril;
+use retina_common::{StrTendril, DynamicSizeOf};
 use retina_gfx_font::FontHandle;
 use retina_style::CssDecimal;
 
@@ -48,5 +48,11 @@ impl LineBoxFragment {
     #[inline]
     pub fn font(&self) -> &FontHandle {
         &self.font
+    }
+}
+
+impl DynamicSizeOf for LineBoxFragment {
+    fn dynamic_size_of(&self) -> usize {
+        std::mem::size_of_val(self)
     }
 }

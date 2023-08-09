@@ -13,6 +13,7 @@ use image::{
 };
 
 use log::{warn, info};
+use retina_common::DynamicSizeOf;
 use retina_fetch::{
     Fetch,
     Request,
@@ -172,6 +173,16 @@ impl ImageData {
     }
 }
 
+impl DynamicSizeOf for ImageData {
+    fn dynamic_size_of(&self) -> usize {
+        let mut size = std::mem::size_of_val(self);
+
+        size += self.internal.read().unwrap().dynamic_size_of();
+
+        size
+    }
+}
+
 #[derive(Debug)]
 pub enum ImageDataKind {
     None,
@@ -199,6 +210,21 @@ impl ImageDataKind {
             Self::Bitmap(bitmap) => bitmap.height(),
             Self::Animated(animated) => animated.height(),
         }
+    }
+}
+
+impl DynamicSizeOf for ImageDataKind {
+    fn dynamic_size_of(&self) -> usize {
+        let mut size = std::mem::size_of_val(self);
+
+        size += match self {
+            Self::Animated(animated) => animated.dynamic_size_of(),
+            Self::Bitmap(bitmap) => bitmap.as_bytes().len(),
+            Self::None => 0,
+            Self::Uploaded { .. } => 0,
+        };
+
+        size
     }
 }
 
@@ -235,6 +261,22 @@ impl Debug for AnimatedImage {
         f.debug_struct("AnimatedImage")
             .field("frames", &format!("len({})", self.frames.len()))
             .finish()
+    }
+}
+
+impl DynamicSizeOf for AnimatedImage {
+    fn dynamic_size_of(&self) -> usize {
+        let mut size = std::mem::size_of_val(self);
+
+        size += self.frames.iter()
+            .map(|frame| std::mem::size_of_val(frame) + frame.buffer().len())
+            .sum::<usize>();
+
+            size += self.frames_graphics.iter()
+            .map(|frame| std::mem::size_of_val(frame))
+            .sum::<usize>();
+
+        size
     }
 }
 

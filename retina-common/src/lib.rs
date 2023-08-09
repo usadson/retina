@@ -3,12 +3,14 @@
 
 mod color;
 mod dumpable;
+mod dynamic_size_of;
 mod str;
 mod time;
 mod transparent_wrapper;
 
 pub use color::Color;
 pub use dumpable::DumpableNode;
+pub use dynamic_size_of::DynamicSizeOf;
 pub use str::StrExt;
 pub use time::LoadTime;
 pub use transparent_wrapper::TransparentWrapper;

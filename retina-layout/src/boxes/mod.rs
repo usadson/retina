@@ -15,7 +15,13 @@ pub use dimensions::LayoutBoxDimensions;
 pub use edge::LayoutEdge;
 use euclid::default::Size2D;
 use log::warn;
-use retina_common::{DumpableNode, Color, StrExt, StrTendril};
+use retina_common::{
+    Color,
+    DumpableNode,
+    DynamicSizeOf,
+    StrExt,
+    StrTendril,
+};
 use retina_dom::{ImageData, HtmlElementKind};
 use retina_gfx_font::{FontHandle, TextHintingOptions};
 use retina_style::{CssReferencePixels, CssLength};
@@ -396,4 +402,19 @@ pub enum LayoutBoxKind {
     Root,
     Normal,
     Anonymous,
+}
+
+impl DynamicSizeOf for LayoutBox {
+    fn dynamic_size_of(&self) -> usize {
+        let mut size = std::mem::size_of_val(self);
+
+        size += self.children.dynamic_size_of();
+        size += self.line_box_fragments.dynamic_size_of();
+
+        if let Some(image) = &self.background_image {
+            size += image.dynamic_size_of();
+        }
+
+        size
+    }
 }
