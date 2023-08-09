@@ -594,10 +594,18 @@ impl Page {
     ) -> bool {
         let mut image = data.image().write().unwrap();
 
-        match &mut *image {
+        let width = image.width();
+        let height = image.height();
+
+        let result = match &mut *image {
             ImageDataKind::None => {
                 warn!("Failed to decode image! URL: {source}");
                 false
+            }
+
+            ImageDataKind::Uploaded { .. } => {
+                warn!("Image was already uploaded! URL: {source}");
+                true
             }
 
             ImageDataKind::Bitmap(image) => {
@@ -605,7 +613,7 @@ impl Page {
                 let texture = Arc::new(texture);
                 *data.graphics().write().unwrap() = texture;
 
-                info!("Loaded image: {source}");
+                info!("Loaded image: {source} with {} kBs", image.as_bytes().len() / 1000);
 
                 true
             }
@@ -633,7 +641,13 @@ impl Page {
 
                 true
             }
+        };
+
+        if result {
+            *image = ImageDataKind::Uploaded { width, height };
         }
+
+        result
     }
 
     fn load_image_in_background_spawn_frame_switcher(

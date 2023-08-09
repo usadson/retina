@@ -175,6 +175,7 @@ impl ImageData {
 #[derive(Debug)]
 pub enum ImageDataKind {
     None,
+    Uploaded { width: u32, height: u32 },
     Bitmap(DynamicImage),
     Animated(AnimatedImage),
 }
@@ -184,6 +185,7 @@ impl ImageDataKind {
     pub fn width(&self) -> u32 {
         match self {
             Self::None => 0,
+            Self::Uploaded { width, .. } => *width,
             Self::Bitmap(bitmap) => bitmap.width(),
             Self::Animated(animated) => animated.width(),
         }
@@ -193,6 +195,7 @@ impl ImageDataKind {
     pub fn height(&self) -> u32 {
         match self {
             Self::None => 0,
+            Self::Uploaded { height, .. } => *height,
             Self::Bitmap(bitmap) => bitmap.height(),
             Self::Animated(animated) => animated.height(),
         }
