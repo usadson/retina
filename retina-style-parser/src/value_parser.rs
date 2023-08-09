@@ -839,6 +839,21 @@ mod tests {
     }
 
     #[rstest]
+    #[case("solid", CssTextDecorationStyle::Solid)]
+    #[case("double", CssTextDecorationStyle::Double)]
+    #[case("dotted", CssTextDecorationStyle::Dotted)]
+    #[case("dashed", CssTextDecorationStyle::Dashed)]
+    #[case("wavy", CssTextDecorationStyle::Wavy)]
+    fn value_text_decoration_style(#[case] input: &str, #[case] style: CssTextDecorationStyle) {
+        let mut input = cssparser::ParserInput::new(input);
+        let input = &mut cssparser::Parser::new(&mut input);
+
+        let result = parse_value(input, Property::TextDecorationStyle);
+        let expected = Ok(Value::TextDecorationStyle(style));
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
     #[case("normal", CssWhiteSpace::Normal)]
     #[case("nowrap", CssWhiteSpace::Nowrap)]
     #[case("pre", CssWhiteSpace::Pre)]
