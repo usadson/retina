@@ -839,6 +839,21 @@ mod tests {
     }
 
     #[rstest]
+    #[case("none", CssTextDecorationLine::None)]
+    #[case("blink", CssTextDecorationLine::Blink)]
+    #[case("underline", CssTextDecorationLine::Underline)]
+    #[case("overline", CssTextDecorationLine::Overline)]
+    #[case("line-through", CssTextDecorationLine::LineThrough)]
+    fn value_text_decoration_line(#[case] input: &str, #[case] style: CssTextDecorationLine) {
+        let mut input = cssparser::ParserInput::new(input);
+        let input = &mut cssparser::Parser::new(&mut input);
+
+        let result = parse_value(input, Property::TextDecorationLine);
+        let expected = Ok(Value::TextDecorationLine(style));
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
     #[case("solid", CssTextDecorationStyle::Solid)]
     #[case("double", CssTextDecorationStyle::Double)]
     #[case("dotted", CssTextDecorationStyle::Dotted)]
