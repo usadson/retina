@@ -148,9 +148,9 @@ del, s, strike { text-decoration: line-through; }
 q::before { content: open-quote; }
 q::after { content: close-quote; }
 
-br { display-outside: newline; } /* this also has bidi implications */
+/* br { display-outside: newline; } this also has bidi implications */
 nobr { white-space: nowrap; }
-wbr { display-outside: break-opportunity; } /* this also has bidi implications */
+/* wbr { display-outside: break-opportunity; } this also has bidi implications */
 nobr wbr { white-space: normal; }
 
 br[clear=left i] { clear: left; }
