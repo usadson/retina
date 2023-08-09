@@ -1,6 +1,8 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use std::borrow::Cow;
+
 use cssparser::{Token, CowRcStr, BasicParseErrorKind, ParseErrorKind};
 use log::warn;
 use retina_style::Value;
@@ -50,6 +52,8 @@ pub enum RetinaStyleParseError<'i> {
     UnknownSelectorPseudoClass(CowRcStr<'i>),
     UnknownValue(Option<Token<'i>>),
     UnknownWhiteSpaceKeyword,
+
+    WideKeywordsNotYetSupported,
 
     AttributeSelectorExpectedIdentifierAsAttributeName(Token<'i>),
     AttributeSelectorUnknownOperatorName(Token<'i>),
@@ -105,11 +109,12 @@ pub fn display_parse_error<'i, 't>(
         (space_count, line) = reduce_line_length(space_count, caret_count, line);
     }
 
+    let message = translate_error_to_friendly_error_description(&error);
+
     warn!("{line}");
-    warn!("{spaces}^{tildes} {message:?}",
+    warn!("{spaces}^{tildes} {message}",
         spaces = " ".repeat(space_count),
         tildes = "~".repeat(caret_count - 1),
-        message = error.kind
     );
     warn!("");
 }
@@ -158,6 +163,14 @@ fn reduce_line_length(
         (new_space_count, line)
     } else {
         (space_count, line)
+    }
+}
+
+fn translate_error_to_friendly_error_description<'i>(error: &ParseError<'i>) -> Cow<'static, str> {
+    match &error.kind {
+        ParseErrorKind::Custom(RetinaStyleParseError::WideKeywordsNotYetSupported) => "CSS-wide keywords are not yet supported.".into(),
+
+        kind => format!("{kind:?}").into(),
     }
 }
 

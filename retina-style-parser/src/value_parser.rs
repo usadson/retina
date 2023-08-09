@@ -629,6 +629,10 @@ fn parse_specific_value<'i, 't>(
 }
 
 pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>, property: Property) -> Result<Value, ParseError<'i>> {
+    if let Some(result) = parse_wide_keywords(input) {
+        return result;
+    }
+
     if let Some(result) = parse_specific_value(input, property) {
         return result;
     }
@@ -707,6 +711,32 @@ pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>, property: Property
 
         _ => Err(input.new_custom_error(RetinaStyleParseError::ComponentListUnknownKinds(values))),
     }
+}
+
+fn parse_wide_keywords<'i, 't>(input: &mut Parser<'i, 't>) -> Option<Result<Value, ParseError<'i>>> {
+    let reset_point = input.state();
+    let todo_error = input.new_custom_error(RetinaStyleParseError::WideKeywordsNotYetSupported);
+
+    let ident = input.expect_ident_cloned().ok()?;
+
+    if let Err(e) = input.expect_exhausted() {
+        return Some(Err(e.into()));
+    }
+
+    if ident.eq_ignore_ascii_case("inherit") {
+        return Some(Err(todo_error));
+    }
+
+    if ident.eq_ignore_ascii_case("initial") {
+        return Some(Err(todo_error));
+    }
+
+    if ident.eq_ignore_ascii_case("reset") {
+        return Some(Err(todo_error));
+    }
+
+    input.reset(&reset_point);
+    None
 }
 
 pub(crate) fn parse_white_space<'i, 't>(
