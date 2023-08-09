@@ -68,6 +68,7 @@ pub(crate) fn parse_display<'i, 't>(
             is_list_item: false,
         },
         "none" => CssDisplay::Box(CssDisplayBox::None),
+        "contents" => CssDisplay::Box(CssDisplayBox::Contents),
         _ => return Err(input.new_custom_error(RetinaStyleParseError::UnknownBasicColorKeyword)),
     })
 }
