@@ -31,7 +31,7 @@ impl Display for ByteUnitFormatWrapper {
             f.write_fmt(format_args!("{gibs} GiB"))
         } else if mibs > 0 {
             f.write_fmt(format_args!("{mibs} MiB"))
-        } else if mibs > 0 {
+        } else if kibs > 0 {
             f.write_fmt(format_args!("{kibs} KiB"))
         } else {
             f.write_fmt(format_args!("{total_bytes} bytes"))

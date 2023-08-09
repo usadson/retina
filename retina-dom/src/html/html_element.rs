@@ -4,6 +4,7 @@
 use std::ops::Deref;
 
 use html5ever::{QualName, local_name};
+use retina_common::DynamicSizeOf;
 use retina_i18n::IetfLanguageSubtag;
 
 use crate::Element;
@@ -40,6 +41,12 @@ impl HtmlElement {
             .as_html_element()
             .language()
 
+    }
+}
+
+impl DynamicSizeOf for HtmlElement {
+    fn dynamic_size_of(&self) -> usize {
+        self.element.dynamic_size_of()
     }
 }
 

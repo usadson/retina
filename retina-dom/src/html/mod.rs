@@ -12,6 +12,7 @@ pub mod link_relationship;
 pub mod link_type;
 
 use html5ever::{LocalName, Namespace, QualName};
+use retina_common::DynamicSizeOf;
 pub use self::{
     html_element::HtmlElement,
     html_img_element::HtmlImgElement,
@@ -76,6 +77,22 @@ impl HtmlElementKind {
 
     pub fn as_node_mut(&mut self) -> &mut NodeInterface {
         self.as_dom_element_mut().as_node_mut()
+    }
+}
+
+impl DynamicSizeOf for HtmlElementKind {
+    fn dynamic_size_of(&self) -> usize {
+        let mut size = std::mem::size_of_val(self);
+
+        size += self.as_html_element().dynamic_size_of();
+
+        size += match self {
+            Self::Img(image) => image.data_ref().dynamic_size_of(),
+
+            _ => 0,
+        };
+
+        size
     }
 }
 

@@ -4,7 +4,7 @@
 //! The [Interface `Tex`](https://dom.spec.whatwg.org/#interface-text)
 //! implementation.
 
-use retina_common::StrTendril;
+use retina_common::{StrTendril, DynamicSizeOf};
 
 use crate::NodeInterface;
 
@@ -41,5 +41,15 @@ impl CharacterData {
 
     pub fn data_as_str(&self) -> &str {
         &self.data
+    }
+}
+
+impl DynamicSizeOf for CharacterData {
+    fn dynamic_size_of(&self) -> usize {
+        let mut size = std::mem::size_of_val(self);
+
+        size += self.data.len();
+
+        size
     }
 }

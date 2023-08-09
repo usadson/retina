@@ -7,6 +7,8 @@
 use core::fmt;
 use std::sync::{RwLock, Weak};
 
+use retina_common::DynamicSizeOf;
+
 use crate::NodeKind;
 
 /// The [Interface `Node`](https://dom.spec.whatwg.org/#interface-node)
@@ -40,5 +42,16 @@ impl fmt::Debug for NodeInterface {
         fmt.debug_struct("Node")
             // .field("data", &self.parent)
             .finish()
+    }
+}
+
+impl DynamicSizeOf for NodeInterface {
+    fn dynamic_size_of(&self) -> usize {
+        let mut size = std::mem::size_of_val(self);
+
+        let reference = self.parent.read().unwrap();
+        size += std::mem::size_of_val(&reference);
+
+        size
     }
 }

@@ -4,7 +4,7 @@
 use std::{collections::HashMap, fmt::Write, str::FromStr};
 
 use html5ever::{Attribute, LocalName};
-use retina_common::StrTendril;
+use retina_common::{StrTendril, DynamicSizeOf};
 
 pub type AttributeName = html5ever::LocalName;
 
@@ -81,5 +81,14 @@ impl std::fmt::Display for AttributeList {
         }
 
         Ok(())
+    }
+}
+
+impl DynamicSizeOf for AttributeList {
+    fn dynamic_size_of(&self) -> usize {
+        std::mem::size_of_val(self)
+            + self.map.values()
+                .map(|tendril| tendril.len())
+                .sum::<usize>()
     }
 }

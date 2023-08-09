@@ -7,7 +7,7 @@
 
 use std::ops::{Deref, DerefMut};
 
-use retina_common::StrTendril;
+use retina_common::{StrTendril, DynamicSizeOf};
 
 use crate::{CharacterData, Node, NodeKind};
 
@@ -32,6 +32,12 @@ impl Comment {
                 Self::new(data)
             )
         )
+    }
+}
+
+impl DynamicSizeOf for Comment {
+    fn dynamic_size_of(&self) -> usize {
+        self.superclass_character_data.dynamic_size_of()
     }
 }
 

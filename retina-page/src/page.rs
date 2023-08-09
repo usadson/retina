@@ -280,6 +280,13 @@ impl Page {
 
                 let mut total_size = 0;
 
+                if let Some(document) = &self.document {
+                    let size = document.dynamic_size_of();
+                    total_size += size;
+
+                    log::info!("DOM takes up {}", size.format_bytes());
+                }
+
                 if let Some(layout_root) = &self.layout_root {
                     let size = layout_root.dynamic_size_of();
                     total_size += size;

@@ -7,6 +7,7 @@
 use std::str::SplitAsciiWhitespace;
 
 use html5ever::{QualName, local_name};
+use retina_common::DynamicSizeOf;
 
 use crate::{NodeInterface, ParentNode, AttributeList};
 
@@ -68,5 +69,14 @@ impl Element {
 
     pub fn qualified_name(&self) -> &QualName {
         &self.qualified_name
+    }
+}
+
+impl DynamicSizeOf for Element {
+    fn dynamic_size_of(&self) -> usize {
+        self.superclass_node.dynamic_size_of()
+            + self.mixin_parent_node.dynamic_size_of()
+            + std::mem::size_of_val(&self.qualified_name)
+            + self.attribute_list.dynamic_size_of()
     }
 }

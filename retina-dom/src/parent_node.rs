@@ -6,6 +6,8 @@
 
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
+use retina_common::DynamicSizeOf;
+
 use crate::Node;
 
 /// The [Mixin `ParentNode`](https://dom.spec.whatwg.org/#interface-parentnode)
@@ -28,5 +30,15 @@ impl ParentNode {
 
     pub fn children_mut(&self) -> RwLockWriteGuard<Vec<Node>> {
         self.children.write().unwrap()
+    }
+}
+
+impl DynamicSizeOf for ParentNode {
+    fn dynamic_size_of(&self) -> usize {
+        let mut size = std::mem::size_of_val(self);
+
+        size += self.children.read().unwrap().dynamic_size_of();
+
+        size
     }
 }

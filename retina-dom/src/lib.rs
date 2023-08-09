@@ -38,7 +38,7 @@ pub use platform_messenger::{PlatformMessage, PlatformMessenger};
 pub use text::Text;
 pub use wrapper::*;
 
-use retina_common::DumpableNode;
+use retina_common::{DumpableNode, DynamicSizeOf};
 
 #[derive(Clone, Debug)]
 pub struct Node {
@@ -58,6 +58,13 @@ impl Node {
 
     fn downgrade(this: &Node) -> Weak<NodeKind> {
         Arc::downgrade(&this.inner)
+    }
+}
+
+impl DynamicSizeOf for Node {
+    fn dynamic_size_of(&self) -> usize {
+        std::mem::size_of::<Self>()
+            + self.inner.dynamic_size_of()
     }
 }
 
@@ -243,6 +250,17 @@ impl NodeKind {
 
     pub fn to_short_dumpable(&self) -> ShortDumpable {
         ShortDumpable { node_kind: self }
+    }
+}
+
+impl DynamicSizeOf for NodeKind {
+    fn dynamic_size_of(&self) -> usize {
+        1 + match self {
+            Self::Comment(value) => value.dynamic_size_of(),
+            Self::Document(value) => value.dynamic_size_of(),
+            Self::HtmlElement(element) => element.dynamic_size_of(),
+            Self::Text(value) => value.dynamic_size_of(),
+        }
     }
 }
 

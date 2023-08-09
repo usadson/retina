@@ -6,7 +6,7 @@
 
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-use retina_common::StrTendril;
+use retina_common::{StrTendril, DynamicSizeOf};
 
 use crate::{
     Node,
@@ -72,6 +72,18 @@ impl Document {
     }
 }
 
+impl DynamicSizeOf for Document {
+    fn dynamic_size_of(&self) -> usize {
+        let mut size = std::mem::size_of_val(self);
+
+        size += self.superclass_node.dynamic_size_of();
+        size += self.mixin_parent_node.dynamic_size_of();
+        size += self.data.read().unwrap().dynamic_size_of();
+
+        size
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct DocumentData {
     title: StrTendril,
@@ -100,5 +112,15 @@ impl DocumentData {
 
     pub fn title(&self) -> &StrTendril {
         &self.title
+    }
+}
+
+impl DynamicSizeOf for DocumentData {
+    fn dynamic_size_of(&self) -> usize {
+        let mut size = std::mem::size_of_val(self);
+
+        size += self.title.len();
+
+        size
     }
 }
