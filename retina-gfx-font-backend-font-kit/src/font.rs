@@ -27,6 +27,7 @@ use pathfinder_geometry::{
     vector::Vector2F,
 };
 
+#[cfg(windows)]
 use rayon::prelude::*;
 
 use retina_gfx::Context;
@@ -425,23 +426,49 @@ impl GlyphAtlas {
         self.prepare_chars(context, font, ' '..='~');
     }
 
+    #[cfg(windows)]
     #[instrument(skip(font, range))]
     pub fn prepare_chars<It>(&mut self, context: &Context, font: &Backend, range: It)
             where It: IntoParallelIterator<Item = char> {
         let glyphs = range.into_par_iter()
             .filter_map(|character| {
-                let context = context.clone();
-                let font = font.clone();
-
-                let glyph_id = GlyphId(font.borrow_font().glyph_for_char(character)?);
-
-                let glyph = Glyph::new_opt(&context, &font, self.units_per_em, glyph_id, self.size);
-                Some((glyph_id, glyph))
+                Self::prepare_char_inner(&context, &font, character, self.units_per_em, self.size)
             });
 
         self.glyphs.par_extend(
             glyphs
         );
+    }
+
+    /// FreeType's FT_Face can [only be used by one thread at a time][source],
+    /// so we can't parallelize the glyph rasterization unfortunately.
+    ///
+    /// [source]: https://freetype.org/freetype2/docs/reference/ft2-face_creation.html
+    #[cfg(not(windows))]
+    #[instrument(skip(font, range))]
+    pub fn prepare_chars<It>(&mut self, context: &Context, font: &Backend, range: It)
+            where It: IntoIterator<Item = char> {
+        let glyphs = range.into_iter()
+            .filter_map(|character| {
+                Self::prepare_char_inner(&context, &font, character, self.units_per_em, self.size)
+            });
+
+        self.glyphs.extend(
+            glyphs
+        );
+    }
+
+    fn prepare_char_inner(
+        context: &Context,
+        font: &Backend,
+        character: char,
+        units_per_em: u32,
+        point_size: f32,
+    ) -> Option<(GlyphId, Option<Glyph>)> {
+        let glyph_id = GlyphId(font.borrow_font().glyph_for_char(character)?);
+
+        let glyph = Glyph::new_opt(&context, &font, units_per_em, glyph_id, point_size);
+        Some((glyph_id, glyph))
     }
 }
 
