@@ -4,7 +4,6 @@
 use raw_window_handle::{
     HasRawDisplayHandle,
     HasRawWindowHandle,
-    RawWindowHandle,
 };
 
 #[cfg(windows)]
@@ -21,9 +20,10 @@ pub trait GuiManager: HasRawDisplayHandle + HasRawWindowHandle {
 pub fn attach<W>(window: W) -> Result<Box<dyn GuiManager>, GuiAttachError>
         where W: HasRawWindowHandle + HasRawDisplayHandle {
     #[cfg(windows)]
-    if let RawWindowHandle::Win32(handle) = window.raw_window_handle() {
+    if let raw_window_handle::RawWindowHandle::Win32(handle) = window.raw_window_handle() {
         return win32::attach(handle, window.raw_display_handle());
     }
 
+    _ = window;
     Err(GuiAttachError::UnsupportedPlatform)
 }
