@@ -515,7 +515,15 @@ impl Glyph {
             )
         );
 
-        let origin = font.borrow_font().origin(glyph_id)? / typographic_unit_conversion_factor;
+        // font-kit doesn't support this function on FreeType, and it spams the
+        // console about it.
+        let origin = {
+            #[cfg(windows)]
+            { font.borrow_font().origin(glyph_id)? / typographic_unit_conversion_factor }
+
+            #[cfg(not(windows))]
+            Vector2F::default()
+        };
 
         let bounds = font.borrow_font().raster_bounds(glyph_id, point_size, transform, hinting_options, rasterization_options)?;
 
