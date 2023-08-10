@@ -1,7 +1,37 @@
 # Changelog
 
-## 0.3.0
-68ca5b7 `[rel]` Bump to version 0.3.0
+## 0.3.0 - Unreleased
+
+### HTML Features
+1. Bitmap favicon support added
+
+### CSS Features
+1. Complex selector support added (`h1 > p.title`, `form input`, `label + input`, etc.)
+2. Aliased `flow-root` as `flow` (for the time being) to improve general layout of websites
+3. Default background color restored (from magenta back to white)
+4. Monospace fonts are now also preloaded
+5. Reduced line length when displaying CSS parse errors, which would otherwise - in cases of minified files - print out the whole CSS stylesheet
+6. Physical units are now supported: `in`, `cm`, `pt`, `mm`, `Q`
+7. Font faces are now correctly case-insensitively matched
+8. Avoid loading the same font when the load was started in a previous cycle, but not yet finished
+9. All generic font families are now recognized and translated per platform
+10. CSS-wide keywords are now recognized (`inherit`, `initial`, etc.) to e.g. avoid searching for fonts named `"inherit"`. Note that this does not imply the semantics of the values are supported.
+11. Empty style rules are now not registered in the `Stylesheet` structure to improve selector matching performance
+
+### Performance improvements
+1. `ColorMaterialRenderer` and `TextureMaterialRenderer` are now globally shared instead of per `Artwork`, which previously made the creation time of tiles significantly slower.
+2. Replace some `.expect(&format(...))` calls with a conditional `let Ok(..) = .. else { panic!(...) }` calls to avoid String allocations in normal cases.
+
+### General
+1. Added a crash screen, displaying where the error in source code occurred
+2. Updated dependencies, namely moved `boa` from Git checkout to crates.io release
+3. Bitmap images are now freed from the main memory after they've been uploaded to the GPU
+4. The keybinding `F10` now displays a memory occupancy for the DOM and Layout tree
+5. FreeType segmentation fault solved by loading glyphs on those systems serially instead of parallel (as on Windows with DirectWrite)
+6. Crash solved for default fonts that could not be found (namely default emoji fonts)
+7. Line-based scrolling, which is the type of scrolling emitted by a mouse, is now fixed. Previously only pixel-based scrolling was supported (emitted by track pads and touch screens).
+8. Silenced warning on FreeType systems when requesting the origin of a glyph.
+
 
 ## 0.2.0 - Released 2023-08-05
 This is the first official release!
