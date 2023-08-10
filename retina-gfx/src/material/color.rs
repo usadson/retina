@@ -1,6 +1,8 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use std::sync::OnceLock;
+
 use wgpu::util::DeviceExt;
 
 use crate::vertex::colored_vertex::{ColoredVertex, INDICES, VERTICES};
@@ -10,6 +12,8 @@ use super::{
     MaterialRendererBase,
 };
 
+static INSTANCE: OnceLock<ColorMaterialRenderer> = OnceLock::new();
+
 #[derive(Debug)]
 pub struct ColorMaterialRenderer {
     pub(crate) base: MaterialRendererBase,
@@ -18,7 +22,13 @@ pub struct ColorMaterialRenderer {
 }
 
 impl ColorMaterialRenderer {
-    pub fn new(device: &wgpu::Device) -> Self {
+    pub fn get(device: &wgpu::Device) -> &'static Self {
+        INSTANCE.get_or_init(|| {
+            Self::new(device)
+        })
+    }
+
+    fn new(device: &wgpu::Device) -> Self {
         let color_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             entries: &[
                 wgpu::BindGroupLayoutEntry {

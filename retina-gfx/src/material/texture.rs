@@ -1,6 +1,8 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use std::sync::OnceLock;
+
 use wgpu::util::DeviceExt;
 
 use crate::vertex::textured_vertex;
@@ -9,6 +11,8 @@ use super::{
     MaterialRenderer,
     MaterialRendererBase,
 };
+
+static INSTANCE: OnceLock<TextureMaterialRenderer> = OnceLock::new();
 
 #[derive(Debug)]
 pub struct TextureMaterialRenderer {
@@ -19,7 +23,13 @@ pub struct TextureMaterialRenderer {
 }
 
 impl TextureMaterialRenderer {
-    pub(crate) fn new(device: &wgpu::Device) -> Self {
+    pub fn get(device: &wgpu::Device) -> &'static Self {
+        INSTANCE.get_or_init(|| {
+            Self::new(device)
+        })
+    }
+
+    fn new(device: &wgpu::Device) -> Self {
         let shader = include_str!("../vertex/textured_vertex.wgsl");
         let extra_layout_entries = &[];
 

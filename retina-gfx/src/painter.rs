@@ -27,9 +27,6 @@ pub struct Artwork {
     pub context: Context,
     pub texture_view: wgpu::TextureView,
     pub staging_belt: wgpu::util::StagingBelt,
-
-    color_material_renderer: ColorMaterialRenderer,
-    texture_material_renderer: TextureMaterialRenderer,
 }
 
 impl Artwork {
@@ -38,9 +35,6 @@ impl Artwork {
             context: context.clone(),
             texture_view,
             staging_belt: wgpu::util::StagingBelt::new(72 * 64),
-
-            color_material_renderer: ColorMaterialRenderer::new(context.device()),
-            texture_material_renderer: TextureMaterialRenderer::new(context.device()),
         }
     }
 
@@ -171,11 +165,12 @@ impl<'art> Painter<'art> {
         ];
 
         let uniform: &[u8] = bytemuck::cast_slice(&uniform);
+        let color_material_renderer = ColorMaterialRenderer::get(self.artwork.context.device());
 
         {
             let mut uniform_buffer_view = self.artwork.staging_belt.write_buffer(
                 &mut self.command_encoder,
-                &self.artwork.color_material_renderer.color_buffer,
+                &color_material_renderer.color_buffer,
                 0,
                 NonZeroU64::new(uniform.len() as _).unwrap(),
                 self.artwork.context.device(),
@@ -200,9 +195,9 @@ impl<'art> Painter<'art> {
             },
         );
 
-        self.artwork.color_material_renderer.base().bind_to_render_pass(&mut render_pass);
-        render_pass.set_bind_group(0, &self.artwork.color_material_renderer.color_bind_group, &[]);
-        self.artwork.color_material_renderer.base().draw_once(&mut render_pass);
+        color_material_renderer.base().bind_to_render_pass(&mut render_pass);
+        render_pass.set_bind_group(0, &color_material_renderer.color_bind_group, &[]);
+        color_material_renderer.base().draw_once(&mut render_pass);
 
         drop(render_pass);
     }
@@ -228,7 +223,9 @@ impl<'art> Painter<'art> {
         let transformation = math::project(self.viewport_size.cast(), rect);
         let uniform: &[u8] = bytemuck::cast_slice(&transformation);
 
-        let renderer = renderer.unwrap_or(&self.artwork.texture_material_renderer);
+        let renderer = renderer.unwrap_or_else(|| {
+            TextureMaterialRenderer::get(self.artwork.context.device())
+        });
 
         trace_span!("upload buffer").in_scope(|| {
             let mut uniform_buffer_view = self.artwork.staging_belt.write_buffer(
