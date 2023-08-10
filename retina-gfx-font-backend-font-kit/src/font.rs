@@ -143,7 +143,10 @@ impl FontKitFont {
                     let glyph_id = GlyphId(info.codepoint);
 
                     atlas.with_glyph(&self.gfx_context, &self.font, glyph_id, |glyph| {
-                        let glyph = glyph.expect(&format!("Failed to lookup Glyph that HarfBuzz _did_ find: {glyph_id:?}"));
+                        let Some(glyph) = glyph else {
+                            panic!("Failed to lookup Glyph that HarfBuzz _did_ find: {glyph_id:?}");
+                        };
+
                         f(*position, glyph);
                     });
 
