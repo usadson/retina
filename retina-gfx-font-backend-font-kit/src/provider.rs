@@ -91,7 +91,16 @@ impl FontProvider {
                     weight: convert_font_kit_weight(desc.weight),
                     ..Default::default()
                 }
-            ).unwrap();
+            );
+
+            let handle = match handle {
+                Ok(handle) => handle,
+
+                Err(e) => {
+                    error!("Failed to find default font! Error: {e}, descriptor: {descriptor:#?}");
+                    return false;
+                }
+            };
 
             provider.load_from_font_kit_handle(
                 handle,
