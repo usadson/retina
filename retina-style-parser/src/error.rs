@@ -115,7 +115,7 @@ pub fn display_parse_error<'i, 't>(
     warn!("{line}");
     warn!("{spaces}^{tildes} {message}",
         spaces = " ".repeat(space_count),
-        tildes = "~".repeat(caret_count - 1),
+        tildes = "~".repeat(caret_count.saturating_sub(1)),
     );
     warn!("");
 }
