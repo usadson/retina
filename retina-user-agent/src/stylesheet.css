@@ -125,19 +125,19 @@ code, kbd, samp, tt { font-family: monospace; }
 /* big { font-size: larger; } */
 /* small { font-size: smaller; } */
 
-sub { vertical-align: sub; }
-sup { vertical-align: super; }
-sub, sup { line-height: normal; font-size: smaller; }
+/* sub { vertical-align: sub; } */
+/* sup { vertical-align: super; } */
+/* sub, sup { line-height: normal; font-size: smaller; } */
 
-ruby { display: ruby; }
-rt { display: ruby-text; }
+/* ruby { display: ruby; } */
+/* rt { display: ruby-text; } */
 
 :link { color: #0000EE; }
 :visited { color: #551A8B; }
 :link:active, :visited:active { color: #FF0000; }
 :link, :visited { text-decoration: underline; cursor: pointer; }
 
-:focus-visible { outline: auto; }
+/* :focus-visible { outline: auto; } */
 
 mark { background: yellow; color: black; } /* this color is just a suggestion and can be changed based on implementation feedback */
 
@@ -145,17 +145,17 @@ abbr[title], acronym[title] { text-decoration: dotted underline; }
 ins, u { text-decoration: underline; }
 del, s, strike { text-decoration: line-through; }
 
-q::before { content: open-quote; }
-q::after { content: close-quote; }
+/* q::before { content: open-quote; } */
+/* q::after { content: close-quote; } */
 
 /* br { display-outside: newline; } this also has bidi implications */
 nobr { white-space: nowrap; }
 /* wbr { display-outside: break-opportunity; } this also has bidi implications */
 nobr wbr { white-space: normal; }
 
-br[clear=left i] { clear: left; }
-br[clear=right i] { clear: right; }
-br[clear=all i], br[clear=both i] { clear: both; }
+/* br[clear=left i] { clear: left; } */
+/* br[clear=right i] { clear: right; } */
+/* br[clear=all i], br[clear=both i] { clear: both; } */
 
 
 /*

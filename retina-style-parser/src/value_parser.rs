@@ -856,6 +856,49 @@ mod tests {
     }
 
     #[rstest]
+    #[case("none", CssTextDecoration {
+        color: None,
+        line: Some(CssTextDecorationLine::None),
+        style: None
+    })]
+    #[case("underline", CssTextDecoration {
+        color: None,
+        line: Some(CssTextDecorationLine::Underline),
+        style: None
+    })]
+    #[case("red", CssTextDecoration {
+        color: Some(CssColor::Color(retina_common::Color::RED)),
+        line: None,
+        style: None
+    })]
+    #[case("red underline", CssTextDecoration {
+        color: Some(CssColor::Color(retina_common::Color::RED)),
+        line: Some(CssTextDecorationLine::Underline),
+        style: None
+    })]
+    #[case("red underline wavy", CssTextDecoration {
+        color: Some(CssColor::Color(retina_common::Color::RED)),
+        line: Some(CssTextDecorationLine::Underline),
+        style: Some(CssTextDecorationStyle::Wavy)
+    })]
+    fn value_text_decoration(#[case] input_str: &str, #[case] style: CssTextDecoration) {
+        let mut input = cssparser::ParserInput::new(input_str);
+        let input = &mut cssparser::Parser::new(&mut input);
+
+        let result = parse_text_decoration(input);
+        let expected = Ok(style);
+        assert_eq!(result, expected);
+
+
+        let mut input = cssparser::ParserInput::new(input_str);
+        let input = &mut cssparser::Parser::new(&mut input);
+
+        let result = parse_value(input, Property::TextDecoration);
+        let expected = Ok(Value::TextDecoration(style));
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
     #[case("none", CssTextDecorationLine::None)]
     #[case("blink", CssTextDecorationLine::Blink)]
     #[case("underline", CssTextDecorationLine::Underline)]
