@@ -172,6 +172,41 @@ pub(crate) fn parse_font_shorthand_line_height<'i, 't>(
     parse_line_height(input)
 }
 
+pub(crate) fn parse_font_size<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<Value, ParseError<'i>> {
+    if let Ok(absolute) = input.try_parse(parse_font_size_absolute) {
+        return Ok(absolute);
+    }
+
+    parse_single_value(input)
+}
+
+pub(crate) fn parse_font_size_absolute<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<Value, ParseError<'i>> {
+    let ident = input.expect_ident()?;
+
+    let size = match ident.as_ref() {
+        "xx-small" => 9.0,
+        "x-small" => 10.0,
+        "small" => 13.0,
+        "medium" => 16.0,
+        "large" => 18.0,
+        "x-large" => 24.0,
+        "xx-large" => 32.0,
+
+        _ => {
+            let ident = ident.clone();
+            let error = RetinaStyleParseError::FontSizeUnknownKeyword(ident);
+            let error = input.new_custom_error(error);
+            return Err(error);
+        }
+    };
+
+    Ok(Value::Length(CssLength::Pixels(size)))
+}
+
 pub(crate) fn parse_font_style<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<CssFontStyle, ParseError<'i>> {
@@ -614,6 +649,7 @@ fn parse_specific_value<'i, 't>(
         Property::Font => Some(parse_font_shorthand(input).map(|shorthand| Value::FontShorthand(shorthand))),
         Property::FontFamily => Some(parse_font_families(input).map(|families| Value::FontFamily(families))),
         Property::FontKerning => Some(parse_font_kerning(input).map(|kerning| Value::FontKerning(kerning))),
+        Property::FontSize => Some(parse_font_size(input)),
         Property::FontStyle => Some(parse_font_style(input).map(|style| Value::FontStyle(style))),
         Property::FontVariantCaps => Some(parse_font_variant_caps(input).map(|ligatures| Value::FontVariantCaps(ligatures))),
         Property::FontVariantEastAsian => Some(parse_font_variant_east_asian(input).map(|value| Value::FontVariantEastAsian(value))),
