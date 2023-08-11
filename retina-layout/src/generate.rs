@@ -27,6 +27,7 @@ use retina_style::{
     CssDisplayBox,
     CssDisplayInside,
     CssDisplayOutside,
+    CssFontFamilyName,
     CssFontKerning,
     CssFontVariantEastAsian,
     CssFontVariantEastAsianValues,
@@ -334,23 +335,29 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
             return parent.font.clone();
         }
 
-        if let Some(font_families) = &computed_style.font_family_list {
-            for font_family in font_families {
-                let name = crate::convert_font_family(font_family);
+        let style = crate::convert_font_style(computed_style.font_style.unwrap_or_default());
+        let families = computed_style.font_family_list.as_ref()
+            .map(|v| v.as_slice())
+            .unwrap_or_else(|| &[CssFontFamilyName::Generic(retina_style::CssGenericFontFamilyName::Serif)]);
 
-                let descriptor = FontDescriptor {
-                    name,
-                    weight: FontWeight::new(computed_style.font_weight() as _),
-                };
+        for font_family in families {
+            let name = crate::convert_font_family(font_family);
 
-                if let Some(font) = self.font_provider.get(descriptor) {
-                    return font;
-                }
+            let descriptor = FontDescriptor {
+                name,
+                style,
+                weight: FontWeight::new(computed_style.font_weight() as _),
+            };
 
-                warn!("[font-family] Font not found: {font_family:#?}");
+            if let Some(font) = self.font_provider.get(descriptor) {
+                return font;
             }
+
+            warn!("[font-family] Font not found: {font_family:?} size={weight} style={style:?}",
+                weight = computed_style.font_weight());
         }
 
+        warn!("[font-family] No font was found: {families:#?}");
         parent.font.clone()
     }
 
@@ -481,11 +488,13 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         let font = self.font_provider.get(FontDescriptor {
             name: retina_gfx_font::FamilyName::Serif,
             weight: FontWeight::REGULAR,
+            style: Default::default(),
         }).expect("failed to load serif font");
 
         let font_emoji = self.font_provider.get(FontDescriptor {
             name: retina_gfx_font::FamilyName::Emoji,
             weight: FontWeight::REGULAR,
+            style: Default::default(),
         });
 
         let font_size = self.resolve_length(default_reference_pixels, default_reference_pixels, computed_style.font_size(), &computed_style);

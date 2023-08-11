@@ -17,6 +17,7 @@ use retina_common::LoadTime;
 use crate::{
     font::FontKitFont,
     family::FontFamily,
+    convert_font_kit_style,
     convert_font_kit_weight,
 };
 
@@ -27,7 +28,8 @@ use retina_gfx_font::{
         FontWeight,
     },
     FontHandle,
-    FontProviderBackend
+    FontProviderBackend,
+    FontStyle,
 };
 
 use retina_gfx::Context as GfxContext;
@@ -149,7 +151,7 @@ impl FontProviderBackend for FontProvider {
         };
 
         for font in &family.entries {
-            if font.descriptor().weight == descriptor.weight {
+            if font.descriptor().weight == descriptor.weight && font.descriptor().style == descriptor.style {
                 return Some(FontHandle::new(Arc::clone(font)));
             }
         }
@@ -190,32 +192,38 @@ impl FontProviderBackend for FontProvider {
             ).unwrap(),
             FontDescriptor {
                 name: FamilyName::SansSerif,
+                style: FontStyle::Normal,
                 weight: FontWeight::REGULAR,
             }
         );
 
         self.load_default_in_background(FontDescriptor {
             name: FamilyName::SansSerif,
+            style: FontStyle::Normal,
             weight: FontWeight::BOLD,
         });
 
         self.load_default_in_background(FontDescriptor {
             name: FamilyName::Emoji,
+            style: FontStyle::Normal,
             weight: FontWeight::REGULAR,
         });
 
         self.load_default_in_background(FontDescriptor {
             name: FamilyName::Serif,
+            style: FontStyle::Normal,
             weight: FontWeight::REGULAR,
         });
 
         self.load_default_in_background(FontDescriptor {
             name: FamilyName::Serif,
+            style: FontStyle::Normal,
             weight: FontWeight::BOLD,
         });
 
         self.load_default_in_background(FontDescriptor {
             name: FamilyName::Monospace,
+            style: FontStyle::Normal,
             weight: FontWeight::REGULAR,
         });
     }
@@ -246,6 +254,7 @@ impl FontProviderBackend for FontProvider {
             &[self.convert_family_name(desc.name)],
             &font_kit::properties::Properties {
                 weight: convert_font_kit_weight(desc.weight),
+                style: convert_font_kit_style(desc.style),
                 ..Default::default()
             }
         );

@@ -92,6 +92,7 @@ impl Application {
             font_provider.load_from_system(FontDescriptor {
                 name: StrTendril::from("Cascadia Code").into(),
                 weight: FontWeight::BOLD,
+                style: Default::default(),
             });
         });
     }
@@ -197,14 +198,17 @@ impl WindowApplication<RetinaEvent> for Application {
             let font = self.font_provider.get(FontDescriptor {
                 name: StrTendril::from("Cascadia Code").into(),
                 weight: FontWeight::BOLD,
+                style: Default::default(),
             }).unwrap_or_else(|| {
                 self.font_provider.get(FontDescriptor {
                     name: FamilyName::Monospace,
                     weight: FontWeight::BOLD,
+                    style: Default::default(),
                 }).unwrap_or_else(|| {
                     self.font_provider.get(FontDescriptor {
                         name: FamilyName::SansSerif,
                         weight: FontWeight::BOLD,
+                        style: Default::default(),
                     }).unwrap()
                 })
             });

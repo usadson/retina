@@ -34,10 +34,11 @@ pub struct CssFontShorthand {
     pub weight: Option<CssFontWeight>,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 #[derive(AsRefStr, EnumIter)]
 #[strum(serialize_all = "kebab-case")]
 pub enum CssFontStyle {
+    #[default]
     Normal,
     Italic,
     Oblique,

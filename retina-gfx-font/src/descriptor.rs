@@ -33,7 +33,18 @@ impl From<StrTendril> for FamilyName {
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct FontDescriptor {
     pub name: FamilyName,
+    pub style: FontStyle,
     pub weight: FontWeight,
+}
+
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum FontStyle {
+    #[default]
+    Normal,
+
+    Italic,
+
+    Oblique,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]

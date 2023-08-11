@@ -97,6 +97,7 @@ impl FontLoader {
                 name,
 
                 weight: FontWeight::new(layout_box.computed_style().font_weight() as _),
+                style: retina_layout::convert_font_style(layout_box.computed_style().font_style.unwrap_or_default()),
             };
 
             if layout_box.font().descriptor() == &descriptor {

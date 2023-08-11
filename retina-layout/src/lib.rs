@@ -20,6 +20,9 @@ mod formatting_context;
 mod generate;
 pub(crate) mod text;
 
+use retina_gfx_font::FontStyle;
+use retina_style::CssFontStyle;
+
 pub use self::{
     actual_values::ActualValueMap,
     boxes::{
@@ -58,5 +61,13 @@ pub fn convert_font_family(value: &retina_style::CssFontFamilyName) -> retina_gf
             CssGenericFontFamilyName::UiSansSerif => FamilyName::UiSansSerif,
             CssGenericFontFamilyName::UiSerif => FamilyName::UiSerif,
         }
+    }
+}
+
+pub fn convert_font_style(style: CssFontStyle) -> FontStyle {
+    match style {
+        CssFontStyle::Normal => FontStyle::Normal,
+        CssFontStyle::Italic => FontStyle::Italic,
+        CssFontStyle::Oblique => FontStyle::Oblique,
     }
 }
