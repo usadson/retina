@@ -716,31 +716,48 @@ pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>, property: Property
 
 fn parse_wide_keywords<'i, 't>(input: &mut Parser<'i, 't>) -> Option<Result<Value, ParseError<'i>>> {
     let reset_point = input.state();
-    let todo_error = input.new_custom_error(RetinaStyleParseError::WideKeywordsNotYetSupported);
 
     let Ok(ident) = input.expect_ident_cloned() else {
         input.reset(&reset_point);
         return None;
     };
 
-    if let Err(e) = input.expect_exhausted() {
-        return Some(Err(e.into()));
-    }
-
     if ident.eq_ignore_ascii_case("inherit") {
-        return Some(Err(todo_error));
+        return parse_wide_keywords_inner(input, &ident, reset_point);
     }
 
     if ident.eq_ignore_ascii_case("initial") {
-        return Some(Err(todo_error));
+        return parse_wide_keywords_inner(input, &ident, reset_point);
     }
 
     if ident.eq_ignore_ascii_case("reset") {
-        return Some(Err(todo_error));
+        return parse_wide_keywords_inner(input, &ident, reset_point);
     }
 
     input.reset(&reset_point);
     None
+}
+
+fn parse_wide_keywords_inner<'i, 't>(
+    input: &mut Parser<'i, 't>,
+    ident: &str,
+    reset_point: cssparser::ParserState
+) -> Option<Result<Value, ParseError<'i>>> {
+    if let Err(e) = input.expect_exhausted() {
+        return Some(Err(e.into()));
+    }
+
+    _ = ident;
+
+    let after_token_state = input.state();
+
+    input.reset(&reset_point);
+    let todo_error = input.new_custom_error(
+        RetinaStyleParseError::WideKeywordsNotYetSupported
+    );
+
+    input.reset(&after_token_state);
+    Some(Err(todo_error))
 }
 
 pub(crate) fn parse_white_space<'i, 't>(
