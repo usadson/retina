@@ -200,11 +200,13 @@ impl LayoutBox {
 
         let font_size = self.font_size().value() as f32;
         let mut fragment_begin_index: u32 = 0;
+        let mut initial_begin_index: u32 = 0;
 
         use unicode_segmentation::UnicodeSegmentation;
         let mut was_last_word_emoji = false;
         for word in text.split_word_bounds() {
             if word.chars().all(char::is_whitespace) {
+                initial_begin_index += word.len() as u32;
                 continue;
             }
             let is_word_emoji = is_emoji(word);
@@ -225,7 +227,7 @@ impl LayoutBox {
 
                 self.line_box_fragments.push(LineBoxFragment {
                     position: self.dimensions.content_position,
-                    text: text.subtendril(0, word.len() as u32),
+                    text: text.subtendril(initial_begin_index, word.len() as u32),
                     size: word_size.cast(),
                     font,
                 });
