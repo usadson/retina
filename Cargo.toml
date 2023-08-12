@@ -1,5 +1,7 @@
 [workspace]
 members = [
+    "third-party/dwrote-rs",
+    "third-party/font-kit",
     "retina",
     "retina-common",
     "retina-compositor",
@@ -8,6 +10,7 @@ members = [
     "retina-fetch",
     "retina-gfx",
     "retina-gfx-font",
+    "retina-gfx-font-backend-dwrite",
     "retina-gfx-font-backend-font-kit",
     "retina-gfx-font-renderer",
     "retina-gfx-gui",
