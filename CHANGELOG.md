@@ -17,6 +17,12 @@
 9. All generic font families are now recognized and translated per platform
 10. CSS-wide keywords are now recognized (`inherit`, `initial`, etc.) to e.g. avoid searching for fonts named `"inherit"`. Note that this does not imply the semantics of the values are supported.
 11. Empty style rules are now not registered in the `Stylesheet` structure to improve selector matching performance
+12. `@font-face` rules are now supported, meaning you can use the fonts of e.g. Google Fonts or your own to improve the visuals of websites
+13. Fix broken CSS-wide keyword recognition
+14. Absolute CSS font sizes are supported (e.g. `medium`, `x-large`, `xx-small`)
+15. Fix broken `text-decoration` shorthand property.
+16. Fix crash in CSS parse error logging
+17. Fix crash in anonymous layout that starts with whitespace (occurred e.g. on Wikipedia)
 
 ### Performance improvements
 1. `ColorMaterialRenderer` and `TextureMaterialRenderer` are now globally shared instead of per `Artwork`, which previously made the creation time of tiles significantly slower.
@@ -31,6 +37,7 @@
 6. Crash solved for default fonts that could not be found (namely default emoji fonts)
 7. Line-based scrolling, which is the type of scrolling emitted by a mouse, is now fixed. Previously only pixel-based scrolling was supported (emitted by track pads and touch screens).
 8. Silenced warning on FreeType systems when requesting the origin of a glyph.
+9. Support WOFF and WOFF2 font compressions
 
 
 ## 0.2.0 - Released 2023-08-05
