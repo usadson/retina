@@ -14,7 +14,7 @@ pub use cascade_origin::CascadeOrigin;
 pub use declaration::Declaration;
 pub use media::{MediaQuery, MediaType};
 pub use property::Property;
-pub use rule::{AtMediaRule, Rule, StyleRule};
+pub use rule::*;
 pub use selector::*;
 pub use stylesheet::Stylesheet;
 pub use value::*;

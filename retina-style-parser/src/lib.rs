@@ -4,6 +4,7 @@
 mod context;
 mod declaration_parser;
 mod error;
+mod font_face_parser;
 mod rule_parser;
 mod selector_parser;
 mod util;

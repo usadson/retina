@@ -4,11 +4,19 @@
 use crate::{
     cascade_origin::CascadeOrigin,
     Declaration,
-    SelectorList, Stylesheet, MediaQuery,
+    MediaQuery,
+    SelectorList,
+    Stylesheet,
 };
+
+pub use self::font_face::*;
+
+mod font_face;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Rule {
+    AtFontFace(CssFontFaceAtRule),
+
     /// `@rule`
     AtMedia(AtMediaRule),
     Style(StyleRule),

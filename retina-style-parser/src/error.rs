@@ -25,6 +25,9 @@ pub enum RetinaStyleParseError<'i> {
     ExpectedIdentifierAsPropertyValue,
 
     FloatUnknownKeyword(CowRcStr<'i>),
+
+    AtFontFaceInvalidProperty(CowRcStr<'i>),
+
     FontKerningUnknownKeyword(CowRcStr<'i>),
     FontSizeUnknownKeyword(CowRcStr<'i>),
     FontStyleUnknownKeyword(CowRcStr<'i>),

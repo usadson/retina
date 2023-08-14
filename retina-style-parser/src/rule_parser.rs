@@ -3,12 +3,15 @@
 
 use cssparser::{
     Parser,
-    RuleBodyParser, ParseError, ParseErrorKind,
+    RuleBodyParser,
+    ParseError,
+    ParseErrorKind,
 };
 
 use retina_style::{
     AtMediaRule,
     CascadeOrigin,
+    CssFontFaceAtRule,
     MediaQuery,
     MediaType,
     Rule,
@@ -16,7 +19,7 @@ use retina_style::{
     StyleRule,
 };
 
-use crate::Context;
+use crate::{Context, font_face_parser::FontFaceParser};
 
 use super::{
     RetinaStyleParseError,
@@ -24,6 +27,7 @@ use super::{
 };
 
 pub enum AtRulePrelude {
+    FontFace,
     Media(Vec<MediaQuery>),
 }
 
@@ -39,6 +43,28 @@ impl<'context> RuleParser<'context> {
             cascade_origin,
             context,
         }
+    }
+
+    fn parse_at_font_face_block<'i, 't>(
+        &mut self,
+        input: &mut Parser<'i, 't>
+    ) -> Result<Rule, ParseError<'i, RetinaStyleParseError<'i>>> {
+        let mut rule = CssFontFaceAtRule {
+            declarations: Vec::new(),
+        };
+
+        let mut parser = FontFaceParser {};
+        let mut parser = cssparser::RuleBodyParser::new(input, &mut parser);
+        while let Some(declaration) = parser.next() {
+            match declaration {
+                Ok(declaration) => rule.declarations.push(declaration),
+                Err(error) => {
+                    self.context.parse_error(&parser.input, "font-face declaration", error);
+                }
+            }
+        }
+
+        Ok(Rule::AtFontFace(rule))
     }
 
     fn parse_at_media_block<'i, 't>(
@@ -97,6 +123,8 @@ impl<'i, 'context> cssparser::AtRuleParser<'i> for RuleParser<'context> {
     ) -> Result<Self::Prelude, cssparser::ParseError<'i, Self::Error>> {
         if name.eq_ignore_ascii_case("media") {
             self.parse_at_media_prelude(input)
+        } else if name.eq_ignore_ascii_case("font-face") {
+            Ok(AtRulePrelude::FontFace)
         } else {
             Err(ParseError {
                 location: input.current_source_location(),
@@ -112,6 +140,7 @@ impl<'i, 'context> cssparser::AtRuleParser<'i> for RuleParser<'context> {
         input: &mut Parser<'i, 't>,
     ) -> Result<Self::AtRule, ParseError<'i, Self::Error>> {
         match prelude {
+            AtRulePrelude::FontFace => self.parse_at_font_face_block(input),
             AtRulePrelude::Media(media) => self.parse_at_media_block(media, input),
         }
     }

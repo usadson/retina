@@ -72,6 +72,8 @@ impl<'stylesheets> StyleCollector<'stylesheets> {
     ) {
         for rule in stylesheet.rules() {
             match rule {
+                Rule::AtFontFace(..) => continue,
+
                 Rule::AtMedia(media) => {
                     if media.media_query_list[0] != MediaQuery::Type(MediaType::Print) {
                         self.collect_for_style_sheet(node, &media.stylesheet, collected_styles);
