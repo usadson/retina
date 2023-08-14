@@ -23,3 +23,6 @@ log = "*"
 tokio = { version = "*", features = ["full"] }
 url = "*"
 wgpu = { version = "*", features = ["trace"] }
+
+rs-woff = "*"
+woff2 = "*"

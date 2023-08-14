@@ -3,12 +3,30 @@
 
 use std::collections::HashMap;
 
-use log::trace;
-use retina_fetch::Fetch;
-use retina_gfx_font::{FontProvider, FontDescriptor, FontWeight};
+use log::{error, trace, warn, info};
+use retina_fetch::{
+    Fetch,
+    Request,
+    RequestDestination,
+    RequestInitiator,
+};
+use retina_gfx_font::{
+    FamilyName,
+    FontDescriptor,
+    FontProvider,
+    FontWeight,
+};
 use retina_layout::LayoutBox;
-use retina_style::Stylesheet;
+use retina_style::{
+    CssFontFaceAtRule,
+    CssFontFaceDeclaration,
+    CssFontFaceFormat,
+    CssFontFaceSrc,
+    Rule,
+    Stylesheet,
+};
 use tokio::sync::mpsc::Sender;
+use url::Url;
 
 use crate::message::PageTaskMessage;
 
@@ -35,39 +53,45 @@ impl FontLoader {
 
     pub fn process_enqueued(&mut self, stylesheets: &[Stylesheet]) {
         for (descriptor, state) in &mut self.fonts {
-            let FontState::Initial = state else { continue };
+            match state {
+                FontState::Initial => (),
+                FontState::LoadingLocal | FontState::LoadingRemote | FontState::TryLoadRemote => {
+                    trace!("Re-evaluating font: {descriptor:#?}");
+                }
 
-            *state = FontState::Loading;
+                _ => continue,
+            }
 
             let descriptor = descriptor.clone();
             let page_task_message_sender = self.page_task_message_sender.clone();
             let font_provider = self.font_provider.clone();
 
-            // TODO: support @font-face
-            _ = stylesheets;
-            _ = self.fetch;
+            match find_font_face_rule(&descriptor, stylesheets) {
+                Some(font_face) => {
+                    *state = FontState::LoadingRemote;
+                    load_remote_font(font_provider, descriptor, font_face, page_task_message_sender, self.fetch.clone());
+                }
+                None => {
+                    if *state == FontState::LoadingRemote || *state == FontState::TryLoadRemote {
+                        trace!("Font is already being loaded remotely: {descriptor:#?}");
+                        continue;
+                    }
 
-            tokio::task::spawn(async move {
-                let state = if font_provider.load_from_system(descriptor.clone()) {
-                    FontState::Loaded
-                } else {
-                    FontState::InvalidReference
-                };
-
-                _ = page_task_message_sender.send(PageTaskMessage::FontLoadResult {
-                    descriptor,
-                    state,
-                }).await;
-            });
+                    *state = FontState::LoadingLocal;
+                    load_local_font(font_provider, descriptor, page_task_message_sender);
+                }
+            }
         }
     }
 
     pub fn process_load_state(&mut self, descriptor: FontDescriptor, state: FontState) -> FontLoadResult {
         let result = match state {
             FontState::Initial => unreachable!(),
-            FontState::Loading => unreachable!(),
+            FontState::TryLoadRemote => unreachable!(),
+            FontState::LoadingLocal => unreachable!(),
+            FontState::LoadingRemote => unreachable!(),
 
-            FontState::InvalidReference => FontLoadResult {
+            FontState::InvalidLocalReference | FontState::InvalidRemoteReference => FontLoadResult {
                 rerun_algorithm: true,
                 rerun_layout: false,
             },
@@ -109,48 +133,58 @@ impl FontLoader {
                 // The font is already enqueued. Let's stop for now and see if
                 // the font will load. If it doesn't, this algorithm will run
                 // again.
-                Some(FontState::Initial) => break,
+                Some(FontState::Initial) | Some(FontState::TryLoadRemote) => break,
 
                 // The font is already being loaded. Let's see if another font
                 // is already present, and use that one instead!
-                Some(FontState::Loading) => continue,
+                Some(FontState::LoadingRemote) => continue,
 
                 // The font cannot be resolved or failed to load. Ignore this
                 // one, and let's see if the next one can be loaded instead!
-                Some(FontState::InvalidReference) => continue,
+                Some(FontState::InvalidRemoteReference) => continue,
+
+                Some(FontState::LoadingLocal) | Some(FontState::InvalidLocalReference) => {
+                    trace!("Enqueuing for remote {descriptor:?}...");
+                    self.fonts.insert(descriptor, FontState::TryLoadRemote);
+                }
 
                 // The font is already loaded: we can ignore the rest of the
                 // families of this layout box.
                 Some(FontState::Loaded) => break,
 
                 // Not enqueued yet, let's enqueue it!
-                None => (),
+                None => {
+                    trace!("Enqueuing {descriptor:?}...");
+                    self.fonts.insert(descriptor, FontState::Initial);
+
+                    // The first non-loaded font was found, and is now enqueued.
+                    // We can stop for now, but if this failed to load, this algorithm
+                    // will be ran again to check for others.
+                    break;
+                }
             }
-
-            // Enqueue the font.
-            trace!("Enqueuing {descriptor:?}...");
-            self.fonts.insert(descriptor, FontState::Initial);
-
-
-            // The first non-loaded font was found, and is now enqueued.
-            // We can stop for now, but if this failed to load, this algorithm
-            // will be ran again to check for others.
-            break;
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub(crate) enum FontState {
     /// Nothing has been done with this font thus far.
     Initial,
 
-    /// The font is being loaded.
-    Loading,
+    TryLoadRemote,
 
-    /// Tried to load this font, but it is neither in an `@font-face` rule
-    /// nor in the system font list.
-    InvalidReference,
+    /// The font is being loaded from the system.
+    LoadingLocal,
+
+    /// The font is being loaded from an `@font-face` rule.
+    LoadingRemote,
+
+    /// Tried to load this font, but it is not in the system font list.
+    InvalidLocalReference,
+
+    /// Tried to load this font, but it is not in an `@font-face` rule.
+    InvalidRemoteReference,
 
     /// The font is loaded.
     Loaded
@@ -160,4 +194,249 @@ pub(crate) enum FontState {
 pub(crate) struct FontLoadResult {
     pub rerun_layout: bool,
     pub rerun_algorithm: bool,
+}
+
+
+fn find_font_face_rule<'stylesheets>(
+    descriptor: &FontDescriptor,
+    stylesheets: &'stylesheets [Stylesheet],
+) -> Option<&'stylesheets CssFontFaceAtRule> {
+    for stylesheet in stylesheets {
+        for rule in stylesheet.rules() {
+            if let Rule::AtFontFace(font_face) = rule {
+                if matches_font_face_rule(font_face, descriptor) {
+                    return Some(font_face);
+                }
+            }
+        }
+    }
+
+    None
+}
+
+fn matches_font_face_rule(font_face: &CssFontFaceAtRule, descriptor: &FontDescriptor) -> bool {
+    let FamilyName::Title(requested_name) = &descriptor.name else {
+        // Must be a non-generic name for it to be able to match.
+        return false
+    };
+
+    let alpha = 'a' as u32;
+
+    let mut name_matches = false;
+    let mut style_matches = false;
+    let mut weight_matches = false;
+    let mut unicode_matches = true;
+
+    for declaration in &font_face.declarations {
+        match declaration {
+            CssFontFaceDeclaration::FontFamily(family) => {
+                name_matches = requested_name == &family.into();
+            }
+
+            CssFontFaceDeclaration::FontStyle(style) => {
+                style_matches = retina_layout::convert_font_style(*style) == descriptor.style;
+            }
+
+            CssFontFaceDeclaration::FontWeight(weight) => {
+                weight_matches = *weight as f32 == descriptor.weight.value();
+            }
+
+            CssFontFaceDeclaration::UnicodeRanges(ranges) => {
+                // TODO
+                unicode_matches = ranges.iter()
+                    .any(|range| range.contains(&alpha));
+            }
+
+            _ => (),
+        }
+    }
+
+    let criteria = [
+        name_matches, style_matches, weight_matches, unicode_matches
+    ];
+
+    if criteria.iter().all(|v| *v) {
+        return true;
+    }
+
+    if criteria.iter().any(|v| *v) {
+        warn!("@font-face found for missing font, but not all criteria matches: {criteria:#?}");
+    }
+
+    false
+}
+
+fn load_local_font(font_provider: FontProvider, descriptor: FontDescriptor, page_task_message_sender: Sender<PageTaskMessage>) {
+    tokio::task::spawn(async move {
+        let state = load_local_font_inner(font_provider, descriptor.clone(), None).await;
+
+        _ = page_task_message_sender.send(PageTaskMessage::FontLoadResult {
+            descriptor,
+            state,
+        }).await;
+    });
+}
+
+async fn load_local_font_inner(
+    font_provider: FontProvider,
+    descriptor: FontDescriptor,
+    search_descriptor: Option<FontDescriptor>
+) -> FontState {
+    let search_descriptor = search_descriptor.unwrap_or_else(|| descriptor.clone());
+
+    if font_provider.load_from_system(search_descriptor) {
+        FontState::Loaded
+    } else {
+        FontState::InvalidLocalReference
+    }
+}
+
+fn load_remote_font(
+    font_provider: FontProvider,
+    descriptor: FontDescriptor,
+    font_face: &CssFontFaceAtRule,
+    page_task_message_sender: Sender<PageTaskMessage>,
+    fetch: Fetch,
+) {
+    let src = font_face.declarations.iter().find_map(|declaration| {
+        match declaration {
+            CssFontFaceDeclaration::Src { sources } => Some(sources),
+            _ => None,
+        }
+    });
+
+    let Some(sources) = src.cloned() else {
+        error!("@font-face has no `src` property, descriptor: {descriptor:#?}");
+        return;
+    };
+
+    tokio::task::spawn(async move {
+        for src in sources {
+            match src {
+                CssFontFaceSrc::WebFont { url, format } => {
+                    match format {
+                        CssFontFaceFormat::Collection
+                            | CssFontFaceFormat::EmbeddedOpentype
+                            | CssFontFaceFormat::Svg
+                            | CssFontFaceFormat::Unknown => {
+                            warn!("Format of @font-face source \"{url}\" not supported: {format}");
+                            continue;
+                        }
+
+                        _ => (),
+                    }
+
+                    let url_string = url;
+                    let url = match Url::parse(&url_string) {
+                        Ok(url) => url,
+                        Err(err) => {
+                            error!("Failed to parse @font-face URL \"{url_string}\": {err}");
+                            continue;
+                        }
+                    };
+
+                    let request = Request::new(url, RequestInitiator::None, RequestDestination::Font);
+                    let mut response = match fetch.fetch(request).await {
+                        Ok(response) => response,
+                        Err(e) => {
+                            error!("Failed to load @font-face source \"{url_string}\": {e}");
+                            continue;
+                        }
+                    };
+
+                    if !response.status().is_successful() {
+                        error!("Failed to load @font-face source \"{url_string}\", status was: {}", response.status().as_u16());
+                        continue;
+                    }
+
+                    match format {
+                        CssFontFaceFormat::Collection => unreachable!(),
+
+                        CssFontFaceFormat::Truetype | CssFontFaceFormat::Opentype => {
+                            let mut data = Vec::new();
+                            response.body().await.read_to_end(&mut data).unwrap();
+                            if font_provider.load(descriptor.clone(), data) {
+                                _ = page_task_message_sender.send(PageTaskMessage::FontLoadResult {
+                                    descriptor,
+                                    state: FontState::Loaded,
+                                }).await;
+
+                                return;
+                            }
+
+                            error!("Failed to load OpenType/TrueType @font-face from source: \"{url_string}\"");
+                        }
+
+                        CssFontFaceFormat::EmbeddedOpentype => unreachable!(),
+                        CssFontFaceFormat::Unknown => unreachable!(),
+                        CssFontFaceFormat::Svg => unreachable!(),
+
+                        CssFontFaceFormat::Woff => {
+                            let mut output = Vec::new();
+                            let mut input = Vec::new();
+                            response.body().await.read_to_end(&mut input).unwrap();
+
+                            rs_woff::woff2otf(&mut std::io::Cursor::new(input), &mut output).unwrap();
+
+                            if font_provider.load(descriptor.clone(), output) {
+                                _ = page_task_message_sender.send(PageTaskMessage::FontLoadResult {
+                                    descriptor,
+                                    state: FontState::Loaded,
+                                }).await;
+
+                                return;
+                            }
+
+                            error!("Failed to load WOFF @font-face from source \"{url_string}\"!");
+                        }
+
+                        CssFontFaceFormat::Woff2 => {
+                            let font_data = match woff2::convert_woff2_to_ttf(&mut response.body_bytes().await) {
+                                Ok(font_data) => font_data,
+                                Err(e) => {
+                                    error!("Failed to load WOFF @font-face from source \"{url_string}\": {e}");
+                                    continue;
+                                }
+                            };
+
+                            if font_provider.load(descriptor.clone(), font_data) {
+                                _ = page_task_message_sender.send(PageTaskMessage::FontLoadResult {
+                                    descriptor,
+                                    state: FontState::Loaded,
+                                }).await;
+
+                                return;
+                            }
+
+                            error!("Failed to load WOFF2 @font-face from source \"{url_string}\"!");
+                        }
+                    }
+                }
+
+                CssFontFaceSrc::Local(local) => {
+                    let search_descriptor = FontDescriptor {
+                        name: FamilyName::Title(local.into()),
+                        style: descriptor.style,
+                        weight: descriptor.weight
+                    };
+
+                    let result = load_local_font_inner(font_provider.clone(), descriptor.clone(), Some(search_descriptor)).await;
+
+                    if result == FontState::Loaded {
+                        _ = page_task_message_sender.send(PageTaskMessage::FontLoadResult {
+                            descriptor,
+                            state: FontState::Loaded,
+                        }).await;
+
+                        return;
+                    }
+                }
+            }
+        }
+
+        _ = page_task_message_sender.send(PageTaskMessage::FontLoadResult {
+            descriptor,
+            state: FontState::InvalidRemoteReference,
+        }).await;
+    });
 }

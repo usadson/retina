@@ -37,6 +37,9 @@ pub struct FontDescriptor {
     pub weight: FontWeight,
 }
 
+unsafe impl Send for FontDescriptor {}
+unsafe impl Sync for FontDescriptor {}
+
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FontStyle {
     #[default]
