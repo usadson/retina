@@ -3433,15 +3433,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "retina-woff"
-version = "0.3.0"
-dependencies = [
- "brotli",
- "bytes",
- "thiserror",
-]
-
-[[package]]
 name = "ron"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
