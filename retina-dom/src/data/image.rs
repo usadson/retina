@@ -79,6 +79,8 @@ impl ImageData {
             return;
         };
 
+        let src = url.to_string();
+
         // 18. Let request be the result of creating a potential-CORS request
         //     given urlString, "image", and the current state of the element's
         //     crossorigin content attribute.
