@@ -251,7 +251,11 @@ impl PaintInvoker {
             return;
         };
 
-        let Ok(graphics) = img.data_ref().graphics().read() else {
+        let Ok(image) = img.data().read() else {
+            return;
+        };
+
+        let Ok(graphics) = image.graphics().read() else {
             log::warn!("No graphics was available for image");
             return;
         };

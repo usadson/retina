@@ -5,6 +5,7 @@
 // All Rights Reserved.
 
 use std::ops::Deref;
+use std::sync::RwLock;
 
 use html5ever::{QualName, local_name};
 use crate::html::LazyLoadingKind;
@@ -19,14 +20,14 @@ use crate::{
 #[derive(Debug)]
 pub struct HtmlImgElement {
     superclass_html_element: HtmlElement,
-    image_data: ImageData,
+    image_data: RwLock<ImageData>,
 }
 
 impl HtmlImgElement {
     pub fn new(qualified_name: QualName) -> Self {
         Self {
             superclass_html_element: HtmlElement::new(qualified_name),
-            image_data: ImageData::new(),
+            image_data: RwLock::new(ImageData::new()),
         }
     }
 
@@ -55,11 +56,7 @@ impl HtmlImgElement {
             .get(&local_name!("src"))
     }
 
-    pub fn data(&self) -> ImageData {
-        self.image_data.clone()
-    }
-
-    pub fn data_ref(&self) -> &ImageData {
+    pub fn data(&self) -> &RwLock<ImageData> {
         &self.image_data
     }
 }

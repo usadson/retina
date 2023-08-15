@@ -5,7 +5,7 @@ use euclid::default::Point2D;
 use log::warn;
 use retina_common::Color;
 use retina_dom::{Node, ImageData};
-use retina_fetch::{Fetch, Url};
+use retina_fetch::Url;
 
 use retina_gfx_font::{
     CapitalLetterMode,
@@ -58,16 +58,18 @@ use crate::{
     LayoutEdge,
 };
 
-pub struct LayoutGenerator<'stylesheets> {
+pub struct LayoutGenerator<'stylesheets, ImageLoader>
+        where ImageLoader: FnMut(Url) -> ImageData {
     stylesheets: &'stylesheets [Stylesheet],
     viewport_width: CssReferencePixels,
     viewport_height: CssReferencePixels,
     font_provider: FontProvider,
     document_url: &'stylesheets Url,
-    fetch: Fetch,
+    image_loader: ImageLoader,
 }
 
-impl<'stylesheets> LayoutGenerator<'stylesheets> {
+impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
+        where ImageLoader: FnMut(Url) -> ImageData {
 
     pub fn generate(
         root: DomNode,
@@ -76,15 +78,15 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         viewport_height: CssReferencePixels,
         font_provider: FontProvider,
         document_url: &'stylesheets Url,
-        fetch: Fetch,
+        image_loader: ImageLoader,
     ) -> LayoutBox {
-        let instance = Self {
+        let mut instance = Self {
             stylesheets,
             viewport_width,
             viewport_height,
             font_provider,
             document_url,
-            fetch,
+            image_loader,
         };
 
         let html_element = Node::clone(
@@ -394,7 +396,7 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
     }
 
     fn generate_for(
-        &self,
+        &mut self,
         node: DomNode,
         parent: &LayoutBox,
     ) -> Option<LayoutBox> {
@@ -450,16 +452,16 @@ impl<'stylesheets> LayoutGenerator<'stylesheets> {
         };
 
         if let Some(CssImage::Url(background_image_url)) = layout_box.computed_style.background_image.clone() {
-            let data = ImageData::new();
-            {
-                let data = data.clone();
-                let fetch = self.fetch.clone();
-                let base_url = self.document_url.clone();
-                tokio::task::spawn(async move {
-                    data.update(base_url, fetch, &background_image_url).await;
-                });
+            match Url::options().base_url(Some(&self.document_url)).parse(&background_image_url) {
+                Ok(url) => {
+                    let image = (self.image_loader)(url);
+                    layout_box.background_image = Some(image);
+                }
+
+                Err(e) => {
+                    warn!("Invalid background-image URL \"{background_image_url}\": {e}");
+                }
             }
-            layout_box.background_image = Some(data);
         }
 
         if let Some(node) = layout_box.node.as_parent_node() {

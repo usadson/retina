@@ -87,7 +87,7 @@ impl DynamicSizeOf for HtmlElementKind {
         size += self.as_html_element().dynamic_size_of();
 
         size += match self {
-            Self::Img(image) => image.data_ref().dynamic_size_of(),
+            Self::Img(image) => image.data().read().unwrap().dynamic_size_of(),
 
             _ => 0,
         };

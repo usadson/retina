@@ -58,7 +58,7 @@ use crate::{
     scroller::{
         Scroller,
         ScrollResult,
-    },
+    }, image_provider::ImageProvider,
 };
 
 pub(crate) struct Page {
@@ -83,6 +83,7 @@ pub(crate) struct Page {
     pub(crate) dirty_state: DirtyState,
 
     pub(crate) font_loader: FontLoader,
+    pub(crate) image_provider: ImageProvider,
     pub(crate) earliest_scroll_request: Option<Instant>,
 }
 
@@ -199,7 +200,6 @@ impl Page {
         let begin_time = Instant::now();
 
         let document_url = self.url.clone();
-        let fetch = self.fetch.clone();
 
         let layout_root = LayoutGenerator::generate(
             Node::clone(self.document.as_ref().unwrap()),
@@ -208,7 +208,7 @@ impl Page {
             CssReferencePixels::new(self.canvas.size().height as _),
             self.font_provider.clone(),
             &document_url,
-            fetch,
+            |url| self.load_image(url),
         );
 
         self.scroller.did_content_resize(layout_root.dimensions().size_margin_box());
@@ -466,29 +466,6 @@ impl Page {
         Ok(())
     }
 
-    /// When elements have background images, this function initiates the
-    /// loading process for those images.
-    pub(crate) fn load_background_images_in_background(&self, layout_box: &LayoutBox) {
-        let Some(background_image) = layout_box.background_image().cloned() else {
-            return
-        };
-
-        let gfx_context = self.canvas.context().clone();
-        let task_message_sender = self.page_task_message_sender.clone();
-        tokio::task::spawn(async move {
-            tokio::time::sleep(Duration::from_millis(30)).await;
-            assert!(background_image.state() != ImageDataState::Initial);
-
-            while background_image.state() == ImageDataState::Running {
-                tokio::task::yield_now().await;
-            }
-
-            if Self::load_image_in_background_update_graphics(gfx_context, background_image, "background-image", &task_message_sender).await {
-                _ = task_message_sender.send(PageTaskMessage::ImageLoaded).await;
-            }
-        });
-    }
-
     fn load_favicon_in_background(&self) {
         use retina_media_type::MimeExtensions;
 
@@ -564,48 +541,38 @@ impl Page {
         self.font_loader.register(layout_box);
     }
 
+    pub(crate) fn load_image(&self, url: Url) -> ImageData {
+        let task_message_sender = self.page_task_message_sender.clone();
+        let gfx_context = self.canvas.context().clone();
+
+        self.image_provider.get_from_url(url.clone(), |data| async move {
+            _ = task_message_sender.send(PageTaskMessage::ImageLoaded).await.ok();
+
+            let source = &url.to_string();
+            Self::load_image_in_background_update_graphics(gfx_context, data, source, &task_message_sender).await;
+        })
+    }
+
     pub(crate) fn load_images_in_background(&self) {
         let Some(document) = self.document.clone() else {
             return;
         };
 
-        let fetch = self.fetch.clone();
-        let gfx_context = self.canvas.context().clone();
-        let task_message_sender = self.page_task_message_sender.clone();
-        let base_url = self.url.clone();
-        tokio::task::spawn(async move {
-            document.for_each_child_node_recursive_handle(&mut |node| {
-                let Some(html_element) = node.as_html_element_kind() else { return };
-                let HtmlElementKind::Img(..) = html_element else { return };
+        document.for_each_child_node_recursive_handle(&mut |node| {
+            let Some(html_element) = node.as_html_element_kind() else { return };
+            let HtmlElementKind::Img(image) = html_element else { return };
 
-                let node = node.clone();
-                let fetch = fetch.clone();
-                let gfx_context = gfx_context.clone();
-                let task_message_sender = task_message_sender.clone();
-                let base_url = base_url.clone();
-                tokio::task::spawn(async move {
-                    if Self::load_image_in_background(base_url, gfx_context, fetch, node, &task_message_sender).await {
-                        _ = task_message_sender.send(PageTaskMessage::ImageLoaded).await;
-                    }
-                });
-            });
+            let mut data = image.data().write().unwrap();
+            if data.state() != ImageDataState::Initial {
+                return;
+            }
+
+            let Ok(url) = Url::options().base_url(Some(&self.url)).parse(image.src()) else {
+                return;
+            };
+
+            *data = self.load_image(url);
         });
-    }
-
-    async fn load_image_in_background(base_url: Url, gfx_context: Context, fetch: Fetch, node: Node, sender: &AsyncSender<PageTaskMessage>) -> bool {
-        let (source, data) = {
-            let Some(html_element) = node.as_html_element_kind() else { return false };
-            let HtmlElementKind::Img(img) = html_element else { return false };
-
-            (img.src().to_string(), img.data())
-        };
-
-        Self::load_image_in_background_update_data(base_url, gfx_context, fetch, source, data, sender).await
-    }
-
-    async fn load_image_in_background_update_data(base_url: Url, gfx_context: Context, fetch: Fetch, source: String, data: ImageData, sender: &AsyncSender<PageTaskMessage>) -> bool {
-        data.update(base_url, fetch, &source).await;
-        Self::load_image_in_background_update_graphics(gfx_context, data, &source, sender).await
     }
 
     async fn load_image_in_background_update_graphics(
@@ -754,7 +721,6 @@ impl Page {
             self.load_resources_from_style_lazily_in_background(child);
         }
 
-        self.load_background_images_in_background(layout_box);
         self.load_fonts_in_background(layout_box);
 
         // This is the root layout box, meaning we are at the end of the tree.
