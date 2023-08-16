@@ -4,16 +4,16 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 
-[dependencies]
+[target.'cfg(windows)'.dependencies]
 retina-common = { path = "../retina-common" }
 
 bytemuck = "*"
-dwrote = { path = "../third-party/dwrote-rs" }
 euclid = "*"
 font-kit = { path = "../third-party/font-kit" }
 log = "*"
 pathfinder_geometry = "*"
 
+dwrote = { path = "../third-party/dwrote-rs" }
 windows = { version = "*", features = [
     "Win32_Foundation",
     "Win32_Graphics_DirectWrite",
