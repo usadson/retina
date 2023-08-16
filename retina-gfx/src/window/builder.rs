@@ -35,6 +35,7 @@ impl<EventType> WindowBuilder<EventType>
             .with_inner_size(PhysicalSize::new(self.initial_window_size.width, self.initial_window_size.height))
             .build(&self.event_loop)
             .unwrap();
+        retina_common::set_scale_factor(window.scale_factor());
         WindowBuilder2 {
             event_loop: self.event_loop,
             window,

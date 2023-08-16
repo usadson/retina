@@ -30,6 +30,7 @@ use pathfinder_geometry::{
 #[cfg(windows)]
 use rayon::prelude::*;
 
+use retina_common::scale_factor;
 use retina_gfx::Context;
 
 use retina_gfx_font::{
@@ -283,6 +284,7 @@ fn resolve_hints_to_harfbuzz(hints: TextHintingOptions) -> Vec<harfbuzz_rs::Feat
 
 impl retina_gfx_font::Font for FontKitFont {
     fn calculate_size(&self, point_size: f32, text: &str, hints: TextHintingOptions) -> Size2D<f32> {
+        let point_size = point_size * scale_factor() as f32;
         let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / point_size;
 
         let height = (self.metrics.ascent - self.metrics.descent)
@@ -300,6 +302,7 @@ impl retina_gfx_font::Font for FontKitFont {
     }
 
     fn baseline_offset(&self, point_size: f32) -> f32 {
+        let point_size = point_size * scale_factor() as f32;
         let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / point_size;
         (self.metrics.ascent - self.metrics.descent) / typographic_unit_conversion_factor
     }
@@ -310,11 +313,13 @@ impl retina_gfx_font::Font for FontKitFont {
     }
 
     fn underline_position(&self, point_size: f32) -> f32 {
+        let point_size = point_size * scale_factor() as f32;
         let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / point_size;
         self.metrics.underline_position / typographic_unit_conversion_factor
     }
 
     fn underline_thickness(&self, point_size: f32) -> f32 {
+        let point_size = point_size * scale_factor() as f32;
         let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / point_size;
         self.metrics.underline_thickness / typographic_unit_conversion_factor
     }
@@ -329,6 +334,7 @@ impl retina_gfx_font::Font for FontKitFont {
         hints: TextHintingOptions,
         painter: &mut retina_gfx::Painter,
     ) {
+        let font_size = font_size * scale_factor() as f32;
         let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / font_size;
 
         // Offset the position to the baseline.
