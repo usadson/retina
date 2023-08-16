@@ -8,9 +8,6 @@ use retina_style::CssTextTransform;
 
 use crate::formatting_context::FormattingContextWhitespaceState;
 
-/// <https://unicode.org/charts/PDF/UFE00.pdf>
-const EMOJI_VARIANT_SELECTOR: char = '\u{fe0f}';
-
 pub fn collapse_white_space<'str>(
     input: Cow<'str, str>,
     whitespace_state: FormattingContextWhitespaceState,
@@ -38,7 +35,8 @@ pub fn collapse_white_space<'str>(
 }
 
 pub fn is_emoji(value: &str) -> bool {
-    value.chars().any(|c| c == EMOJI_VARIANT_SELECTOR)
+    use unicode_properties::UnicodeEmoji;
+    value.chars().any(|c| c.is_emoji_component())
 }
 
 pub fn transform<'str>(

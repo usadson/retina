@@ -3314,6 +3314,7 @@ dependencies = [
  "retina-style-computation",
  "rstest",
  "tokio",
+ "unicode-properties",
  "unicode-segmentation",
 ]
 
@@ -4290,6 +4291,12 @@ checksum = "5c5713f0fc4b5db668a2ac63cdb7bb4469d8c9fed047b1d0292cc7b0ce2ba921"
 dependencies = [
  "tinyvec",
 ]
+
+[[package]]
+name = "unicode-properties"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7f91c8b21fbbaa18853c3d0801c78f4fc94cdb976699bb03e832e75f7fd22f0"
 
 [[package]]
 name = "unicode-segmentation"
