@@ -3,9 +3,16 @@
 
 use std::sync::mpsc::SyncSender;
 
+use log::trace;
+use retina_common::DumpableNode;
 use retina_gfx::{
     CursorIcon,
-    WinitCursorIcon, euclid::Point2D, MouseMoveEvent,
+    MouseMoveEvent,
+    euclid::{
+        default::Box2D,
+        Point2D,
+    },
+    WinitCursorIcon,
 };
 use retina_layout::{LayoutBox, LayoutBoxKind};
 use retina_style::CssCursor;
@@ -32,6 +39,7 @@ impl CursorState {
         layout_root: Option<&LayoutBox>
     ) {
         let hit_stack = hit_test(mouse_move_event.to, layout_root);
+
         match hit_stack.last() {
             Some(layout_box) => {
                 let cursor = layout_box.computed_style().cursor.unwrap_or_default();
@@ -101,5 +109,36 @@ fn convert_cursor_type(cursor: CssCursor, layout_box: &LayoutBox) -> CursorIcon 
 fn hit_test<U>(position: Point2D<f64, U>, layout_root: Option<&LayoutBox>) -> Vec<&LayoutBox> {
     _ = position;
     _ = layout_root;
-    Vec::new()
+    let mut hit_stack = Vec::new();
+
+    match layout_root {
+        Some(layout_box) => hit_test_impl(position, layout_box, &mut hit_stack),
+        None => (),
+    }
+
+    hit_stack
+}
+
+fn hit_test_impl<'boxes, U>(
+    position: Point2D<f64, U>,
+    layout_box: &'boxes LayoutBox,
+    hit_stack: &mut Vec<&'boxes LayoutBox>,
+) {
+    hit_stack.push(layout_box);
+
+    for child in layout_box.children() {
+        // <https://drafts.csswg.org/css-ui/#cursor>
+        // This property specifies the type of cursor to be displayed for the
+        // pointing device when the cursor’s hotspot is within the element’s
+        // border edge.
+
+        let border_edge = child.dimensions()
+            .rect_border_box()
+            .to_box2d();
+
+        if border_edge.contains(position.cast_unit()) {
+            hit_test_impl(position, child, hit_stack);
+            return;
+        }
+    }
 }
