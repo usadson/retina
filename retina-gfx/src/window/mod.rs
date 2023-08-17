@@ -120,6 +120,13 @@ impl<EventType> Window<EventType>
                 }
 
                 winit::event::Event::WindowEvent {
+                    event: winit::event::WindowEvent::MouseInput { state, button, .. },
+                    ..
+                } => {
+                    self.state.on_mouse_input(state, button, app.as_mut());
+                }
+
+                winit::event::Event::WindowEvent {
                     event: winit::event::WindowEvent::ModifiersChanged(event),
                     ..
                 } => {

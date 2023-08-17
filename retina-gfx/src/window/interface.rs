@@ -3,7 +3,9 @@
 
 use euclid::{Size2D, default::Point2D};
 use winit::event::{
+    ElementState,
     ModifiersState,
+    MouseButton,
     MouseScrollDelta,
     VirtualKeyCode,
 };
@@ -24,6 +26,11 @@ pub trait WindowApplication<EventType>
     fn on_event(&mut self, event: EventType, window: &mut Window<EventType>) {
         _ = event;
         _ = window;
+    }
+
+    fn on_mouse_input(&mut self, button: MouseButton, state: ElementState) {
+        _ = button;
+        _ = state;
     }
 
     fn on_mouse_wheel(&mut self, delta: MouseScrollDelta) {

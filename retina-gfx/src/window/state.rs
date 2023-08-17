@@ -6,7 +6,9 @@ use winit::{
     dpi::PhysicalPosition,
     event::{
         DeviceEvent,
+        ElementState,
         ModifiersState,
+        MouseButton,
     },
 };
 
@@ -73,6 +75,11 @@ impl WindowState {
             }
             _ => (),
         }
+    }
+
+    pub(crate) fn on_mouse_input<EventType>(&mut self, state: ElementState, button: MouseButton, app: &mut dyn WindowApplication<EventType>)
+            where EventType: 'static {
+        app.on_mouse_input(button, state);
     }
 
     pub(crate) fn on_modifiers_event(&mut self, event: ModifiersState) {

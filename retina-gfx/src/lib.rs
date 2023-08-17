@@ -15,7 +15,10 @@ pub(crate) type GfxResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 use raw_window_handle::{RawWindowHandle, RawDisplayHandle, HasRawWindowHandle, HasRawDisplayHandle};
 pub use retina_common::Color;
-pub use winit::window::CursorIcon as WinitCursorIcon;
+pub use winit::{
+    event::{MouseButton, ElementState},
+    window::CursorIcon as WinitCursorIcon,
+};
 pub use self::{
     context::Context,
     future::SubmissionFuture,
