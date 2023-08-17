@@ -70,6 +70,14 @@ impl DynamicSizeOf for Node {
 
 unsafe impl Sync for Node {}
 
+impl From<Arc<NodeKind>> for Node {
+    fn from(inner: Arc<NodeKind>) -> Self {
+        Self {
+            inner
+        }
+    }
+}
+
 impl AsRef<NodeKind> for Node {
     fn as_ref(&self) -> &NodeKind {
         &self.inner
