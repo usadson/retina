@@ -148,6 +148,12 @@ impl WindowApplication<RetinaEvent> for Application {
         }
     }
 
+    fn on_mouse_input(&mut self, button: MouseButton, state: ElementState) {
+        if state == ElementState::Pressed && button == MouseButton::Left {
+            self.page_send_half.send_command(PageCommand::Action(PageCommandAction::Click)).unwrap();
+        }
+    }
+
     fn on_mouse_move(&mut self, event: MouseMoveEvent) {
         _ = self.page_send_half.send_command(PageCommand::MouseMove {
             event,
