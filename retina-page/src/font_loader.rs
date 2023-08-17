@@ -3,7 +3,7 @@
 
 use std::collections::HashMap;
 
-use log::{error, trace, warn, info};
+use log::{error, trace, warn};
 use retina_fetch::{
     Fetch,
     Request,
