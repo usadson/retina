@@ -4,6 +4,7 @@
 
 ### HTML Features
 1. Bitmap favicon support added
+2. Anchor `<a href>` elements can now be clicked upon to navigate to another page
 
 ### CSS Features
 1. Complex selector support added (`h1 > p.title`, `form input`, `label + input`, etc.)
