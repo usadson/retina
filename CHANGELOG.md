@@ -23,10 +23,13 @@
 15. Fix broken `text-decoration` shorthand property.
 16. Fix crash in CSS parse error logging
 17. Fix crash in anonymous layout that starts with whitespace (occurred e.g. on Wikipedia)
+18. Screen scaling (DPI) solves [the text issue](https://github.com/usadson/retina/issues/23)
+19. CSS [`cursor`](https://drafts.csswg.org/css-ui/#cursor) property is now supported
 
 ### Performance improvements
 1. `ColorMaterialRenderer` and `TextureMaterialRenderer` are now globally shared instead of per `Artwork`, which previously made the creation time of tiles significantly slower.
 2. Replace some `.expect(&format(...))` calls with a conditional `let Ok(..) = .. else { panic!(...) }` calls to avoid String allocations in normal cases.
+3. Image bitmaps with the same URL share the same resources & only fetches once
 
 ### General
 1. Added a crash screen, displaying where the error in source code occurred
@@ -38,6 +41,9 @@
 7. Line-based scrolling, which is the type of scrolling emitted by a mouse, is now fixed. Previously only pixel-based scrolling was supported (emitted by track pads and touch screens).
 8. Silenced warning on FreeType systems when requesting the origin of a glyph.
 9. Support WOFF and WOFF2 font compressions
+10. Honor screen scaling (DPI) ([fixes #23](https://github.com/usadson/retina/issues/23))
+11. Composited emoji (like 👩🏼‍💻) are now properly recognized
+12. Support changing the cursor of the windows
 
 
 ## 0.2.0 - Released 2023-08-05
