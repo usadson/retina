@@ -1,12 +1,20 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use retina_gfx::{euclid::Size2D, MouseScrollDelta};
+use retina_gfx::{
+    euclid::Size2D,
+    MouseMoveEvent,
+    MouseScrollDelta,
+};
 
 /// The browser can send commands to the page that the page must act upon.
 #[derive(Clone, Debug, PartialEq)]
 pub enum PageCommand {
     Action(PageCommandAction),
+
+    MouseMove {
+        event: MouseMoveEvent,
+    },
 
     OpenDomTreeView,
 

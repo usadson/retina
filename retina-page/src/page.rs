@@ -251,6 +251,10 @@ impl Page {
         match command {
             PageCommand::Action(action) => self.handle_action(action)?,
 
+            PageCommand::MouseMove { event } => {
+                self.cursor_state.evaluate(event, self.layout_root.as_ref());
+            }
+
             PageCommand::ResizeCanvas { size } => {
                 if self.canvas.size() == size {
                     warn!("Resize Command while size is already the same as the given new size");
