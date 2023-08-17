@@ -3,37 +3,72 @@
 
 use std::sync::mpsc::SyncSender;
 
-use log::trace;
-use retina_common::DumpableNode;
+use log::warn;
+use retina_dom::Node;
 use retina_gfx::{
     CursorIcon,
     MouseMoveEvent,
-    euclid::{
-        default::Box2D,
-        Point2D,
-    },
+    euclid::Point2D,
     WinitCursorIcon,
 };
 use retina_layout::{LayoutBox, LayoutBoxKind};
 use retina_style::CssCursor;
+use tokio::sync::mpsc::Sender;
+use url::Url;
 
-use crate::PageMessage;
+use crate::{PageMessage, message::PageTaskMessage, PageCommand};
 
 #[derive(Debug)]
-pub struct CursorState {
+pub(crate) struct CursorState {
     cursor: CursorIcon,
-    sender: SyncSender<PageMessage>,
+    page_message_sender: SyncSender<PageMessage>,
+    task_sender: Sender<PageTaskMessage>,
+    node: Option<Node>,
 }
 
 impl CursorState {
-    pub fn new(sender: SyncSender<PageMessage>) -> Self {
+    pub(crate) fn new(
+        page_message_sender: SyncSender<PageMessage>,
+        task_sender: Sender<PageTaskMessage>,
+    ) -> Self {
         Self {
             cursor: CursorIcon::Winit(WinitCursorIcon::Default),
-            sender,
+            page_message_sender,
+            task_sender,
+            node: None,
         }
     }
 
-    pub fn evaluate(
+    pub async fn click(&mut self, current_url: &Url) {
+        let Some(mut node) = self.node.clone() else { return };
+
+        loop {
+            if let Some(element) = node.as_dom_element() {
+                if element.qualified_name().local.as_ref().eq_ignore_ascii_case("a") {
+                    if let Some(href) = element.attributes().find_by_str("href") {
+                        match Url::options().base_url(Some(current_url)).parse(href) {
+                            Ok(url) => {
+                                _ = self.task_sender.send(PageTaskMessage::Command {
+                                    command: PageCommand::OpenUrl(url.to_string()),
+                                }).await.ok();
+                            }
+                            Err(e) => {
+                                warn!("Invalid anchor hyper reference \"{href}\": {e}");
+                            }
+                        }
+                    }
+
+                    return;
+                }
+            }
+
+            let Some(parent) = node.as_node().parent() else { break };
+            let Some(parent) = parent.upgrade() else { break };
+            node = Node::from(parent);
+        }
+    }
+
+    pub async fn evaluate_move(
         &mut self,
         mouse_move_event: MouseMoveEvent,
         layout_root: Option<&LayoutBox>
@@ -44,19 +79,20 @@ impl CursorState {
             Some(layout_box) => {
                 let cursor = layout_box.computed_style().cursor.unwrap_or_default();
                 let cursor = convert_cursor_type(cursor, &layout_box);
-                self.set_cursor(cursor);
+                self.node = Some(layout_box.node.clone());
+                self.set_cursor(cursor).await;
             }
-            None => self.set_cursor(CursorIcon::Winit(WinitCursorIcon::Help)),
+            None => self.set_cursor(CursorIcon::Winit(WinitCursorIcon::Help)).await,
         }
     }
 
-    fn set_cursor(&mut self, cursor: CursorIcon) {
+    async fn set_cursor(&mut self, cursor: CursorIcon) {
         if self.cursor == cursor {
             return;
         }
 
         self.cursor = cursor;
-        _ = self.sender.send(PageMessage::CursorIcon(cursor)).ok();
+        _ = self.page_message_sender.send(PageMessage::CursorIcon(cursor)).ok();
     }
 }
 

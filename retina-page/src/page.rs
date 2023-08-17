@@ -232,8 +232,12 @@ impl Page {
         Ok(())
     }
 
-    pub(crate) fn handle_action(&mut self, action: PageCommandAction) -> Result<(), ErrorKind> {
+    pub(crate) async fn handle_action(&mut self, action: PageCommandAction) -> Result<(), ErrorKind> {
         let result = match action {
+            PageCommandAction::Click => {
+                self.cursor_state.click(&self.url).await;
+                ActionResult::Unchanged
+            }
             PageCommandAction::PageDown => self.scroller.page_down().into(),
             PageCommandAction::PageUp => self.scroller.page_up().into(),
             PageCommandAction::ScrollToBottom => self.scroller.scroll_to_bottom().into(),
@@ -252,10 +256,10 @@ impl Page {
 
     pub(crate) async fn handle_command(&mut self, command: PageCommand) -> Result<(), ErrorKind> {
         match command {
-            PageCommand::Action(action) => self.handle_action(action)?,
+            PageCommand::Action(action) => self.handle_action(action).await?,
 
             PageCommand::MouseMove { event } => {
-                self.cursor_state.evaluate(event, self.layout_root.as_ref());
+                self.cursor_state.evaluate_move(event, self.layout_root.as_ref()).await;
             }
 
             PageCommand::ResizeCanvas { size } => {

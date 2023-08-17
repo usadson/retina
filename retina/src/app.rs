@@ -10,6 +10,8 @@ use retina_common::StrTendril;
 use retina_gfx::{
     Color,
     euclid::{Point2D, default::Rect, Size2D},
+    ElementState,
+    MouseButton,
     MouseMoveEvent,
     Painter,
     VirtualKeyCode,

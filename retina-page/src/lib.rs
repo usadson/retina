@@ -93,7 +93,7 @@ pub fn spawn(
             let compositor = Compositor::new(canvas.context().clone());
 
             let image_provider = ImageProvider::new(fetch.clone());
-            let cursor_state = CursorState::new(message_sender.clone());
+            let cursor_state = CursorState::new(message_sender.clone(), page_task_message_sender.clone());
 
             let page = Page {
                 runtime,
