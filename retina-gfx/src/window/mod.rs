@@ -21,7 +21,7 @@ use self::{
     state::WindowState,
 };
 
-use crate::{GfxResult, WindowApplication, Context};
+use crate::{GfxResult, WindowApplication, Context, CursorIcon};
 
 const MINIMUM_DURATION_BEFORE_RESIZES_ARE_ACCEPTED: Duration = Duration::from_millis(250);
 
@@ -139,6 +139,13 @@ impl<EventType> Window<EventType>
 
     pub fn set_background_color(&mut self, value: Color) {
         self.background_color = value;
+    }
+
+    pub fn set_cursor_icon(&self, cursor: CursorIcon) {
+        match cursor {
+            CursorIcon::Winit(cursor) => self.window.set_cursor_icon(cursor),
+            // ... options for bitmap cursors (todo)
+        }
     }
 
     pub fn set_icon(&self, rgba: Vec<u8>, width: u32, height: u32) {

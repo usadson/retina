@@ -15,6 +15,7 @@ pub(crate) type GfxResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 use raw_window_handle::{RawWindowHandle, RawDisplayHandle, HasRawWindowHandle, HasRawDisplayHandle};
 pub use retina_common::Color;
+pub use winit::window::CursorIcon as WinitCursorIcon;
 pub use self::{
     context::Context,
     future::SubmissionFuture,
@@ -23,6 +24,7 @@ pub use self::{
     window::{
         event_proxy::WindowEventProxy,
         interface::{
+            MouseMoveEvent,
             WindowApplication,
             WindowKeyPressEvent,
         },
@@ -45,6 +47,12 @@ pub use winit::event::{
 };
 
 pub use euclid;
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum CursorIcon {
+    Winit(WinitCursorIcon),
+    // ... support for bitmap cursors (todo)
+}
 
 pub struct WindowSurface {
     pub window: RawWindowHandle,
