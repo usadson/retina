@@ -45,11 +45,13 @@ use tokio::{sync::mpsc::{Receiver as AsyncReceiver, Sender as AsyncSender}, runt
 use url::Url;
 
 use crate::{
+    cursor_state::CursorState,
     dirty_state::{
         DirtyPhase,
         DirtyState,
     },
     font_loader::FontLoader,
+    image_provider::ImageProvider,
     message::PageTaskMessage,
     PageCommand,
     PageCommandAction,
@@ -58,7 +60,7 @@ use crate::{
     scroller::{
         Scroller,
         ScrollResult,
-    }, image_provider::ImageProvider,
+    },
 };
 
 pub(crate) struct Page {
@@ -72,6 +74,7 @@ pub(crate) struct Page {
     pub(crate) style_sheets: Option<Vec<Stylesheet>>,
     pub(crate) layout_root: Option<LayoutBox>,
 
+    pub(crate) cursor_state: CursorState,
     pub(crate) scroller: Scroller,
     pub(crate) canvas: CanvasPaintingContext,
     pub(crate) font_provider: FontProvider,

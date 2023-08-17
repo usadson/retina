@@ -3,6 +3,7 @@
 
 pub(crate) mod dirty_state;
 pub(crate) mod command;
+pub(crate) mod cursor_state;
 pub(crate) mod font_loader;
 pub(crate) mod handle;
 pub(crate) mod image_provider;
@@ -11,6 +12,7 @@ pub(crate) mod page;
 pub(crate) mod scroller;
 
 pub use command::{PageCommand, PageCommandAction};
+use cursor_state::CursorState;
 pub use handle::{PageHandle, PageHandleCommunicationError, PageHandleReceiveHalf, PageHandleSendHalf};
 use image_provider::ImageProvider;
 pub use message::{PageMessage, PageProgress};
@@ -91,6 +93,7 @@ pub fn spawn(
             let compositor = Compositor::new(canvas.context().clone());
 
             let image_provider = ImageProvider::new(fetch.clone());
+            let cursor_state = CursorState::new(message_sender.clone());
 
             let page = Page {
                 runtime,
@@ -103,6 +106,7 @@ pub fn spawn(
                 style_sheets: None,
                 layout_root: None,
 
+                cursor_state,
                 scroller: Scroller::new(canvas_size.cast().cast_unit()),
                 canvas,
                 font_provider,
