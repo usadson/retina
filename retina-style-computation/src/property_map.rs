@@ -91,6 +91,7 @@ pub struct PropertyMap {
     pub padding_top: Option<CssLength>,
 
     pub color: Option<CssColor>,
+    pub cursor: Option<CssCursor>,
     pub display: Option<CssDisplay>,
     pub float: Option<CssFloatValue>,
     pub font_kerning: Option<CssFontKerning>,
@@ -290,6 +291,13 @@ impl PropertyMap {
 
             Property::Color => if let Value::Color(color) = value {
                 self.color = Some(color);
+                PropertyMapDidApply::Yes
+            } else {
+                PropertyMapDidApply::NoBecauseOfAnInvalidValue
+            }
+
+            Property::Cursor => if let Value::Cursor(cursor) = value {
+                self.cursor = Some(cursor);
                 PropertyMapDidApply::Yes
             } else {
                 PropertyMapDidApply::NoBecauseOfAnInvalidValue

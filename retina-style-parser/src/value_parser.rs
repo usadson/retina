@@ -21,6 +21,33 @@ const PIXELS_PER_INCH: CssDecimal = 96.0;
 const PIXELS_PER_PICA: CssDecimal = PIXELS_PER_INCH / 6.0;
 const PIXELS_PER_POINT: CssDecimal = PIXELS_PER_INCH / 72.0;
 
+mod util {
+    use cssparser::{ParseErrorKind, Parser};
+    use strum::IntoEnumIterator;
+
+    use crate::{
+        ParseError,
+        RetinaStyleParseError,
+    };
+
+    pub(super) fn parse_enum<'i, 't, Enum>(
+        input: &mut Parser<'i, 't>
+    ) -> Result<Enum, ParseError<'i>>
+            where Enum: AsRef<str> + IntoEnumIterator {
+        let location = input.current_source_location();
+    let keyword = input.expect_ident()?;
+    Enum::iter()
+        .find(|style| {
+            style.as_ref().eq_ignore_ascii_case(&keyword)
+        })
+        .ok_or_else(|| ParseError {
+            kind: ParseErrorKind::Custom(
+                RetinaStyleParseError::FontStyleUnknownKeyword(keyword.clone())
+            ),
+            location,
+        })
+    }
+}
 
 pub(crate) fn parse_color<'i, 't>(
     input: &mut Parser<'i, 't>
@@ -645,6 +672,7 @@ fn parse_specific_value<'i, 't>(
     property: Property,
 ) -> Option<Result<Value, ParseError<'i>>> {
     match property {
+        Property::Cursor => Some(util::parse_enum(input).map(|value| Value::Cursor(value))),
         Property::Float => Some(parse_float(input).map(|float| Value::Float(float))),
         Property::Font => Some(parse_font_shorthand(input).map(|shorthand| Value::FontShorthand(shorthand))),
         Property::FontFamily => Some(parse_font_families(input).map(|families| Value::FontFamily(families))),

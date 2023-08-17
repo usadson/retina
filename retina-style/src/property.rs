@@ -39,6 +39,7 @@ pub enum Property {
     BorderTopStyle,
     BorderTopWidth,
 
+    Cursor,
     Color,
     Display,
 

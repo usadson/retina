@@ -2,6 +2,7 @@
 // All Rights Reserved.
 
 pub mod color;
+pub mod cursor;
 pub mod display;
 pub mod float;
 pub mod font;
@@ -17,6 +18,7 @@ pub type CssDecimal = f64;
 
 pub use self::{
     color::{CssColor, CssNamedColor},
+    cursor::CssCursor,
     display::{CssDisplay, CssDisplayBox, CssDisplayInside, CssDisplayInternal, CssDisplayOutside},
     float::CssFloatValue,
     font::{
@@ -56,6 +58,7 @@ pub struct CssBorderLonghand {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     BorderLonghand(CssBorderLonghand),
+    Cursor(CssCursor),
     Color(CssColor),
     ComponentList(ValueComponentList),
     Display(CssDisplay),
