@@ -10,6 +10,7 @@ use retina_common::StrTendril;
 use retina_gfx::{
     Color,
     euclid::{Point2D, default::Rect, Size2D},
+    MouseMoveEvent,
     Painter,
     VirtualKeyCode,
     WindowApplication,
@@ -99,6 +100,8 @@ impl Application {
 
     fn on_page_message(&mut self, message: PageMessage, window: &mut Window<RetinaEvent>) {
         match message {
+            PageMessage::CursorIcon(cursor) => window.set_cursor_icon(cursor),
+
             PageMessage::Crash { message } => {
                 self.crash_message = Some(message);
                 window.request_repaint();
@@ -143,6 +146,12 @@ impl WindowApplication<RetinaEvent> for Application {
             }
             RetinaEvent::PageEvent { message } => self.on_page_message(message, window),
         }
+    }
+
+    fn on_mouse_move(&mut self, event: MouseMoveEvent) {
+        _ = self.page_send_half.send_command(PageCommand::MouseMove {
+            event,
+        }).ok();
     }
 
     fn on_mouse_wheel(&mut self, delta: retina_gfx::MouseScrollDelta) {

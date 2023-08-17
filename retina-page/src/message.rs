@@ -3,6 +3,7 @@
 
 use retina_gfx::{
     Color,
+    CursorIcon,
     euclid::Size2D,
 };
 use retina_gfx_font::FontDescriptor;
@@ -17,6 +18,8 @@ use crate::{
 /// The page sends messages to the browser to inform it of it's status.
 #[derive(Debug)]
 pub enum PageMessage {
+    CursorIcon(CursorIcon),
+
     Crash {
         message: String,
     },
