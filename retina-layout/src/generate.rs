@@ -158,8 +158,6 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
             parent.dimensions.content_position.y + margin.top.value() + border.top.value() + padding.top.value()
         );
 
-        // TODO
-        _ = computed_style;
         LayoutBoxDimensions {
             content_position,
 
