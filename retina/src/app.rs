@@ -21,12 +21,14 @@ use retina_gfx::{
     WindowKeyPressEvent,
 };
 use retina_gfx_font::{FontProvider, FontDescriptor, FamilyName, FontWeight};
+use retina_gfx_gui::GuiManager;
 use retina_page::*;
 
 use crate::event::RetinaEvent;
 
 pub struct Application {
     page_send_half: PageHandleSendHalf,
+    gui_manager: Option<Box<dyn GuiManager>>,
     texture_size: Size2D<u32, retina_gfx::euclid::UnknownUnit>,
     texture_view: Option<wgpu::TextureView>,
     title: Option<String>,
@@ -39,7 +41,10 @@ pub struct Application {
 }
 
 impl Application {
-    pub fn new(window: &mut Window<RetinaEvent>) -> Self {
+    pub fn new(
+        window: &mut Window<RetinaEvent>,
+        gui_manager: Option<Box<dyn GuiManager>>,
+    ) -> Self {
         let url = std::env::var("RETINA_URL")
             .unwrap_or("about:not-found".into());
 
@@ -73,6 +78,7 @@ impl Application {
 
         Self {
             page_send_half,
+            gui_manager,
             texture_size: Default::default(),
             texture_view: None,
             title: None,
@@ -102,6 +108,18 @@ impl Application {
 
     fn on_page_message(&mut self, message: PageMessage, window: &mut Window<RetinaEvent>) {
         match message {
+            PageMessage::ContextMenu(menu) => {
+                if let Some(gui_manager) = &mut self.gui_manager {
+                    gui_manager.open_context_menu(menu);
+                }
+            }
+
+            PageMessage::CopyTextToClipboard(text) => {
+                if let Some(clipboard) = &mut self.clipboard {
+                    clipboard.set_contents(text).unwrap();
+                }
+            }
+
             PageMessage::CursorIcon(cursor) => window.set_cursor_icon(cursor),
 
             PageMessage::Crash { message } => {
@@ -151,8 +169,23 @@ impl WindowApplication<RetinaEvent> for Application {
     }
 
     fn on_mouse_input(&mut self, button: MouseButton, state: ElementState) {
-        if state == ElementState::Pressed && button == MouseButton::Left {
-            self.page_send_half.send_command(PageCommand::Action(PageCommandAction::Click)).unwrap();
+        if state != ElementState::Pressed {
+            return;
+        }
+
+        match button {
+            MouseButton::Left => {
+                self.page_send_half.send_command(
+                    PageCommand::Action(PageCommandAction::Click
+                )).unwrap();
+            }
+            MouseButton::Right => {
+                self.page_send_half.send_command(
+                    PageCommand::Action(PageCommandAction::RightClick
+                )).unwrap();
+            }
+
+            _ => (),
         }
     }
 

@@ -41,7 +41,7 @@ fn main() {
             }
         }).expect("failed to create window");
 
-    let app = Box::new(Application::new(&mut window));
+    let app = Box::new(Application::new(&mut window, gui_manager));
 
     window.run(app).unwrap()
 }
