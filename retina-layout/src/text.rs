@@ -34,9 +34,17 @@ pub fn collapse_white_space<'str>(
     Cow::Owned(string)
 }
 
+/// Test whether or not the given `value` is (contains) an emoji. Emoji in
+/// Unicode are complex, so a simple check isn't possible unfortunately.
+///
+/// ## Resources
+/// * [UTS #51: Unicode Emoji](https://www.unicode.org/reports/tr51/#def_rgi_set)
+/// * [UTF-8 to Code Points Converter](https://onlineutf8tools.com/convert-utf8-to-code-points)
+///   might be useful for dissecting text to find out why something does or
+///   doesn't work.
 pub fn is_emoji(value: &str) -> bool {
     use unicode_properties::UnicodeEmoji;
-    value.chars().any(|c| c.is_emoji_component())
+    value.chars().any(|c| c.is_emoji_char_or_emoji_component())
 }
 
 pub fn transform<'str>(
@@ -82,4 +90,18 @@ fn transform_capitalize<'str>(
         .unwrap_or_default();
 
     Cow::Owned(format!("{}{rest}", first_char.to_uppercase()))
+}
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+
+    #[rstest]
+    #[case("❤️", true)] // U+2764 U+FF0F
+    #[case("👩🏼‍💻", true)] // U+1F469 U+1F3FC U+200D U+1F4BB
+    #[case("Hello, world!", false)]
+    #[case("اَلْعَرَبِيَّةُ", false)]
+    fn test_is_emoji(#[case] input: &str, #[case] should_be: bool) {
+        assert_eq!(super::is_emoji(input), should_be);
+    }
 }
