@@ -10,11 +10,18 @@ use raw_window_handle::{
 mod win32;
 
 mod attach_error;
+mod context_menu;
 
-pub use self::attach_error::GuiAttachError;
+pub use self::{
+    attach_error::GuiAttachError,
+    context_menu::{
+        ContextMenu,
+        ContextMenuItem,
+    },
+};
 
 pub trait GuiManager: HasRawDisplayHandle + HasRawWindowHandle {
-
+    fn open_context_menu(&mut self, menu: ContextMenu);
 }
 
 pub fn attach<W>(window: W) -> Result<Box<dyn GuiManager>, GuiAttachError>

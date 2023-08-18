@@ -20,3 +20,7 @@ wgpu = { version = "*", features = ["trace"] }
 winsafe = { version = "*", features = [
     "gui"
 ] }
+windows = { version = "*", features = [
+    "Win32_UI_WindowsAndMessaging",
+] }
+muda = "*"
