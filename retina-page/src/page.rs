@@ -422,7 +422,8 @@ impl Page {
 
             PageTaskMessage::ImageLoaded => {
                 info!("Image loaded!");
-                self.dirty_state.request(DirtyPhase::GenerateLayoutTree);
+                self.compositor.mark_tile_cache_dirty();
+                self.dirty_state.request(DirtyPhase::Paint);
             }
 
             PageTaskMessage::StylesheetLoaded { stylesheet } => {
@@ -881,6 +882,7 @@ impl Page {
             ),
         ];
 
+        let begin_time = Instant::now();
         self.document.as_ref()
             .unwrap()
             .for_each_child_node_recursive(&mut |child, _depth| {
@@ -888,6 +890,9 @@ impl Page {
                     stylesheets.push(retina_style::Stylesheet::parse(CascadeOrigin::Author, style.style_content().as_ref()));
                 }
             }, 0);
+
+        let time_taken = begin_time.elapsed();
+        log::info!("Stylesheets from <style> elements took {} ms to parse", time_taken.as_millis());
 
         self.style_sheets = Some(stylesheets);
 
