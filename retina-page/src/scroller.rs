@@ -55,8 +55,8 @@ impl Scroller {
 
     pub fn scroll_lines(&mut self, x: f32, y: f32, font_size: f64) -> ScrollResult {
         self.scroll_pixels(
-            x as f64 / font_size,
-            -y as f64,
+            x as f64 * font_size,
+            y as f64 * font_size,
         )
     }
 
