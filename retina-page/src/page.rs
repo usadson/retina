@@ -238,6 +238,10 @@ impl Page {
                 self.cursor_state.click(&self.url).await;
                 ActionResult::Unchanged
             }
+            PageCommandAction::RightClick => {
+                self.cursor_state.right_click(&self.url).await;
+                ActionResult::Unchanged
+            }
             PageCommandAction::PageDown => self.scroller.page_down().into(),
             PageCommandAction::PageUp => self.scroller.page_up().into(),
             PageCommandAction::ScrollToBottom => self.scroller.scroll_to_bottom().into(),

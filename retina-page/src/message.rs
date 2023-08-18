@@ -7,6 +7,7 @@ use retina_gfx::{
     euclid::Size2D,
 };
 use retina_gfx_font::FontDescriptor;
+use retina_gfx_gui::ContextMenu;
 
 use retina_style::Stylesheet;
 
@@ -18,6 +19,10 @@ use crate::{
 /// The page sends messages to the browser to inform it of it's status.
 #[derive(Debug)]
 pub enum PageMessage {
+    ContextMenu(ContextMenu),
+
+    CopyTextToClipboard(String),
+
     CursorIcon(CursorIcon),
 
     Crash {
