@@ -7,8 +7,16 @@
 
 // use wio::com::ComPtr;
 
+use dwrote::GdiInterop;
 use windows::Win32::Foundation::RECT;
 use windows::Win32::Graphics::Direct2D::Common::D2D_POINT_2F;
+use windows::Win32::Graphics::Direct2D::D2D1CreateFactory;
+use windows::Win32::Graphics::Direct2D::D2D1_DEBUG_LEVEL_INFORMATION;
+use windows::Win32::Graphics::Direct2D::D2D1_FACTORY_OPTIONS;
+use windows::Win32::Graphics::Direct2D::D2D1_FACTORY_TYPE;
+use windows::Win32::Graphics::Direct2D::D2D1_FACTORY_TYPE_MULTI_THREADED;
+use windows::Win32::Graphics::Direct2D::ID2D1Brush;
+use windows::Win32::Graphics::Direct2D::ID2D1DeviceContext4;
 use windows::Win32::Graphics::DirectWrite::DWRITE_GLYPH_IMAGE_FORMATS_CFF;
 use windows::Win32::Graphics::DirectWrite::DWRITE_GLYPH_IMAGE_FORMATS_COLR;
 use windows::Win32::Graphics::DirectWrite::DWRITE_GLYPH_IMAGE_FORMATS_JPEG;
@@ -18,6 +26,8 @@ use windows::Win32::Graphics::DirectWrite::DWRITE_GLYPH_IMAGE_FORMATS_SVG;
 use windows::Win32::Graphics::DirectWrite::DWRITE_GLYPH_IMAGE_FORMATS_TIFF;
 use windows::Win32::Graphics::DirectWrite::DWRITE_GLYPH_IMAGE_FORMATS_TRUETYPE;
 use windows::Win32::Graphics::DirectWrite::DWRITE_TEXTURE_TYPE;
+use windows::Win32::Graphics::DirectWrite::IDWriteBitmapRenderTarget;
+use windows::core::ComInterface;
 use windows::{
     core::HRESULT,
     Win32::Graphics::DirectWrite::{
@@ -89,14 +99,41 @@ impl ColorGlyphRunAnalysis {
                 0,
             )?;
 
-            while enumerator.MoveNext()?.as_bool() {
-                let item = enumerator.GetCurrentRun2()?;
-                let item = &*item;
+            /*
+            let options = D2D1_FACTORY_OPTIONS {
+                debugLevel: D2D1_DEBUG_LEVEL_INFORMATION
+                ..Default::default(),
+            };
 
-                match item.glyphImageFormat {
+            let interop = GdiInterop::create();
+            let width = Default::default();
+            let height = Default::default();
+            let target = interop.create_bitmap_render_target(width, height);
+            let target = target.as_ptr();
+            let target = target as *mut IDWriteBitmapRenderTarget;
+            let target = &*target;
+            let target = target.cast::<ID2D1DeviceContext4>().unwrap();
+
+
+
+            while enumerator.MoveNext()?.as_bool() {
+                let color_run = enumerator.GetCurrentRun2()?;
+                let color_run = &*color_run;
+
+                // item.Base.
+
+                match color_run.glyphImageFormat {
+                    DWRITE_GLYPH_IMAGE_FORMATS_SVG => {
+                        // target.DrawSvgGlyphRun(
+                        //     Default::default(),
+                        //     &color_run.Base.glyphRun,
+
+                        // )
+                    }
                     _ => (),
                 }
             }
+            */
 
             Ok(Self {
                 native,
