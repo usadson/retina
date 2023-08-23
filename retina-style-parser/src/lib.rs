@@ -32,6 +32,8 @@ use cssparser::{
 
 use retina_style::{
     CascadeOrigin,
+    CssColor,
+    CssLength,
     Rule,
     SelectorList,
     Stylesheet,
@@ -101,6 +103,18 @@ pub(crate) fn parse_stylesheet_contents(cascade_origin: CascadeOrigin, parser: &
     }
 
     stylesheet
+}
+
+pub fn parse_value_color(input: &str) -> Option<CssColor> {
+    let mut input = ParserInput::new(input);
+    let mut parser = Parser::new(&mut input);
+    value_parser::parse_color(&mut parser).ok()
+}
+
+pub fn parse_value_length(input: &str) -> Option<CssLength> {
+    let mut input = ParserInput::new(input);
+    let mut parser = Parser::new(&mut input);
+    value_parser::parse_length(&mut parser).ok()
 }
 
 #[cfg(test)]
