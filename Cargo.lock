@@ -3885,6 +3885,7 @@ name = "retina-svg"
 version = "0.3.0"
 dependencies = [
  "bytemuck",
+ "euclid",
  "log",
  "lyon",
  "pretty_assertions",
