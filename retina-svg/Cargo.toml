@@ -1,5 +1,5 @@
 [package]
-name = "retina-svg-layout"
+name = "retina-svg"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -7,13 +7,17 @@ license.workspace = true
 [dependencies]
 retina-common = { path = "../retina-common" }
 retina-dom = { path = "../retina-dom" }
-retina-fetch = { path = "../retina-fetch" }
-retina-gfx-font = { path = "../retina-gfx-font" }
+retina-gfx = { path = "../retina-gfx" }
 retina-style = { path = "../retina-style" }
-retina-style-computation = { path = "../retina-style-computation" }
+retina-style-parser = { path = "../retina-style-parser" }
 
-euclid = "*"
+bytemuck = "*"
 log = "*"
+lyon = "*"
+strum = { version = "*", features = ["derive"] }
+tendril = "*"
+wgpu = "*"
 
 [dev-dependencies]
+pretty_assertions = "*"
 rstest = "*"

@@ -21,7 +21,7 @@ default-members = [
     "retina-style",
     "retina-style-computation",
     "retina-style-parser",
-    "retina-svg-layout",
+    "retina-svg",
     "retina-user-agent",
 ]
 
@@ -47,7 +47,7 @@ members = [
     "retina-style",
     "retina-style-computation",
     "retina-style-parser",
-    "retina-svg-layout",
+    "retina-svg",
     "retina-user-agent",
 ]
 
