@@ -4,7 +4,7 @@
 pub mod canvas;
 pub mod context;
 mod future;
-pub(crate) mod math;
+pub mod math;
 pub mod material;
 mod painter;
 mod texture;
