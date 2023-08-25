@@ -54,7 +54,7 @@ impl Texture {
 
                 size,
                 format,
-                usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+                usage: wgpu::TextureUsages::TEXTURE_BINDING,
 
                 label: Some("retina_gfx::Texture"),
 

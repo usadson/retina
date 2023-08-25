@@ -558,7 +558,7 @@ impl Glyph {
                         height: canvas.size.y() as _,
                         ..Default::default()
                     },
-                    usage: wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING,
+                    usage: wgpu::TextureUsages::TEXTURE_BINDING,
                     view_formats: &[],
                 },
                 &canvas.pixels
