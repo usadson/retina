@@ -357,7 +357,7 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
                 continue;
             }
 
-            if let Some(font) = self.font_provider.get(descriptor.clone()) {
+            if let Some(font) = self.font_provider.get(&descriptor) {
                 return font;
             }
 
@@ -494,13 +494,13 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
 
         let default_reference_pixels = CssReferencePixels::new(16.0);
 
-        let font = self.font_provider.get(FontDescriptor {
+        let font = self.font_provider.get(&FontDescriptor {
             name: retina_gfx_font::FamilyName::Serif,
             weight: FontWeight::REGULAR,
             style: Default::default(),
         }).expect("failed to load serif font");
 
-        let font_emoji = self.font_provider.get(FontDescriptor {
+        let font_emoji = self.font_provider.get(&FontDescriptor {
             name: retina_gfx_font::FamilyName::Emoji,
             weight: FontWeight::REGULAR,
             style: Default::default(),

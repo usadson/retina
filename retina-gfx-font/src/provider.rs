@@ -27,7 +27,7 @@ impl FontProvider {
     }
 
     #[inline]
-    pub fn get(&self, descriptor: FontDescriptor) -> Option<FontHandle> {
+    pub fn get(&self, descriptor: &FontDescriptor) -> Option<FontHandle> {
         self.backend.get(descriptor)
     }
 
@@ -53,7 +53,7 @@ impl FontProvider {
 }
 
 pub trait FontProviderBackend: Send + Sync {
-    fn get(&self, descriptor: FontDescriptor) -> Option<FontHandle>;
+    fn get(&self, descriptor: &FontDescriptor) -> Option<FontHandle>;
     fn load(&self, descriptor: FontDescriptor, data: Vec<u8>) -> bool;
     fn load_defaults(&self);
     fn load_from_system(&self, descriptor: FontDescriptor) -> bool;

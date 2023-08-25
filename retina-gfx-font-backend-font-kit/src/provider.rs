@@ -141,7 +141,7 @@ impl FontProvider {
 unsafe impl Sync for FontProvider {}
 
 impl FontProviderBackend for FontProvider {
-    fn get(&self, descriptor: FontDescriptor) -> Option<FontHandle> {
+    fn get(&self, descriptor: &FontDescriptor) -> Option<FontHandle> {
         let Ok(families) = self.families.read() else {
             return None;
         };

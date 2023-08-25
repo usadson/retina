@@ -245,17 +245,17 @@ impl WindowApplication<RetinaEvent> for Application {
         }
 
         if let Some(crash_message) = &self.crash_message {
-            let font = self.font_provider.get(FontDescriptor {
+            let font = self.font_provider.get(&FontDescriptor {
                 name: StrTendril::from("Cascadia Code").into(),
                 weight: FontWeight::BOLD,
                 style: Default::default(),
             }).unwrap_or_else(|| {
-                self.font_provider.get(FontDescriptor {
+                self.font_provider.get(&FontDescriptor {
                     name: FamilyName::Monospace,
                     weight: FontWeight::BOLD,
                     style: Default::default(),
                 }).unwrap_or_else(|| {
-                    self.font_provider.get(FontDescriptor {
+                    self.font_provider.get(&FontDescriptor {
                         name: FamilyName::SansSerif,
                         weight: FontWeight::BOLD,
                         style: Default::default(),
