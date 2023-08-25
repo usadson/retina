@@ -42,5 +42,13 @@ pub fn parse_page_url(input: &str) -> Result<Url, url::ParseError> {
         return Url::parse(&url);
     }
 
-    Url::parse(input)
+    let result = Url::parse(input);
+
+    if result == Err(url::ParseError::RelativeUrlWithoutBase) && !input.starts_with("http") {
+        if let Ok(url) = Url::parse(&format!("https://{input}")) {
+            return Ok(url);
+        }
+    }
+
+    result
 }

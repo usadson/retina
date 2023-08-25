@@ -47,6 +47,7 @@
 11. Composited emoji (like 👩🏼‍💻) are now properly recognized
 12. Support changing the cursor of the windows
 13. Anchor elements (`<a href="..">`) can now be clicked to navigate
+14. Document URLs without a scheme (e.g. `https`, `ftp`) are now prefixed with `https://` in order to be more relaxed with URLs given to the `RETINA_URL` environment variable.
 
 
 ## 0.2.0 - Released 2023-08-05
