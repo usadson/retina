@@ -144,6 +144,18 @@ fn cascade_styles_from_presentational_hints_body_margin(
     CssLength::Pixels(8.0)
 }
 
+fn compute_relative_properties(property_map: &mut PropertyMap, parent: Option<&PropertyMap>) {
+    let parent_font_size = parent.and_then(|prop| prop.font_size).unwrap_or(CssLength::Pixels(16.0));
+
+    if let CssLength::FontSize(node_relative_size) = property_map.font_size() {
+        if let CssLength::Pixels(parent_absolute_size) = parent_font_size {
+            property_map.font_size = Some(CssLength::Pixels(node_relative_size * parent_absolute_size));
+        } else {
+            warn!("Node has relative font size, but parent is: {parent_font_size:#?}");
+        }
+    }
+}
+
 fn inherit_property<T>(target: &mut Option<T>, source: &Option<T>)
         where T: Clone {
     if target.is_none() {
@@ -229,6 +241,8 @@ impl<'stylesheets> Cascade for CollectedStyles<'stylesheets> {
 
         // 1. Transition declarations [css-transitions-1]
         // TODO
+
+        compute_relative_properties(&mut property_map, parent);
 
         property_map
     }
