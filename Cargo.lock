@@ -3610,6 +3610,7 @@ name = "retina-fetch"
 version = "0.3.0"
 dependencies = [
  "futures-core",
+ "http",
  "hyper",
  "hyper-tls",
  "log",

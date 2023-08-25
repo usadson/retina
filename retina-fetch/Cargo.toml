@@ -17,6 +17,7 @@ tokio-util = { version = "*", features = [
     "codec",
 ] }
 
+http = "*"
 hyper = { version = "*", features = [
     "client",
     "http1",

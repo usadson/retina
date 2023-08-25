@@ -6,3 +6,7 @@
 
 pub mod stylesheet;
 pub mod url_scheme;
+
+/// The value of the `User-Agent` HTTP header, colloquially know as just
+/// “User Agent”.
+pub const USER_AGENT_HEADER_VALUE: &str = "Mozilla/5.0 (like Gecko, WebKit and Chrome) Retina";

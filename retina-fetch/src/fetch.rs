@@ -3,8 +3,9 @@
 
 use std::{sync::Arc, path::Path};
 
+use http::HeaderName;
 use log::{warn, trace};
-use retina_user_agent::url_scheme::about;
+use retina_user_agent::{url_scheme::about, USER_AGENT_HEADER_VALUE};
 use tokio::{runtime::Runtime, sync::mpsc::channel};
 use url::Url;
 
@@ -139,9 +140,14 @@ impl Fetch {
             let client = task_client;
             let request = task_request;
 
-            let hyper_request = hyper::Request::builder()
+            let mut hyper_request = hyper::Request::builder()
                 .uri(request.url.as_str())
                 .method(&request.method)
+                .header(http::header::ACCEPT, "text/html,*/*;q=0.8")
+                .header(http::header::CONNECTION, "keep-alive")
+                .header(http::header::USER_AGENT, USER_AGENT_HEADER_VALUE);
+
+            let hyper_request= hyper_request
                 .body(hyper::Body::empty());
 
             let hyper_request = match hyper_request {
