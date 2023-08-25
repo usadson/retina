@@ -3,7 +3,7 @@
 
 use std::{sync::Arc, path::Path};
 
-use log::warn;
+use log::{warn, trace};
 use retina_user_agent::url_scheme::about;
 use tokio::{runtime::Runtime, sync::mpsc::channel};
 use url::Url;
@@ -154,7 +154,17 @@ impl Fetch {
             };
 
             let response = match client.request(hyper_request).await {
-                Ok(response) => Ok((request, response).into()),
+                Ok(response) => {
+                    if response.status().is_redirection() {
+                        trace!("Redirection from {}", request.url.as_str());
+                    }
+
+                    if response.status().is_client_error() || response.status().is_server_error() {
+                        warn!("Failed to fetch \"{}\": {}", request.url.as_ref(), response.status());
+                    }
+
+                    Ok((request, response).into())
+                }
                 Err(e) => Err(e.into()),
             };
 
