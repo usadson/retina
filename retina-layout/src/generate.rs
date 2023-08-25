@@ -1,6 +1,8 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use std::collections::HashSet;
+
 use euclid::default::Point2D;
 use log::warn;
 use retina_common::Color;
@@ -66,6 +68,7 @@ pub struct LayoutGenerator<'stylesheets, ImageLoader>
     font_provider: FontProvider,
     document_url: &'stylesheets Url,
     image_loader: ImageLoader,
+    invalid_fonts: HashSet<FontDescriptor>,
 }
 
 impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
@@ -87,6 +90,7 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
             font_provider,
             document_url,
             image_loader,
+            invalid_fonts: Default::default(),
         };
 
         let html_element = Node::clone(
@@ -324,7 +328,7 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
     }
 
     fn resolve_font(
-        &self,
+        &mut self,
         node: &DomNode,
         parent: &LayoutBox,
         computed_style: &PropertyMap,
@@ -349,12 +353,17 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
                 weight: FontWeight::new(computed_style.font_weight() as _),
             };
 
-            if let Some(font) = self.font_provider.get(descriptor) {
+            if self.invalid_fonts.contains(&descriptor) {
+                continue;
+            }
+
+            if let Some(font) = self.font_provider.get(descriptor.clone()) {
                 return font;
             }
 
             warn!("[font-family] Font not found: {font_family:?} size={weight} style={style:?}",
                 weight = computed_style.font_weight());
+            self.invalid_fonts.insert(descriptor);
         }
 
         warn!("[font-family] No font was found: {families:#?}");
