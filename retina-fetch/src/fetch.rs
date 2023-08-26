@@ -147,6 +147,7 @@ impl Fetch {
                 .header(http::header::CONNECTION, "keep-alive")
                 .header(http::header::USER_AGENT, USER_AGENT_HEADER_VALUE)
                 .header("Sec-Fetch-Dest", request.destination.as_str())
+                .header("Sec-Fetch-Mode", request.mode.as_str())
             ;
 
             let hyper_request = hyper_request
@@ -169,6 +170,7 @@ impl Fetch {
 
                     if response.status().is_client_error() || response.status().is_server_error() {
                         warn!("Failed to fetch \"{}\": {}", request.url.as_ref(), response.status());
+                        warn!("Response Headers: {:#?}", response.headers());
                     }
 
                     Ok((request, response).into())

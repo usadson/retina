@@ -30,7 +30,7 @@ use retina_dom::{
     Node,
 };
 
-use retina_fetch::{Fetch, Request};
+use retina_fetch::{Fetch, Request, RequestMode};
 use retina_gfx::{canvas::CanvasPaintingContext, Context};
 use retina_gfx_font::FontProvider;
 use retina_layout::{
@@ -799,7 +799,7 @@ impl Page {
         tokio::task::spawn(async move {
             let href = url.as_str();
 
-            let request = Request::new(url.clone(), RequestInitiator::default(), RequestDestination::Style);
+            let request = Request::new(url.clone(), RequestInitiator::default(), RequestDestination::Style, RequestMode::default());
             let mut response = match fetch.fetch(request).await {
                 Ok(response) => response,
                 Err(e) => {

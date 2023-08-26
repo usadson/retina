@@ -7,6 +7,7 @@ use url::Url;
 use crate::{
     RequestDestination,
     RequestInitiator,
+    RequestMode,
 };
 
 /// The [Request][spec] class.
@@ -16,16 +17,24 @@ use crate::{
 pub struct Request {
     pub(crate) initiator: RequestInitiator,
     pub(crate) destination: RequestDestination,
+    pub(crate) mode: RequestMode,
 
     pub(crate) method: hyper::Method,
     pub(crate) url: Url,
 }
 
 impl Request {
-    pub fn new(url: Url, initiator: RequestInitiator, destination: RequestDestination) -> Self {
+    pub fn new(
+        url: Url,
+        initiator: RequestInitiator,
+        destination: RequestDestination,
+        mode: RequestMode,
+    ) -> Self {
         Request {
             initiator,
             destination,
+            mode,
+
             method: hyper::Method::GET,
             url,
         }
@@ -35,6 +44,7 @@ impl Request {
         Request {
             initiator: RequestInitiator::None,
             destination: RequestDestination::Document,
+            mode: RequestMode::Navigate,
             method: Method::GET,
             url,
         }

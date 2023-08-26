@@ -9,6 +9,7 @@ use retina_fetch::{
     Request,
     RequestDestination,
     RequestInitiator,
+    RequestMode,
 };
 use retina_gfx_font::{
     FamilyName,
@@ -335,7 +336,8 @@ fn load_remote_font(
                         }
                     };
 
-                    let request = Request::new(url, RequestInitiator::None, RequestDestination::Font);
+                    // <https://www.w3.org/TR/css-fonts-4/#font-face-src-parsing>
+                    let request = Request::new(url, RequestInitiator::None, RequestDestination::Font, RequestMode::Cors);
                     let mut response = match fetch.fetch(request).await {
                         Ok(response) => response,
                         Err(e) => {
