@@ -3617,6 +3617,7 @@ dependencies = [
  "mime",
  "retina-user-agent",
  "rstest",
+ "strum",
  "tokio",
  "tokio-util",
  "url",

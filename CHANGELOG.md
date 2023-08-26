@@ -48,6 +48,8 @@
 12. Support changing the cursor of the windows
 13. Anchor elements (`<a href="..">`) can now be clicked to navigate
 14. Document URLs without a scheme (e.g. `https`, `ftp`) are now prefixed with `https://` in order to be more relaxed with URLs given to the `RETINA_URL` environment variable.
+15. Provide standard __HTTP__ headers with fetch, e.g. [`Accept`](https://httpwg.org/specs/rfc9110.html#field.accept), [`User-Agent`](https://httpwg.org/specs/rfc9110.html#field.user-agent)
+16. Provide [Fetch Metadata](https://w3c.github.io/webappsec-fetch-metadata/) __HTTP__ headers, e.g. [`Fetch-Dest`](https://w3c.github.io/webappsec-fetch-metadata/#sec-fetch-dest-header)
 
 
 ## 0.2.0 - Released 2023-08-05

@@ -145,9 +145,11 @@ impl Fetch {
                 .method(&request.method)
                 .header(http::header::ACCEPT, "text/html,*/*;q=0.8")
                 .header(http::header::CONNECTION, "keep-alive")
-                .header(http::header::USER_AGENT, USER_AGENT_HEADER_VALUE);
+                .header(http::header::USER_AGENT, USER_AGENT_HEADER_VALUE)
+                .header("Sec-Fetch-Dest", request.destination.as_str())
+            ;
 
-            let hyper_request= hyper_request
+            let hyper_request = hyper_request
                 .body(hyper::Body::empty());
 
             let hyper_request = match hyper_request {

@@ -1,11 +1,14 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use strum::AsRefStr;
+
 /// The [Request Destination][spec] specifies what the destination of this
 /// `fetch` is.
 ///
 /// [spec]: https://fetch.spec.whatwg.org/#concept-request-destination
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(AsRefStr)]
 pub enum RequestDestination {
     /// HTML `<audio>`
     Audio,
@@ -108,6 +111,13 @@ pub enum RequestDestination {
 }
 
 impl RequestDestination {
+    /// Get the normative string representation, as per [Fetch][spec].
+    ///
+    /// [spec]: https://fetch.spec.whatwg.org/#concept-request-destination
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+
     /// Specifies if the request is initiated by a script load, or activated by
     /// some features in JavaScript.
     ///
