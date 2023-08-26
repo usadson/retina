@@ -30,7 +30,7 @@ use retina_dom::{
     Node,
 };
 
-use retina_fetch::{Fetch, Request, RequestMode};
+use retina_fetch::{Fetch, Request, RequestMode, RequestReferrer};
 use retina_gfx::{canvas::CanvasPaintingContext, Context};
 use retina_gfx_font::FontProvider;
 use retina_layout::{
@@ -68,6 +68,7 @@ pub(crate) struct Page {
     pub(crate) message_sender: SyncSender<PageMessage>,
 
     pub(crate) url: Url,
+    pub(crate) referrer: Option<Url>,
     pub(crate) queued_redirect_url: Option<Url>,
     pub(crate) title: String,
     pub(crate) document: Option<Node>,
@@ -168,7 +169,7 @@ impl Page {
         }
 
         if let Some(redirect_url) = self.queued_redirect_url.take() {
-            self.url = redirect_url;
+            self.referrer = Some(std::mem::replace(&mut self.url, redirect_url));
             self.load().await?;
         }
 
@@ -326,7 +327,7 @@ impl Page {
 
                 match url_parse_result {
                     Ok(url) => {
-                        self.url = url;
+                        self.referrer = Some(std::mem::replace(&mut self.url, url));
                         self.load().await?;
                     }
 
@@ -336,7 +337,10 @@ impl Page {
                 }
             }
 
-            PageCommand::Reload => self.load().await?,
+            PageCommand::Reload => {
+                self.referrer = None;
+                self.load().await?;
+            }
 
             PageCommand::Scroll { delta } => {
                 if let Some(layout_root) = &self.layout_root {
@@ -459,6 +463,7 @@ impl Page {
 
     pub(crate) async fn load(&mut self) -> Result<(), ErrorKind> {
         info!("Loading page: {:?}", self.url);
+        self.font_loader.set_document_url(self.url.clone());
 
         // Discard the previous title
         _ = self.message_sender.send(PageMessage::Title {
@@ -694,7 +699,11 @@ impl Page {
     }
 
     pub(crate) async fn load_page(&mut self) -> Result<(), ErrorKind> {
-        let mut document = match self.fetch.fetch_document(self.url.clone()).await {
+        let referrer = self.referrer.clone()
+            .map(|url| RequestReferrer::Url(url))
+            .unwrap_or_default();
+
+        let mut document = match self.fetch.fetch_document(self.url.clone(), referrer).await {
             Ok(response) => response,
             Err(e) => {
                 return self.handle_load_error(e);
@@ -750,6 +759,7 @@ impl Page {
             return;
         };
 
+        let document_url = self.url.clone();
         let base_url = Some(self.url.clone());
         let fetch = self.fetch.clone();
         let task_message_sender = self.page_task_message_sender.clone();
@@ -779,7 +789,7 @@ impl Page {
                     }
                 };
 
-                Self::load_stylesheet_in_background(url, fetch.clone(), task_message_sender.clone());
+                Self::load_stylesheet_in_background(url, fetch.clone(), task_message_sender.clone(), document_url.clone());
             }, 0);
         });
     }
@@ -788,6 +798,7 @@ impl Page {
         url: Url,
         fetch: Fetch,
         page_task_message_sender: AsyncSender<PageTaskMessage>,
+        document_url: Url,
     ) {
         use retina_fetch::{
             RequestDestination,
@@ -799,7 +810,7 @@ impl Page {
         tokio::task::spawn(async move {
             let href = url.as_str();
 
-            let request = Request::new(url.clone(), RequestInitiator::default(), RequestDestination::Style, RequestMode::default());
+            let request = Request::new(url.clone(), RequestInitiator::default(), RequestDestination::Style, RequestMode::default(), RequestReferrer::Url(document_url));
             let mut response = match fetch.fetch(request).await {
                 Ok(response) => response,
                 Err(e) => {

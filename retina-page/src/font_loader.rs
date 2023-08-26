@@ -9,6 +9,7 @@ use retina_fetch::{
     Request,
     RequestDestination,
     RequestInitiator,
+    RequestReferrer,
     RequestMode,
 };
 use retina_gfx_font::{
@@ -35,7 +36,8 @@ pub(crate) struct FontLoader {
     fetch: Fetch,
     page_task_message_sender: Sender<PageTaskMessage>,
     font_provider: FontProvider,
-    fonts: HashMap<FontDescriptor, FontState>
+    fonts: HashMap<FontDescriptor, FontState>,
+    document_url: Url,
 }
 
 impl FontLoader {
@@ -43,12 +45,14 @@ impl FontLoader {
         fetch: Fetch,
         page_task_message_sender: Sender<PageTaskMessage>,
         font_provider: FontProvider,
+        document_url: Url,
     ) -> Self {
         Self {
             fetch,
             page_task_message_sender,
             font_provider,
             fonts: HashMap::new(),
+            document_url,
         }
     }
 
@@ -70,7 +74,7 @@ impl FontLoader {
             match find_font_face_rule(&descriptor, stylesheets) {
                 Some(font_face) => {
                     *state = FontState::LoadingRemote;
-                    load_remote_font(font_provider, descriptor, font_face, page_task_message_sender, self.fetch.clone());
+                    load_remote_font(font_provider, descriptor, font_face, page_task_message_sender, self.fetch.clone(), self.document_url.clone());
                 }
                 None => {
                     if *state == FontState::LoadingRemote || *state == FontState::TryLoadRemote {
@@ -165,6 +169,10 @@ impl FontLoader {
                 }
             }
         }
+    }
+
+    pub fn set_document_url(&mut self, url: Url) {
+        self.document_url = url;
     }
 }
 
@@ -298,7 +306,9 @@ fn load_remote_font(
     font_face: &CssFontFaceAtRule,
     page_task_message_sender: Sender<PageTaskMessage>,
     fetch: Fetch,
+    document_url: Url,
 ) {
+    let referrer = RequestReferrer::Url(document_url);
     let src = font_face.declarations.iter().find_map(|declaration| {
         match declaration {
             CssFontFaceDeclaration::Src { sources } => Some(sources),
@@ -337,7 +347,7 @@ fn load_remote_font(
                     };
 
                     // <https://www.w3.org/TR/css-fonts-4/#font-face-src-parsing>
-                    let request = Request::new(url, RequestInitiator::None, RequestDestination::Font, RequestMode::Cors);
+                    let request = Request::new(url, RequestInitiator::None, RequestDestination::Font, RequestMode::Cors, referrer.clone());
                     let mut response = match fetch.fetch(request).await {
                         Ok(response) => response,
                         Err(e) => {

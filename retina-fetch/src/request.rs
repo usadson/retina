@@ -8,16 +8,18 @@ use crate::{
     RequestDestination,
     RequestInitiator,
     RequestMode,
+    RequestReferrer, referrer,
 };
 
 /// The [Request][spec] class.
 ///
 /// [spec]: https://fetch.spec.whatwg.org/#request-class
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Request {
     pub(crate) initiator: RequestInitiator,
     pub(crate) destination: RequestDestination,
     pub(crate) mode: RequestMode,
+    pub(crate) referrer: RequestReferrer,
 
     pub(crate) method: hyper::Method,
     pub(crate) url: Url,
@@ -29,22 +31,26 @@ impl Request {
         initiator: RequestInitiator,
         destination: RequestDestination,
         mode: RequestMode,
+        referrer: RequestReferrer,
     ) -> Self {
         Request {
             initiator,
             destination,
             mode,
+            referrer,
 
             method: hyper::Method::GET,
             url,
         }
     }
 
-    pub fn get_document(url: Url) -> Self {
+    pub fn get_document(url: Url, referrer: RequestReferrer) -> Self {
         Request {
             initiator: RequestInitiator::None,
             destination: RequestDestination::Document,
             mode: RequestMode::Navigate,
+            referrer,
+
             method: Method::GET,
             url,
         }

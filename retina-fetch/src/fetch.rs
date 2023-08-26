@@ -16,6 +16,7 @@ use crate::{
     InternalError,
     NetworkError,
     Request,
+    RequestReferrer,
     Response,
 };
 
@@ -70,7 +71,7 @@ impl Fetch {
         }
     }
 
-    pub fn fetch_document(&self, url: Url) -> FetchPromise {
+    pub fn fetch_document(&self, url: Url, referrer: RequestReferrer) -> FetchPromise {
         if url.scheme() == "about" {
             return self.fetch_document_about(url);
         }
@@ -79,7 +80,7 @@ impl Fetch {
             return self.fetch_document_file(url);
         }
 
-        self.fetch(Request::get_document(url))
+        self.fetch(Request::get_document(url, referrer))
     }
 
     fn fetch_document_about(&self, url: Url) -> FetchPromise {
@@ -90,7 +91,7 @@ impl Fetch {
             _ => about::NOT_FOUND,
         };
 
-        let request = Arc::new(Request::get_document(url));
+        let request = Arc::new(Request::get_document(url, RequestReferrer::default()));
 
         self.create_instantaneous_response(
             Arc::clone(&request),
@@ -213,7 +214,7 @@ impl Fetch {
     }
 
     fn fetch_document_file(&self, url: Url) -> FetchPromise {
-        self.fetch_file(Arc::new(Request::get_document(url)))
+        self.fetch_file(Arc::new(Request::get_document(url, RequestReferrer::default())))
     }
 }
 

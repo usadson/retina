@@ -88,6 +88,7 @@ pub fn spawn(
                 fetch.clone(),
                 page_task_message_sender.clone(),
                 font_provider.clone(),
+                url.clone(),
             );
 
             let compositor = Compositor::new(canvas.context().clone());
@@ -100,6 +101,7 @@ pub fn spawn(
                 message_sender,
 
                 url,
+                referrer: None,
                 queued_redirect_url: None,
                 title: String::new(),
                 document: None,

@@ -20,6 +20,7 @@ use retina_fetch::{
     RequestDestination,
     RequestInitiator,
     RequestMode,
+    RequestReferrer,
     Url,
 };
 
@@ -86,7 +87,7 @@ impl ImageData {
         //     given urlString, "image", and the current state of the element's
         //     crossorigin content attribute.
         // https://html.spec.whatwg.org/multipage/urls-and-fetching.html#create-a-potential-cors-request
-        let request = Request::new(url, RequestInitiator::None, RequestDestination::Image, RequestMode::NoCors);
+        let request = Request::new(url, RequestInitiator::None, RequestDestination::Image, RequestMode::NoCors, RequestReferrer::Url(base_url));
         let Ok(mut response) = fetch.fetch(request).await else {
             warn!("Failed to load image: {src}");
             *self.state.write().unwrap() = ImageDataState::LoadFailed;
