@@ -151,6 +151,11 @@ impl Fetch {
                 .header("Sec-Fetch-Mode", request.mode.as_str())
             ;
 
+            // TODO follow <https://w3c.github.io/webappsec-referrer-policy/#determine-requests-referrer>
+            if let RequestReferrer::Url(url) = &request.referrer {
+                hyper_request = hyper_request.header(http::header::REFERER, url.to_string());
+            }
+
             let hyper_request = hyper_request
                 .body(hyper::Body::empty());
 
