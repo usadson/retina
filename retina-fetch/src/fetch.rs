@@ -143,7 +143,7 @@ impl Fetch {
             let mut hyper_request = hyper::Request::builder()
                 .uri(request.url.as_str())
                 .method(&request.method)
-                .header(http::header::ACCEPT, "text/html,*/*;q=0.8")
+                .header(http::header::ACCEPT, request.accept_header_value())
                 .header(http::header::CONNECTION, "keep-alive")
                 .header(http::header::USER_AGENT, USER_AGENT_HEADER_VALUE)
                 .header("Sec-Fetch-Dest", request.destination.as_str())

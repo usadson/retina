@@ -40,6 +40,18 @@ impl Request {
         }
     }
 
+    /// Compute or get the value of the [`Accept`][spec] header, which specifies
+    /// what type of content is acceptable for us to handle.
+    ///
+    /// [spec]: https://httpwg.org/specs/rfc9110.html#field.accept
+    pub fn accept_header_value(&self) -> &str {
+        match self.destination {
+            RequestDestination::Document => "text/html,*/*;q=0.8",
+            RequestDestination::Style => "text/css,*/*;q=0.8",
+            _ => "*/*",
+        }
+    }
+
     pub fn url(&self) -> &Url {
         &self.url
     }
