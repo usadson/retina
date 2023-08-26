@@ -260,6 +260,10 @@ fn matches_font_face_rule(font_face: &CssFontFaceAtRule, descriptor: &FontDescri
         }
     }
 
+    if !name_matches {
+        return false;
+    }
+
     let criteria = [
         name_matches, style_matches, weight_matches, unicode_matches
     ];
