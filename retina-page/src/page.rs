@@ -652,8 +652,10 @@ impl Page {
                     warn!("GIF has no frames! Source: \"{source}\"");
                 }
 
-                let page_task_message_sender: AsyncSender<PageTaskMessage> = sender.clone();
-                Self::load_image_in_background_spawn_frame_switcher(page_task_message_sender, image, data.clone());
+                if image.frames_graphics.len() > 1 {
+                    let page_task_message_sender: AsyncSender<PageTaskMessage> = sender.clone();
+                    Self::load_image_in_background_spawn_frame_switcher(page_task_message_sender, image, data.clone());
+                }
 
                 true
             }
