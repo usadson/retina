@@ -9,7 +9,7 @@ async fn main() {
     let fetch = Fetch::new();
 
     let url = Url::parse("https://example.org/").unwrap();
-    let request = Request::get_document(url);
+    let request = Request::get_document(url, Default::default());
 
     let response = fetch.fetch(request).await.unwrap();
     println!("Response {response:#?}");
