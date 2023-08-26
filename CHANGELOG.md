@@ -53,6 +53,8 @@
 11. Composited emoji (like 👩🏼‍💻) are now properly recognized
 12. Support changing the cursor of the windows
 13. Anchor elements (`<a href="..">`) can now be clicked to navigate
+14. Hit-testing now honors the scroll position as well
+15. Fix rare crash when GIFs have 0 frames
 
 
 ## 0.2.0 - Released 2023-08-05

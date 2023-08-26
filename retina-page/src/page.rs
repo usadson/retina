@@ -264,7 +264,7 @@ impl Page {
             PageCommand::Action(action) => self.handle_action(action).await?,
 
             PageCommand::MouseMove { event } => {
-                self.cursor_state.evaluate_move(event, self.layout_root.as_ref()).await;
+                self.cursor_state.evaluate_move(event, &&self.scroller, self.layout_root.as_ref()).await;
             }
 
             PageCommand::ResizeCanvas { size } => {
@@ -360,6 +360,8 @@ impl Page {
                         self.dirty_state.request(DirtyPhase::Paint);
                     }
                 }
+
+                self.cursor_state.hit_test(&self.scroller, self.layout_root.as_ref()).await;
             }
         }
 
@@ -644,7 +646,11 @@ impl Page {
                     })
                     .collect();
 
-                *data.graphics().write().unwrap() = Arc::clone(&image.frames_graphics.last().unwrap());
+                if let Some(last_frame) = image.frames_graphics.last() {
+                    *data.graphics().write().unwrap() = Arc::clone(last_frame);
+                } else {
+                    warn!("GIF has no frames! Source: \"{source}\"");
+                }
 
                 let page_task_message_sender: AsyncSender<PageTaskMessage> = sender.clone();
                 Self::load_image_in_background_spawn_frame_switcher(page_task_message_sender, image, data.clone());

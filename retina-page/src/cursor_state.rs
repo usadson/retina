@@ -17,12 +17,13 @@ use retina_style::CssCursor;
 use tokio::sync::mpsc::Sender;
 use url::Url;
 
-use crate::{PageMessage, message::PageTaskMessage, PageCommand};
+use crate::{PageMessage, message::PageTaskMessage, PageCommand, scroller::Scroller};
 
 #[derive(Debug)]
 pub(crate) struct CursorState {
     cursor: CursorIcon,
     mouse_position: Point2D<f64, UnknownUnit>,
+    scroll_position: Point2D<f64, UnknownUnit>,
     page_message_sender: SyncSender<PageMessage>,
     task_sender: Sender<PageTaskMessage>,
     node: Option<Node>,
@@ -36,6 +37,7 @@ impl CursorState {
         Self {
             cursor: CursorIcon::Winit(WinitCursorIcon::Default),
             mouse_position: Default::default(),
+            scroll_position: Default::default(),
             page_message_sender,
             task_sender,
             node: None,
@@ -209,10 +211,26 @@ impl CursorState {
     pub async fn evaluate_move(
         &mut self,
         mouse_move_event: MouseMoveEvent,
+        scroller: &Scroller,
         layout_root: Option<&LayoutBox>
     ) {
         self.mouse_position = mouse_move_event.to;
-        let hit_stack = hit_test(mouse_move_event.to, layout_root);
+        self.hit_test(scroller, layout_root).await;
+    }
+
+    pub async fn hit_test(
+        &mut self,
+        scroller: &Scroller,
+        layout_root: Option<&LayoutBox>,
+    ) {
+        self.scroll_position = scroller.viewport_position();
+
+        let position = Point2D::<f64, UnknownUnit>::new(
+            self.scroll_position.x + self.mouse_position.x,
+            self.scroll_position.y + self.mouse_position.y
+        );
+
+        let hit_stack = hit_test(position, layout_root);
 
         match hit_stack.last() {
             Some(layout_box) => {
@@ -221,7 +239,7 @@ impl CursorState {
                 self.node = Some(layout_box.node.clone());
                 self.set_cursor(cursor).await;
             }
-            None => self.set_cursor(CursorIcon::Winit(WinitCursorIcon::Help)).await,
+            None => self.set_cursor(CursorIcon::Winit(WinitCursorIcon::Default)).await,
         }
     }
 
