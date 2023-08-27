@@ -4,7 +4,6 @@
 use std::{sync::Arc, path::Path};
 
 use log::{warn, trace};
-use retina_user_agent::{url_scheme::about, USER_AGENT_HEADER_VALUE};
 use tokio::{runtime::Runtime, sync::mpsc::channel};
 use url::Url;
 
@@ -29,6 +28,7 @@ type HyperClient = hyper::client::Client<HyperConnector>;
 pub struct Fetch {
     client: HyperClient,
     runtime: Arc<tokio::runtime::Runtime>,
+    user_agent_product: Arc<str>,
 }
 
 impl Fetch {
@@ -46,6 +46,12 @@ impl Fetch {
 
     /// Create a new [Fetch] object.
     pub fn new() -> Self {
+        Self::with_user_agent("Mozilla/5.0 Retina-Fetch")
+    }
+
+    /// Create a new [Fetch] object.
+    pub fn with_user_agent<S>(user_agent: S) -> Self
+            where S: Into<Arc<str>> {
         let connector = HyperConnector::new();
         let client = hyper::client::Client::builder().build::<_, hyper::Body>(connector);
 
@@ -61,6 +67,7 @@ impl Fetch {
         Self {
             client,
             runtime,
+            user_agent_product: user_agent.into(),
         }
     }
 
@@ -95,8 +102,7 @@ impl Fetch {
         let body = match url.path() {
             // https://fetch.spec.whatwg.org/#scheme-fetch
             "blank" => "",
-            "not-found" => about::NOT_FOUND,
-            _ => about::NOT_FOUND,
+            _ => "", // TODO
         };
 
         let request = Arc::new(Request::get_document(url, RequestReferrer::default()));
@@ -146,6 +152,7 @@ impl Fetch {
 
         let (sender, receiver) = channel(1);
 
+        let user_agent = Arc::clone(&self.user_agent_product);
         self.runtime.spawn(async move {
             let client = task_client;
             let request = task_request;
@@ -155,7 +162,7 @@ impl Fetch {
                 .method(&request.method)
                 .header(http::header::ACCEPT, request.accept_header_value())
                 .header(http::header::CONNECTION, "keep-alive")
-                .header(http::header::USER_AGENT, USER_AGENT_HEADER_VALUE)
+                .header(http::header::USER_AGENT, user_agent.as_ref())
                 .header("Sec-Fetch-Dest", request.destination.as_str())
                 .header("Sec-Fetch-Mode", request.mode.as_str())
             ;
@@ -224,7 +231,7 @@ impl Fetch {
     fn fetch_unknown_scheme_document(&self, request: Arc<Request>) -> FetchPromise {
         self.create_instantaneous_response(
             Arc::clone(&request),
-            Ok(Response::new_about(request, about::URL_SCHEME_UNKNOWN)),
+            Ok(Response::new_about(request, "Unknown URL scheme.")),
         )
     }
 

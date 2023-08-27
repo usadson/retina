@@ -3,10 +3,9 @@ name = "retina-fetch"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+description = "This crate implements the Fetch API, for the Retina browser, but can be used independently."
 
 [dependencies]
-retina-user-agent = { path = "../retina-user-agent" }
-
 futures-core = "*"
 
 tokio = { version = "*", features = [
