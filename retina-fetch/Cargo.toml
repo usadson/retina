@@ -8,29 +8,29 @@ homepage = "https://github.com/usadson/retina/tree/main/retina-fetch"
 repository.workspace = true
 
 [dependencies]
-futures-core = "*"
+futures-core = "0.3.28"
 
-tokio = { version = "*", features = [
+tokio = { version = "1.32", features = [
     "full" # TODO
 ] }
 
-tokio-util = { version = "*", features = [
+tokio-util = { version = "0.7.8", features = [
     "codec",
 ] }
 
-http = "*"
-hyper = { version = "*", features = [
+http = "0.2.9"
+hyper = { version = "0.14.27", features = [
     "client",
     "http1",
     "http2",
     "stream",
 ] }
 
-hyper-tls = "*"
-log = "*"
-mime = "*"
-strum = { version = "*", features = ["derive"] }
-url = "*"
+hyper-tls = "0.5.0"
+log = "0.4.2"
+mime = "0.3.17"
+strum = { version = "0.25", features = ["derive"] }
+url = "2.4.0"
 
 [dev-dependencies]
-rstest = "*"
+rstest = "0.18"
