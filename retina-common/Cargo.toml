@@ -3,7 +3,10 @@ name = "retina-common"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Common utilities for the Retina browser and its components"
 
 [dependencies]
-atomic_float = "*"
-tendril = "*"
+atomic_float = "0.1.0"
+tendril = "0.4.3"
