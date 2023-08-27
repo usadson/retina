@@ -4,6 +4,8 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 description = "This crate implements the Fetch API, for the Retina browser, but can be used independently."
+homepage = "https://github.com/usadson/retina/tree/main/retina-fetch"
+repository.workspace = true
 
 [dependencies]
 futures-core = "*"
@@ -27,7 +29,7 @@ hyper = { version = "*", features = [
 hyper-tls = "*"
 log = "*"
 mime = "*"
-strum = "*"
+strum = { version = "*", features = ["derive"] }
 url = "*"
 
 [dev-dependencies]

@@ -3615,7 +3615,6 @@ dependencies = [
  "hyper-tls",
  "log",
  "mime",
- "retina-user-agent",
  "rstest",
  "strum",
  "tokio",
