@@ -6,18 +6,25 @@
 /// [spec]: https://fetch.spec.whatwg.org/#concept-request-initiator
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub enum RequestInitiator {
+    /// `download`
     Download,
 
+    /// `imageset`
     ImageSet,
 
+    /// `manifest`
     Manifest,
 
+    /// `""`
     #[default]
     None,
 
+    /// `prefetch`
     Prefetch,
 
+    /// `prerender`
     Prerender,
 
+    /// `xslt`
     Xslt,
 }

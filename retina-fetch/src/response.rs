@@ -12,6 +12,7 @@ use crate::{Request, StatusCode};
 
 type Inner = hyper::Response<hyper::Body>;
 
+/// Represents the HTTP response to an [request][Request].
 #[derive(Debug)]
 pub struct Response {
     request: Arc<Request>,
@@ -40,6 +41,11 @@ impl Response {
         }
     }
 
+    /// Get the [`Content-Type`][spec] header, which specifies which [media type]
+    /// this response is represented with.
+    ///
+    /// [spec]: https://www.rfc-editor.org/rfc/rfc2046.html
+    /// [media type]: https://httpwg.org/specs/rfc9110.html#field.content-type
     pub fn content_type(&self) -> mime::Mime {
         let Some(content_type) = self.inner.headers().get(hyper::header::CONTENT_TYPE) else {
             return mime::APPLICATION_OCTET_STREAM;
@@ -52,6 +58,8 @@ impl Response {
         content_type.parse().unwrap_or(mime::APPLICATION_OCTET_STREAM)
     }
 
+    /// Gets the redirect location this response points to, if the response is
+    /// a redirection.
     pub fn redirect_location(&self) -> Option<&str> {
         if !self.status().is_redirection() {
             return None;
@@ -61,6 +69,8 @@ impl Response {
         location.to_str().ok()
     }
 
+    /// Gets the redirect location this response points to, if the response is
+    /// a redirection.
     pub fn redirect_url(&self) -> Option<Url> {
         let location = self.redirect_location()?;
         match url::Url::parse(location) {
@@ -72,6 +82,7 @@ impl Response {
         }
     }
 
+    /// Get the body of this response.
     pub async fn body(&mut self) -> Box<dyn BufRead + '_> {
         Box::new(hyper::body::aggregate(self.inner.body_mut()).await.unwrap().reader())
     }
@@ -87,14 +98,17 @@ impl Response {
         &self.request
     }
 
+    /// Check if this response is successful.
     pub fn ok(&self) -> bool {
         self.status().is_successful()
     }
 
+    /// Get the [StatusCode] of this response.
     pub fn status(&self) -> StatusCode {
         self.inner.status().into()
     }
 
+    /// Get the [URL][Url] this response was requested with.
     pub fn url(&self) -> &Url {
         &self.request.url
     }

@@ -1,6 +1,9 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+/// A convenient wrapper for the [HTTP Status Code][spec].
+///
+/// [spec]: https://httpwg.org/specs/rfc9110.html#status.codes
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct StatusCode(u16);
 
@@ -23,22 +26,27 @@ impl StatusCode {
         }
     }
 
+    /// Checks if the status code is of the _client error_ class, i.e. 4xx.
     pub fn is_client_error(&self) -> bool {
         self.class().is_client_error()
     }
 
+    /// Checks if the status code is of the _informational_ class, i.e. 1xx.
     pub fn is_informational(&self) -> bool {
         self.class().is_informational()
     }
 
+    /// Checks if the status code is of the _redirection_ class, i.e. 3xx.
     pub fn is_redirection(&self) -> bool {
         self.class().is_redirection()
     }
 
+    /// Checks if the status code is of the _server error_ class, i.e. 5xx.
     pub fn is_server_error(&self) -> bool {
         self.class().is_server_error()
     }
 
+    /// Checks if the status code is of the _successful_ class, i.e. 2xx.
     pub fn is_successful(&self) -> bool {
         self.class().is_successful()
     }
@@ -70,22 +78,27 @@ pub enum StatusCodeClass {
 }
 
 impl StatusCodeClass {
+    /// Checks if the status code is of the _client error_ class, i.e. 4xx.
     pub const fn is_client_error(&self) -> bool {
         matches!(self, StatusCodeClass::ClientError)
     }
 
+    /// Checks if the status code is of the _informational_ class, i.e. 1xx.
     pub const fn is_informational(&self) -> bool {
         matches!(self, StatusCodeClass::Informational)
     }
 
+    /// Checks if the status code is of the _redirection_ class, i.e. 3xx.
     pub const fn is_redirection(&self) -> bool {
         matches!(self, StatusCodeClass::Redirection)
     }
 
+    /// Checks if the status code is of the _server error_ class, i.e. 5xx.
     pub const fn is_server_error(&self) -> bool {
         matches!(self, StatusCodeClass::ServerError)
     }
 
+    /// Checks if the status code is of the _successful_ class, i.e. 2xx.
     pub const fn is_successful(&self) -> bool {
         matches!(self, StatusCodeClass::Successful)
     }

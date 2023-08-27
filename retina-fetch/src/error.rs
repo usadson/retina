@@ -5,9 +5,13 @@ use std::fmt::Display;
 
 use crate::FetchResponse;
 
+/// An error that occurred within the retina-fetch crate.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum InternalError {
+    /// An unknown error occurred within [hyper].
     HyperError,
+
+    /// The internal synchronization mechanisms failed.
     SynchronizationFault,
 }
 
@@ -17,9 +21,13 @@ impl Display for InternalError {
     }
 }
 
+/// An error that can occur within the library or network stack.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Error {
+    /// A network-related error.
     NetworkError(NetworkError),
+
+    /// An error internal to the retina-fetch crate.
     InternalError(InternalError),
 }
 
@@ -32,8 +40,10 @@ impl Display for Error {
 impl std::error::Error for Error {
 }
 
+/// A network error occurred whilst processing the request/response.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum NetworkError {
+    /// Some unknown error occurred.
     Generic,
 
     /// A `file://` URL was not found.

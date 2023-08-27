@@ -10,6 +10,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
 //! [spec]: https://fetch.spec.whatwg.org
 
+#![deny(missing_docs)]
+
 pub(crate) mod destination;
 pub(crate) mod error;
 pub(crate) mod initiator;
@@ -38,8 +40,12 @@ pub use url::{
     Url,
 };
 
+/// This type specifies what the [`Fetch::fetch()`][Fetch] API returns.
 pub type FetchResponse = Result<Response, Error>;
 
+/// Parse a page URL. This function is laxer than the regular
+/// [`Url::parse()`][Url] parser, since the user can omit certain elements
+/// (like the scheme).
 pub fn parse_page_url(input: &str) -> Result<Url, url::ParseError> {
     if input.len() > 3 && &input[1..3] == ":\\" {
         let url = format!("file:///{}", input.replace('\\', "/"));

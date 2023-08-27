@@ -26,6 +26,7 @@ pub struct Request {
 }
 
 impl Request {
+    /// Create a new [Request][https://fetch.spec.whatwg.org/#request-class].
     pub fn new(
         url: Url,
         initiator: RequestInitiator,
@@ -44,6 +45,10 @@ impl Request {
         }
     }
 
+    /// A helper to create a [Request][spec], specifically for Document
+    /// retrieval with navigation (i.e. top-level browser contexts).
+    ///
+    /// [spec]: https://fetch.spec.whatwg.org/#request-class
     pub fn get_document(url: Url, referrer: RequestReferrer) -> Self {
         Request {
             initiator: RequestInitiator::None,
@@ -68,6 +73,7 @@ impl Request {
         }
     }
 
+    /// Get the [Url] that this request should retrieve.
     pub fn url(&self) -> &Url {
         &self.url
     }

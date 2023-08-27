@@ -22,6 +22,9 @@ use crate::{
 type HyperConnector = hyper_tls::HttpsConnector<hyper::client::HttpConnector>;
 type HyperClient = hyper::client::Client<HyperConnector>;
 
+/// This struct contains the [Fetch] object, which can be used to fetch
+/// resources using the internet. This object can be safely shared across
+/// components and threads.
 #[derive(Clone, Debug)]
 pub struct Fetch {
     client: HyperClient,
@@ -41,6 +44,7 @@ impl Fetch {
         }
     }
 
+    /// Create a new [Fetch] object.
     pub fn new() -> Self {
         let connector = HyperConnector::new();
         let client = hyper::client::Client::builder().build::<_, hyper::Body>(connector);
@@ -60,6 +64,8 @@ impl Fetch {
         }
     }
 
+    /// Load the resource associated with the [`request`][Request]
+    /// asynchronously.
     pub fn fetch(&self, request: Request) -> FetchPromise {
         let request = Arc::new(request);
 
@@ -70,6 +76,8 @@ impl Fetch {
         }
     }
 
+    /// Fetch a document, given the [`url`][Url] and optionally a
+    /// [referrer][RequestReferrer].
     pub fn fetch_document(&self, url: Url, referrer: RequestReferrer) -> FetchPromise {
         if url.scheme() == "about" {
             return self.fetch_document_about(url);
@@ -82,6 +90,7 @@ impl Fetch {
         self.fetch(Request::get_document(url, referrer))
     }
 
+    /// Fetch a `about` document.
     fn fetch_document_about(&self, url: Url) -> FetchPromise {
         let body = match url.path() {
             // https://fetch.spec.whatwg.org/#scheme-fetch
@@ -98,6 +107,7 @@ impl Fetch {
         )
     }
 
+    /// Fetch a file from the filesystem.
     fn fetch_file(&self, request: Arc<Request>) -> FetchPromise {
         let (sender, receiver) = channel(1);
 
@@ -192,6 +202,7 @@ impl Fetch {
         }
     }
 
+    /// Handle a fetch to an unknown scheme.
     fn fetch_unknown_scheme(&self, request: Arc<Request>) -> FetchPromise {
         warn!("Unknown scheme: \"{}\" for URL: {}", request.url().scheme(), request.url().as_str());
         warn!("{:#?}", request.url());
