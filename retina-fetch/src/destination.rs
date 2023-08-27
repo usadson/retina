@@ -9,6 +9,7 @@ use strum::AsRefStr;
 /// [spec]: https://fetch.spec.whatwg.org/#concept-request-destination
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 #[derive(AsRefStr)]
+#[strum(serialize_all = "lowercase")]
 pub enum RequestDestination {
     /// HTML `<audio>`
     Audio,

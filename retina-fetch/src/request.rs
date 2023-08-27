@@ -8,7 +8,7 @@ use crate::{
     RequestDestination,
     RequestInitiator,
     RequestMode,
-    RequestReferrer, referrer,
+    RequestReferrer,
 };
 
 /// The [Request][spec] class.

@@ -10,6 +10,7 @@ use strum::AsRefStr;
 /// [cors]: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 #[derive(AsRefStr)]
+#[strum(serialize_all = "lowercase")]
 pub enum RequestMode {
     SameOrigin,
     Cors,

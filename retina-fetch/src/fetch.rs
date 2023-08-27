@@ -3,7 +3,6 @@
 
 use std::{sync::Arc, path::Path};
 
-use http::HeaderName;
 use log::{warn, trace};
 use retina_user_agent::{url_scheme::about, USER_AGENT_HEADER_VALUE};
 use tokio::{runtime::Runtime, sync::mpsc::channel};
