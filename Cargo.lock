@@ -3623,6 +3623,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "retina-file-viewer"
+version = "0.3.0"
+dependencies = [
+ "retina-common",
+ "retina-dom",
+ "retina-fetch",
+ "serde_json",
+]
+
+[[package]]
 name = "retina-gfx"
 version = "0.3.0"
 dependencies = [
@@ -3755,6 +3765,7 @@ dependencies = [
  "retina-debug",
  "retina-dom",
  "retina-fetch",
+ "retina-file-viewer",
  "retina-gfx",
  "retina-gfx-font",
  "retina-gfx-gui",

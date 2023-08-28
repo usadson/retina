@@ -1,0 +1,11 @@
+[package]
+name = "retina-file-viewer"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+retina-common = { path = "../retina-common" }
+retina-dom = { path = "../retina-dom" }
+retina-fetch = { path = "../retina-fetch" }
+serde_json = "*"
