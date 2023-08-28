@@ -1,6 +1,8 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+use std::ops::{DerefMut, Deref};
+
 use html5ever::{QualName, local_name};
 use retina_fetch::mime::{Mime, APPLICATION_OCTET_STREAM};
 
@@ -47,6 +49,20 @@ impl HtmlLinkElement {
             .map(|str| str.parse().ok())
             .flatten()
             .unwrap_or(APPLICATION_OCTET_STREAM)
+    }
+}
+
+impl Deref for HtmlLinkElement {
+    type Target = HtmlElement;
+
+    fn deref(&self) -> &Self::Target {
+        &self.superclass_html_element
+    }
+}
+
+impl DerefMut for HtmlLinkElement {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.superclass_html_element
     }
 }
 

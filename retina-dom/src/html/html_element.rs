@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 
 use html5ever::{QualName, local_name};
 use retina_common::DynamicSizeOf;
@@ -55,6 +55,12 @@ impl Deref for HtmlElement {
 
     fn deref(&self) -> &Self::Target {
         &self.element
+    }
+}
+
+impl DerefMut for HtmlElement {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.element
     }
 }
 
