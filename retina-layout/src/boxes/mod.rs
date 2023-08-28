@@ -199,6 +199,7 @@ impl LayoutBox {
 
     fn run_anonymous_layout_algorithm(&mut self, parent: &mut FormattingContext, text: StrTendril, hinting_options: TextHintingOptions) {
         self.line_box_fragments.clear();
+        let honor_forced_line_breaks = self.computed_style.white_space() == CssWhiteSpace::Pre;
 
         let max_width = parent.max_width;
 
@@ -223,11 +224,23 @@ impl LayoutBox {
             };
 
             let original_word = word;
-            let word = text.try_include_following_space(word).unwrap_or(word);
+            let mut word = word;
+            if self.computed_style.white_space().collapses() {
+                word = text.try_include_following_space(word).unwrap_or(word);
+            }
+
+            let is_forced_line_break = honor_forced_line_breaks && (word.contains('\n') || word.contains('\r'));
+
+            if is_forced_line_break {
+                let without_spaces = word.trim_matches(|c| c == '\n' || c == '\r');
+                word = without_spaces;
+            }
 
             let Some(fragment) = self.line_box_fragments.last_mut() else {
                 let word_size = font.calculate_size(self.font_size().value() as _, word, hinting_options);
-                debug_assert!(fragment_begin_index == 0);
+                if !honor_forced_line_breaks {
+                    debug_assert!(fragment_begin_index == 0);
+                }
 
                 self.line_box_fragments.push(LineBoxFragment {
                     position: self.dimensions.content_position,
@@ -253,7 +266,12 @@ impl LayoutBox {
             let fragment_size = font.calculate_size(font_size, &fragment_text, hinting_options).cast();
 
             // Does this word already fit on the last fragment?
-            if !is_word_emoji && !was_last_word_emoji && (max_width.is_none() || max_width.is_some_and(|max_width| fragment_size.width < max_width.value())) {
+            let is_wrap_line_break = self.computed_style.white_space() != CssWhiteSpace::Pre
+                && !is_word_emoji
+                && !was_last_word_emoji
+                && (max_width.is_none() || max_width.is_some_and(|max_width| fragment_size.width < max_width.value()));
+
+            if !is_forced_line_break && !is_wrap_line_break {
                 fragment.size = fragment_size;
                 fragment.text = fragment_text;
                 continue;
@@ -264,11 +282,17 @@ impl LayoutBox {
             position.y += self.line_box_fragments.last().unwrap().size.height;
 
             fragment_begin_index += self.line_box_fragments.last().unwrap().text.len32();
+            if is_forced_line_break {
+                fragment_begin_index += original_word.len() as u32;
+            }
 
             let text = match text.try_subtendril(fragment_begin_index, word.len() as u32)  {
                 Ok(text) => text,
                 Err(_) => match text.try_subtendril(fragment_begin_index, original_word.len() as u32) {
-                    Ok(text) => text,
+                    Ok(text) => {
+                        warn!("Falling back to original_word for subtendrilling");
+                        text
+                    }
                     Err(e) => {
                         warn!("Failed to subtendril: {e:?}");
                         warn!("  text.len={}", text.len());
