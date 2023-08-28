@@ -179,7 +179,9 @@ impl PaintInvoker {
         let Ok(graphics) = image_data.graphics().read() else { return };
 
         let Some(texture) = graphics.downcast_ref::<Texture>() else {
-            log::warn!("background-image Graphics wasn't an instance of `Texture`, state: {:?}", image_data.state());
+            if !graphics.is::<()>() {
+                log::warn!("background-image Graphics wasn't an instance of `Texture`, state: {:?}", image_data.state());
+            }
             return;
         };
 
@@ -261,7 +263,9 @@ impl PaintInvoker {
         };
 
         let Some(texture) = graphics.downcast_ref::<Texture>() else {
-            log::warn!("Graphics wasn't an instance of `Texture`");
+            if !graphics.is::<()>() {
+                log::warn!("Graphics wasn't an instance of `Texture`: {:?}", &graphics);
+            }
             return;
         };
 
