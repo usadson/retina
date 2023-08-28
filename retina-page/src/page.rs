@@ -724,9 +724,14 @@ impl Page {
 
         self.queued_redirect_url = document.redirect_url();
 
-        let mut reader = document.body().await;
+        let document = match retina_file_viewer::transform(&mut document).await {
+            Some(document) => document,
+            None => {
+                let mut reader = document.body().await;
 
-        let document = retina_dom::Parser::parse_with_reader(&mut reader);
+                retina_dom::Parser::parse_with_reader(&mut reader)
+            }
+        };
 
         self.load_page_with_document(document)
     }

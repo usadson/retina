@@ -10,6 +10,7 @@ retina-compositor = { path = "../retina-compositor" }
 retina-debug = { path = "../retina-debug" }
 retina-dom = { path = "../retina-dom" }
 retina-fetch = { path = "../retina-fetch" }
+retina-file-viewer = { path = "../retina-file-viewer" }
 retina-gfx = { path = "../retina-gfx" }
 retina-gfx-font = { path = "../retina-gfx-font" }
 retina-gfx-gui = { path = "../retina-gfx-gui" }
