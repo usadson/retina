@@ -205,7 +205,7 @@ impl LayoutBox {
         use unicode_segmentation::UnicodeSegmentation;
         let mut was_last_word_emoji = false;
         for word in text.split_word_bounds() {
-            if word.chars().all(char::is_whitespace) {
+            if self.computed_style.white_space().collapses() && word.chars().all(char::is_whitespace) {
                 initial_begin_index += word.len() as u32;
                 continue;
             }
