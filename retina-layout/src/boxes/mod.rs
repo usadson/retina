@@ -24,7 +24,7 @@ use retina_common::{
 };
 use retina_dom::{ImageData, HtmlElementKind};
 use retina_gfx_font::{FontHandle, TextHintingOptions};
-use retina_style::{CssReferencePixels, CssLength};
+use retina_style::{CssReferencePixels, CssLength, CssWhiteSpace};
 
 use crate::{
     ActualValueMap,
@@ -165,6 +165,10 @@ impl LayoutBox {
         let mut text = Cow::Borrowed(text.data_as_str());
         if self.computed_style.white_space().collapses() {
             text = crate::text::collapse_white_space(text, parent.whitespace_state);
+        }
+
+        if self.computed_style.white_space() == CssWhiteSpace::Pre {
+            text = Cow::Owned(text.replace('\t', "    "));
         }
 
         let mut parent_node = None;
