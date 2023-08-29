@@ -267,9 +267,10 @@ impl LayoutBox {
 
             // Does this word already fit on the last fragment?
             let is_wrap_line_break = self.computed_style.white_space() != CssWhiteSpace::Pre
-                && !is_word_emoji
-                && !was_last_word_emoji
-                && max_width.is_some_and(|max_width| fragment_size.width < max_width.value());
+                && (is_word_emoji
+                    || was_last_word_emoji
+                    || max_width.is_some_and(|max_width| fragment_size.width < max_width.value())
+                );
 
             if !is_forced_line_break && !is_wrap_line_break {
                 fragment.size = fragment_size;
