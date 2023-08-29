@@ -206,6 +206,7 @@ impl LayoutBox {
         let font_size = self.font_size().value() as f32;
         let mut fragment_begin_index: u32 = 0;
         let mut initial_begin_index: u32 = 0;
+        let mut line_break_reason;
 
         use unicode_segmentation::UnicodeSegmentation;
         let mut was_last_word_emoji = false;
@@ -278,12 +279,33 @@ impl LayoutBox {
                 continue;
             }
 
+            if is_word_emoji || was_last_word_emoji {
+                line_break_reason = LineBreakReason::Emoji;
+            } else {
+                line_break_reason = LineBreakReason::Normal;
+            }
+
             // No, create a new line box
-            let mut position = self.line_box_fragments.last().unwrap().position;
-            position.y += self.line_box_fragments.last().unwrap().size.height;
+            let position = {
+                let last_fragment = self.line_box_fragments.last().unwrap();
+                let mut position = last_fragment.position;
+
+                match line_break_reason {
+                    LineBreakReason::Normal => {
+                        position.y += last_fragment.size.height;
+                    }
+                    LineBreakReason::Emoji => {
+                        position.x += last_fragment.size.width;
+                    }
+                }
+
+                position
+            };
 
             fragment_begin_index += self.line_box_fragments.last().unwrap().text.len32();
             if is_forced_line_break {
+                // The current word is a forced line break, so we must skip
+                // those characters to avoid rendering tofu.
                 fragment_begin_index += original_word.len() as u32;
             }
 
@@ -319,9 +341,12 @@ impl LayoutBox {
     }
 
     fn run_anonymous_layout_calculate_size(&mut self) {
-        let max_width = self.line_box_fragments.iter()
-            .map(|width| width.size.width)
-            .max_by(|a, b| a.total_cmp(b))
+        let min_x = self.line_box_fragments.first()
+            .map(|fragment| fragment.position.x)
+            .unwrap_or_default();
+
+        let max_x = self.line_box_fragments.last()
+            .map(|fragment| fragment.position.x + fragment.size.width)
             .unwrap_or_default();
 
         let min_y = self.line_box_fragments.first()
@@ -332,7 +357,7 @@ impl LayoutBox {
             .map(|fragment| fragment.position.y + fragment.size.height)
             .unwrap_or_default();
 
-        self.dimensions.width = CssReferencePixels::new(max_width);
+        self.dimensions.width = CssReferencePixels::new(max_x - min_x);
         self.dimensions.height = CssReferencePixels::new(max_y - min_y);
     }
 
@@ -448,4 +473,9 @@ impl DynamicSizeOf for LayoutBox {
 
         size
     }
+}
+
+pub enum LineBreakReason {
+    Normal,
+    Emoji,
 }
