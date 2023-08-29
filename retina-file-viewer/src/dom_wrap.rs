@@ -44,6 +44,7 @@ fn wrap<N>(node: &Arc<NodeKind>, nodes: N)
     }
 }
 
+#[allow(dead_code)]
 pub(crate) fn wrap_in_element_with_style<S, N>(style: S, nodes: N) -> Node
         where S: Into<StrTendril>,
             N: IntoIterator<Item = Node> {

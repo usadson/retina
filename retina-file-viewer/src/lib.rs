@@ -3,8 +3,8 @@
 
 pub(crate) mod dom_wrap;
 
-use dom_wrap::{wrap_in_document_html_body, wrap_in_element_with_style};
-use retina_dom::{Node, NodeKind, Text};
+use dom_wrap::wrap_in_document_html_body;
+use retina_dom::{Node, NodeKind, Text, HtmlLinkElement, qual_name, HtmlElementKind};
 use retina_fetch::{Response, mime};
 
 /// Transform the given HTTP response to a DOM representation, if applicable
@@ -30,13 +30,16 @@ async fn transform_json(response: &mut Response) -> Option<Node> {
     let json_value: serde_json::Value = serde_json::from_reader(reader).unwrap();
     let pretty_string = serde_json::to_string_pretty(&json_value).unwrap();
 
-    let mut nodes = Vec::new();
+    let mut link = HtmlLinkElement::new(qual_name("link"));
+    let style_sheet_src = format!("file:///{}/../resources/style/file-viewer/json.css", env!("CARGO_MANIFEST_DIR"));
+    dbg!(&style_sheet_src);
+    link.attributes_mut().set("rel", "stylesheet".into());
+    link.attributes_mut().set("href", style_sheet_src.into());
 
-    // for line in pretty_string.lines() {
-        let text = Text::new(pretty_string.into());
-        let node = Node::new(NodeKind::Text(text));
-        nodes.push(wrap_in_element_with_style("white-space: pre; display: block; color: blue", [node]));
-    // }
-
-    Some(wrap_in_document_html_body(nodes))
+    Some(wrap_in_document_html_body([
+        Node::new(NodeKind::HtmlElement(HtmlElementKind::Link(link))),
+        Node::new(NodeKind::Text(
+            Text::new(pretty_string.into())
+        ))
+    ]))
 }
