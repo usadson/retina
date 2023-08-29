@@ -24,7 +24,7 @@ use retina_common::{
 };
 use retina_dom::{ImageData, HtmlElementKind};
 use retina_gfx_font::{FontHandle, TextHintingOptions};
-use retina_style::{CssReferencePixels, CssLength, CssWhiteSpace};
+use retina_style::{CssDecimal, CssReferencePixels, CssLength, CssWhiteSpace};
 
 use crate::{
     ActualValueMap,
@@ -341,12 +341,14 @@ impl LayoutBox {
     }
 
     fn run_anonymous_layout_calculate_size(&mut self) {
-        let min_x = self.line_box_fragments.first()
+        let min_x = self.line_box_fragments.iter()
             .map(|fragment| fragment.position.x)
+            .reduce(CssDecimal::min)
             .unwrap_or_default();
 
-        let max_x = self.line_box_fragments.last()
+        let max_x = self.line_box_fragments.iter()
             .map(|fragment| fragment.position.x + fragment.size.width)
+            .reduce(CssDecimal::max)
             .unwrap_or_default();
 
         let min_y = self.line_box_fragments.first()
