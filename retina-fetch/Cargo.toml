@@ -32,5 +32,8 @@ mime = "0.3.17"
 strum = { version = "0.25", features = ["derive"] }
 url = "2.4.0"
 
+flate2 = "1"
+brotli = "3"
+
 [dev-dependencies]
 rstest = "0.18"

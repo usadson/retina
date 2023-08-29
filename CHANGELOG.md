@@ -40,6 +40,7 @@
 2. Provide standard __HTTP__ headers with fetch, e.g. [`Accept`](https://httpwg.org/specs/rfc9110.html#field.accept), [`User-Agent`](https://httpwg.org/specs/rfc9110.html#field.user-agent)
 3. Provide [__Fetch Metadata__](https://w3c.github.io/webappsec-fetch-metadata/) __HTTP__ headers, e.g. [`Sec-Fetch-Dest`](https://w3c.github.io/webappsec-fetch-metadata/#sec-fetch-dest-header), [`Sec-Fetch-Mode`](https://w3c.github.io/webappsec-fetch-metadata/#sec-fetch-mode-header)
 4. Requests are now possibly associated with a _referrer_ ([__HTTP__](https://httpwg.org/specs/rfc9110.html#field.referer), [__Fetch__](https://fetch.spec.whatwg.org/#concept-request-referrer)), which [makes some sites work](https://twitter.com/awesomekling/status/1695003722613432764) load their fonts correctly.
+5. [`Content-Encoding`](https://httpwg.org/specs/rfc9110.html#field.content-encoding) is now supported (`br`, `gzip`, `deflate`)
 
 ### General
 1. Added a crash screen, displaying where the error in source code occurred

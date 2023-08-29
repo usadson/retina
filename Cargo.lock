@@ -3609,6 +3609,8 @@ dependencies = [
 name = "retina-fetch"
 version = "0.3.0"
 dependencies = [
+ "brotli",
+ "flate2",
  "futures-core",
  "http",
  "hyper",

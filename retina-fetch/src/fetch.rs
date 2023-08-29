@@ -163,6 +163,7 @@ impl Fetch {
                 .header(http::header::ACCEPT, request.accept_header_value())
                 .header(http::header::CONNECTION, "keep-alive")
                 .header(http::header::USER_AGENT, user_agent.as_ref())
+                .header(http::header::ACCEPT_ENCODING, "gzip, deflate, br")
                 .header("Sec-Fetch-Dest", request.destination.as_str())
                 .header("Sec-Fetch-Mode", request.mode.as_str())
             ;

@@ -1,10 +1,10 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::{sync::Arc, io::BufRead};
+use std::{sync::Arc, io::{BufRead, Read}};
 
 use futures_core::Stream;
-use hyper::body::{Buf, Bytes};
+use hyper::body::{Bytes, Buf};
 use log::error;
 use url::Url;
 
@@ -84,13 +84,61 @@ impl Response {
 
     /// Get the body of this response.
     pub async fn body(&mut self) -> Box<dyn BufRead + '_> {
-        Box::new(hyper::body::aggregate(self.inner.body_mut()).await.unwrap().reader())
+        let Some(encoding) = self.encoding() else {
+            return Box::new(hyper::body::aggregate(self.inner.body_mut()).await.unwrap().reader())
+        };
+
+        Box::new(std::io::Cursor::new(self.body_bytes_inner(Some(encoding)).await))
     }
 
     /// TODO: this function is not needed if the BufRead can be somehow
     /// [`Seek`][std::io::Seek].
     pub async fn body_bytes(&mut self) -> Bytes {
-        hyper::body::to_bytes(self.inner.body_mut()).await.unwrap()
+        self.body_bytes_inner(self.encoding()).await
+    }
+
+    async fn body_bytes_inner(&mut self, encoding: Option<Encoding>) -> Bytes {
+        let bytes = hyper::body::to_bytes(self.inner.body_mut()).await.unwrap();
+        let Some(encoding) = encoding else {
+            return bytes;
+        };
+
+        let mut buf = Vec::new();
+
+        match encoding {
+            Encoding::Brotli => {
+                brotli::Decompressor::new(bytes.as_ref(), 2048)
+                    .read_to_end(&mut buf)
+                    .unwrap();
+            }
+
+            Encoding::Deflate => {
+                flate2::bufread::DeflateDecoder::new(bytes.as_ref())
+                    .read_to_end(&mut buf)
+                    .unwrap();
+            }
+
+            Encoding::Gzip => {
+                flate2::bufread::GzDecoder::new(bytes.as_ref())
+                    .read_to_end(&mut buf)
+                    .unwrap();
+            }
+        }
+
+        Bytes::copy_from_slice(&buf)
+    }
+
+    fn encoding(&self) -> Option<Encoding> {
+        let encoding = self.inner.headers().get(http::header::CONTENT_ENCODING)?;
+        if *encoding == http::HeaderValue::from_static("br") {
+            Some(Encoding::Brotli)
+        } else if *encoding == http::HeaderValue::from_static("deflate") {
+            Some(Encoding::Deflate)
+        } else if *encoding == http::HeaderValue::from_static("gzip") {
+            Some(Encoding::Gzip)
+        } else {
+            None
+        }
     }
 
     /// Get the [`Request`] that created this [`Response`].
@@ -119,4 +167,11 @@ impl From<(Arc<Request>, Inner)> for Response {
         let (request, inner) = value;
         Self { request, inner }
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+enum Encoding {
+    Brotli,
+    Deflate,
+    Gzip,
 }
