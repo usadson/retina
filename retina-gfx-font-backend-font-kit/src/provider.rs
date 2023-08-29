@@ -111,7 +111,7 @@ impl FontProvider {
         });
     }
 
-    fn load_from_file_impl(&self, path: &Path, descriptor: FontDescriptor) -> bool {
+    fn load_from_file_impl(&self, path: &Path, descriptor: FontDescriptor, font_index: u32) -> bool {
         let mut file = std::fs::File::open(path)
             .expect(&format!("failed to load file from path: {}", path.display()));
 
@@ -119,7 +119,7 @@ impl FontProvider {
         file.read_to_end(&mut data)
             .expect(&format!("failed to load file from path: {}", path.display()));
 
-        self.load(descriptor, data)
+        self.load(descriptor, data, font_index)
     }
 
     fn load_from_font_kit_handle(&self, handle: font_kit::handle::Handle, descriptor: FontDescriptor) -> bool {
@@ -127,12 +127,12 @@ impl FontProvider {
 
         match handle {
             Handle::Memory { bytes, font_index } => {
-                _ = font_index;
-                self.load(descriptor, Vec::clone(&bytes))
+                println!("load_from_font_kit_handle, font_index: {font_index}");
+                self.load(descriptor, Vec::clone(&bytes), font_index)
             }
             Handle::Path { path, font_index } => {
-                _ = font_index;
-                self.load_from_file(LoadTime::Now, &path, descriptor)
+                println!("load_from_font_kit_handle, font_index: {font_index}");
+                self.load_from_file(LoadTime::Now, &path, descriptor, font_index)
             }
         }
     }
@@ -159,8 +159,8 @@ impl FontProviderBackend for FontProvider {
         None
     }
 
-    fn load(&self, descriptor: FontDescriptor, data: Vec<u8>) -> bool {
-        let font = match font_kit::font::Font::from_bytes(Arc::new(data), 0) {
+    fn load(&self, descriptor: FontDescriptor, data: Vec<u8>, font_index: u32) -> bool {
+        let font = match font_kit::font::Font::from_bytes(Arc::new(data), font_index) {
             Ok(font) => font,
             Err(e) => {
                 error!("Failed to load font ({descriptor:?}): {e}");
@@ -228,19 +228,19 @@ impl FontProviderBackend for FontProvider {
         });
     }
 
-    fn load_from_file(&self, load_time: LoadTime, path: &Path, descriptor: FontDescriptor) -> bool {
+    fn load_from_file(&self, load_time: LoadTime, path: &Path, descriptor: FontDescriptor, font_index: u32) -> bool {
         match load_time {
             LoadTime::Background => {
                 let provider = self.clone();
                 let path = path.to_owned();
                 std::thread::spawn(move || {
-                    provider.load_from_file_impl(&path, descriptor);
+                    provider.load_from_file_impl(&path, descriptor, font_index);
                 });
                 true
             }
 
             LoadTime::Now => {
-                self.load_from_file_impl(path, descriptor)
+                self.load_from_file_impl(path, descriptor, font_index)
             }
         }
     }

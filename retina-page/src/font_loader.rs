@@ -326,6 +326,9 @@ fn load_remote_font(
     };
 
     tokio::task::spawn(async move {
+        // TODO!
+        let font_index = 0u32;
+
         for src in sources {
             match src {
                 CssFontFaceSrc::WebFont { url, format } => {
@@ -371,7 +374,7 @@ fn load_remote_font(
                         CssFontFaceFormat::Truetype | CssFontFaceFormat::Opentype => {
                             let mut data = Vec::new();
                             response.body().await.read_to_end(&mut data).unwrap();
-                            if font_provider.load(descriptor.clone(), data) {
+                            if font_provider.load(descriptor.clone(), data, font_index) {
                                 _ = page_task_message_sender.send(PageTaskMessage::FontLoadResult {
                                     descriptor,
                                     state: FontState::Loaded,
@@ -394,7 +397,7 @@ fn load_remote_font(
 
                             rs_woff::woff2otf(&mut std::io::Cursor::new(input), &mut output).unwrap();
 
-                            if font_provider.load(descriptor.clone(), output) {
+                            if font_provider.load(descriptor.clone(), output, font_index) {
                                 _ = page_task_message_sender.send(PageTaskMessage::FontLoadResult {
                                     descriptor,
                                     state: FontState::Loaded,
@@ -415,7 +418,7 @@ fn load_remote_font(
                                 }
                             };
 
-                            if font_provider.load(descriptor.clone(), font_data) {
+                            if font_provider.load(descriptor.clone(), font_data, font_index) {
                                 _ = page_task_message_sender.send(PageTaskMessage::FontLoadResult {
                                     descriptor,
                                     state: FontState::Loaded,

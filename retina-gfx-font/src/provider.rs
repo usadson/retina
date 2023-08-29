@@ -32,8 +32,8 @@ impl FontProvider {
     }
 
     #[inline]
-    pub fn load(&self, descriptor: FontDescriptor, data: Vec<u8>) -> bool {
-        self.backend.load(descriptor, data)
+    pub fn load(&self, descriptor: FontDescriptor, data: Vec<u8>, font_index: u32) -> bool {
+        self.backend.load(descriptor, data, font_index)
     }
 
     #[inline]
@@ -42,8 +42,8 @@ impl FontProvider {
     }
 
     #[inline]
-    pub fn load_from_file(&self, load_time: LoadTime, path: &Path, descriptor: FontDescriptor) -> bool {
-        self.backend.load_from_file(load_time, path, descriptor)
+    pub fn load_from_file(&self, load_time: LoadTime, path: &Path, descriptor: FontDescriptor, font_index: u32) -> bool {
+        self.backend.load_from_file(load_time, path, descriptor, font_index)
     }
 
     #[inline]
@@ -54,8 +54,8 @@ impl FontProvider {
 
 pub trait FontProviderBackend: Send + Sync {
     fn get(&self, descriptor: &FontDescriptor) -> Option<FontHandle>;
-    fn load(&self, descriptor: FontDescriptor, data: Vec<u8>) -> bool;
+    fn load(&self, descriptor: FontDescriptor, data: Vec<u8>, font_index: u32) -> bool;
     fn load_defaults(&self);
     fn load_from_system(&self, descriptor: FontDescriptor) -> bool;
-    fn load_from_file(&self, load_time: LoadTime, path: &Path, descriptor: FontDescriptor) -> bool;
+    fn load_from_file(&self, load_time: LoadTime, path: &Path, descriptor: FontDescriptor, font_index: u32) -> bool;
 }
