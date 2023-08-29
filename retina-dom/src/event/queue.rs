@@ -13,13 +13,17 @@ pub struct EventQueue {
 
 impl EventQueue {
     pub fn new() -> Self {
-        Self {
+        let s = Self {
             inner: Arc::new(Mutex::new(
                 EventQueueInner {
 
                 }
             ))
-        }
+        };
+
+        _ = s.inner.as_ref();
+
+        s
     }
 }
 
