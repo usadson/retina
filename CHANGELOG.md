@@ -60,6 +60,7 @@
 15. Fix rare crash when GIFs have 0 frames
 16. Avoiding redraws for GIFs with only one frame (static image)
 17. Added a special JSON translator that creates a special DOM with pretty-printed JSON output
+18. Fixed crash in `DocumentWrapper` which prevented some pages with `<!-- comments -->` to load.
 
 
 ## 0.2.0 - Released 2023-08-05
