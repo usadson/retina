@@ -127,11 +127,9 @@ impl FontProvider {
 
         match handle {
             Handle::Memory { bytes, font_index } => {
-                println!("load_from_font_kit_handle, font_index: {font_index}");
                 self.load(descriptor, Vec::clone(&bytes), font_index)
             }
             Handle::Path { path, font_index } => {
-                println!("load_from_font_kit_handle, font_index: {font_index}");
                 self.load_from_file(LoadTime::Now, &path, descriptor, font_index)
             }
         }
