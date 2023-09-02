@@ -172,3 +172,38 @@ h3 { margin-block-start: 1.00em; margin-block-end: 1.00em; font-size: 1.17em; fo
 h4 { margin-block-start: 1.33em; margin-block-end: 1.33em; font-size: 1.00em; font-weight: bold; }
 h5 { margin-block-start: 1.67em; margin-block-end: 1.67em; font-size: 0.83em; font-weight: bold; }
 h6 { margin-block-start: 2.33em; margin-block-end: 2.33em; font-size: 0.67em; font-weight: bold; }
+
+/* =========================================== */
+/*                                             */
+/*                RETINA CUSTOM                */
+/*                                             */
+/* =========================================== */
+input,
+button {
+  padding: 2px;
+  display: inline;
+  border: 2px solid gray;
+  background-color: white;
+}
+
+input[type=text] {
+  width: 6em;
+}
+
+input[type=radio],
+input[type=checkbox] {
+  width: .8em;
+  height: .8em;
+}
+
+input[type=radio][checked],
+input[type=radio][checked] {
+  background-color: black;
+}
+
+button, input[type=submit],
+input[type=button] {
+  padding: .2em .5em;
+  cursor: pointer;
+  background-color: #E9E9E9;
+}
