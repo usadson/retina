@@ -8,6 +8,11 @@ use retina_style::CssTextTransform;
 
 use crate::formatting_context::FormattingContextWhitespaceState;
 
+mod char_properties;
+mod uts51;
+
+pub(self) use char_properties::CharExt;
+
 pub fn collapse_white_space<'str>(
     input: Cow<'str, str>,
     whitespace_state: FormattingContextWhitespaceState,
@@ -42,9 +47,9 @@ pub fn collapse_white_space<'str>(
 /// * [UTF-8 to Code Points Converter](https://onlineutf8tools.com/convert-utf8-to-code-points)
 ///   might be useful for dissecting text to find out why something does or
 ///   doesn't work.
+#[inline]
 pub fn is_emoji(value: &str) -> bool {
-    use unicode_properties::UnicodeEmoji;
-    value.chars().all(|c| c.is_emoji_char_or_emoji_component())
+    uts51::is_emoji_sequence(value)
 }
 
 pub fn transform<'str>(
@@ -99,9 +104,10 @@ mod tests {
     #[rstest]
     #[case("❤️", true)] // U+2764 U+FF0F
     #[case("👩🏼‍💻", true)] // U+1F469 U+1F3FC U+200D U+1F4BB
-    #[case("Hello, world!", false)]
+    #[case("🇳🇱", true)]
     #[case("اَلْعَرَبِيَّةُ", false)]
     #[case("4.0", false)]
+    #[case("100", false)]
     #[case("Hello, world!", false)]
     fn test_is_emoji(#[case] input: &str, #[case] should_be: bool) {
         if super::is_emoji(input) == should_be {

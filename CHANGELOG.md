@@ -68,6 +68,7 @@
 16. Avoiding redraws for GIFs with only one frame (static image)
 17. Added a special JSON translator that creates a special DOM with pretty-printed JSON output
 18. Fixed crash in `DocumentWrapper` which prevented some pages with `<!-- comments -->` to load.
+19. Implemented proper support for [Unicode UTS #51](https://www.unicode.org/reports/tr51/proposed.html). This fixed another emoji sequence bug, where a grapheme of only `Emoji_Component`s would get recognized as emoji, e.g. “100”
 
 
 ## 0.2.0 - Released 2023-08-05
