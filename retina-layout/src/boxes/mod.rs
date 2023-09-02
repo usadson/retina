@@ -481,6 +481,7 @@ impl DynamicSizeOf for LayoutBox {
     }
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum LineBreakReason {
     Normal,
     Emoji,
