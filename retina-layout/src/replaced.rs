@@ -13,20 +13,14 @@ pub(crate) enum ReplacedElementType {
 
 impl ReplacedElementType {
     pub fn detect(node: &Node) -> Option<Self> {
-        println!("Detecting {:?}", node.to_short_dumpable());
         let element = node.as_html_element_kind()?;
-        println!("    + Is HTML element");
         if *element.as_dom_element().qualified_name() == qual_name("button") {
-            println!("    > Is <button>");
             return Some(Self::Button);
         }
 
         if *element.as_dom_element().qualified_name().local != qual_name("input").local {
-            println!("    x Is not <input>");
             return None;
         }
-
-        println!("  + Is <input>");
 
         let ty = element.as_dom_element().attributes().find_by_str("type").unwrap_or("text");
         match ty {
