@@ -82,6 +82,7 @@ impl<'bx> InlineFormattingContext<'bx> {
         &mut self,
         child: &mut LayoutBox,
     ) {
+        child.dimensions = child.actual_value_map.dimensions;
         child.dimensions.set_margin_position(Point2D::new(
             self.state.content_position_origin.x + self.state.x_offset,
             self.state.content_position_origin.y,

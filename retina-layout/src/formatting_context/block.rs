@@ -50,6 +50,7 @@ impl<'bx> BlockFormattingContext<'bx> {
         let content_position_origin = self.layout_box().dimensions.content_position;
 
         for child in &mut children {
+            child.dimensions = child.actual_value_map.dimensions;
             child.dimensions.set_margin_position(
                 Point2D::new(
                     content_position_origin.x,

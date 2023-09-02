@@ -384,6 +384,10 @@ impl LayoutBox {
             return;
         }
 
+        if parent.is_none() {
+            self.dimensions = self.actual_value_map.dimensions;
+        }
+
         if self.run_replaced_layout() {
             return;
         }

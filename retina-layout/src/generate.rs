@@ -215,6 +215,7 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
             },
             text_hinting_options: self.convert_text_hinting_options(computed_style),
             text_color,
+            dimensions: Default::default(),
         }
     }
 
@@ -428,7 +429,8 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
 
         if node.is_text() {
             layout_box.kind = LayoutBoxKind::Anonymous;
-            layout_box.dimensions = self.calculate_dimensions_for_inline_flow(layout_box.computed_style(), parent, font_size);
+            layout_box.actual_value_map.dimensions = self.calculate_dimensions_for_inline_flow(layout_box.computed_style(), parent, font_size);
+            layout_box.dimensions = layout_box.actual_value_map.dimensions;
             return Some(layout_box);
         }
 
@@ -438,14 +440,14 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
             // `display: inline`
             CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Inline, .. } |
             CssDisplay::Normal { inside: CssDisplayInside::FlowRoot, outside: CssDisplayOutside::Inline, .. } => {
-                layout_box.dimensions = self.calculate_dimensions_for_inline_flow(layout_box.computed_style(), parent, font_size);
+                layout_box.actual_value_map.dimensions = self.calculate_dimensions_for_inline_flow(layout_box.computed_style(), parent, font_size);
                 layout_box.formatting_context = FormattingContextKind::Inline;
                 layout_box
             }
 
             CssDisplay::Normal { inside: CssDisplayInside::Flow, outside: CssDisplayOutside::Block, .. } |
             CssDisplay::Normal { inside: CssDisplayInside::FlowRoot, outside: CssDisplayOutside::Block, .. } => {
-                layout_box.dimensions = self.calculate_dimensions_for_block_flow(layout_box.computed_style(), parent, font_size);
+                layout_box.actual_value_map.dimensions = self.calculate_dimensions_for_block_flow(layout_box.computed_style(), parent, font_size);
                 layout_box.formatting_context = FormattingContextKind::Block;
                 layout_box
             }
@@ -458,6 +460,8 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
                 return None;
             }
         };
+
+        layout_box.dimensions = layout_box.actual_value_map.dimensions;
 
         if let Some(CssImage::Url(background_image_url)) = layout_box.computed_style.background_image.clone() {
             match Url::options().base_url(Some(&self.document_url)).parse(&background_image_url) {
@@ -511,10 +515,13 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
 
         let font_size = self.resolve_length(default_reference_pixels, default_reference_pixels, computed_style.font_size(), &computed_style);
 
+        let dimensions = self.calculate_dimensions_for_initial_containing_block();
+
         let actual_value_map = ActualValueMap {
             text_color: Color::BLACK,
             background_color: Color::WHITE,
             text_hinting_options: TextHintingOptions::default(),
+            dimensions,
         };
 
         LayoutBox::new(
@@ -523,7 +530,7 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
             root,
             computed_style,
             actual_value_map,
-            self.calculate_dimensions_for_initial_containing_block(),
+            dimensions,
             font,
             font_emoji,
             font_size
