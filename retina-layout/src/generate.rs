@@ -549,9 +549,21 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
             }
 
             ReplacedElementType::InputButton | ReplacedElementType::InputText => {
-                layout_box.node.as_dom_element()
+                let value = layout_box.node.as_dom_element()
                     .and_then(|element| element.attributes().find_by_str_as_tendril("value"))
-                    .unwrap_or_default()
+                    .unwrap_or_default();
+
+                if value.is_empty() {
+                    let placeholder = layout_box.node.as_dom_element()
+                        .and_then(|element| element.attributes().find_by_str_as_tendril("placeholder"));
+                    if let Some(placeholder) = placeholder {
+                        placeholder
+                    } else {
+                        value
+                    }
+                } else {
+                    value
+                }
             }
         };
 

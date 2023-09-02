@@ -32,6 +32,7 @@
 23. Implemented styles for `<input type="text">`, `<input type="checkbox">`, `<input type="radio">` and buttons.
 24. Support pseudo class [`:checked`](https://drafts.csswg.org/selectors/#checked)
 25. Support pseudo class [`:placeholder-shown`](https://drafts.csswg.org/selectors/#placeholder-shown)
+26. Display placeholder if `value` is empty
 
 ### Performance improvements
 1. `ColorMaterialRenderer` and `TextureMaterialRenderer` are now globally shared instead of per `Artwork`, which previously made the creation time of tiles significantly slower.
