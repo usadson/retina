@@ -205,9 +205,14 @@ input[type=radio]:checked {
   background-color: black;
 }
 
-button, input[type=submit],
+button,
+input[type=submit],
 input[type=button] {
   padding: .2em .5em;
   cursor: pointer;
   background-color: #E9E9E9;
+}
+
+input[type=hidden] {
+  display: none;
 }
