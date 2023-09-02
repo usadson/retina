@@ -18,6 +18,7 @@ mod actual_values;
 mod boxes;
 mod formatting_context;
 mod generate;
+pub(crate) mod replaced;
 pub(crate) mod text;
 
 use retina_gfx_font::FontStyle;

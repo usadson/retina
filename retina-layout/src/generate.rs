@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use euclid::default::Point2D;
 use log::warn;
 use retina_common::Color;
-use retina_dom::{Node, ImageData};
+use retina_dom::{Node, NodeKind, ImageData, Text};
 use retina_fetch::Url;
 
 use retina_gfx_font::{
@@ -57,7 +57,7 @@ use crate::{
     LayoutBox,
     LayoutBoxDimensions,
     LayoutBoxKind,
-    LayoutEdge,
+    LayoutEdge, replaced::ReplacedElementType,
 };
 
 pub struct LayoutGenerator<'stylesheets, ImageLoader>
@@ -479,6 +479,8 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
             }
         }
 
+        self.generate_replaced_element_layout(&mut layout_box);
+
         Some(layout_box)
     }
 
@@ -525,6 +527,54 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
             font_emoji,
             font_size
         )
+    }
+
+    fn generate_replaced_element_layout(&self, layout_box: &mut LayoutBox) {
+        let Some(ty) = ReplacedElementType::detect(&layout_box.node) else {
+            return;
+        };
+
+        let text = match ty {
+            ReplacedElementType::Button => {
+                layout_box.node.as_parent_node()
+                    .map(|element| element.children())
+                    .and_then(|children| children.first().cloned())
+                    .and_then(|node| node.as_text().map(|text| text.data().clone()))
+                    .unwrap_or_default()
+            }
+
+            ReplacedElementType::Checkbox => {
+                // No text inside a checkbox
+                return;
+            }
+
+            ReplacedElementType::InputButton | ReplacedElementType::InputText => {
+                layout_box.node.as_dom_element()
+                    .and_then(|element| element.attributes().find_by_str_as_tendril("value"))
+                    .unwrap_or_default()
+            }
+        };
+
+        if text.is_empty() {
+            return;
+        }
+
+        // TODO will probably break when adding ::before and ::after
+        debug_assert!(layout_box.children.is_empty());
+
+        let text_child = LayoutBox::new(
+            LayoutBoxKind::Anonymous,
+            FormattingContextKind::Inline,
+            Node::new(NodeKind::Text(Text::new(text))),
+            layout_box.computed_style.clone(),
+            layout_box.actual_value_map.clone(),
+            Default::default(),
+            layout_box.font.clone(),
+            layout_box.font_emoji.clone(),
+            layout_box.font_size.clone(),
+        );
+
+        layout_box.children.push(text_child);
     }
 
 }
