@@ -39,6 +39,10 @@ impl AttributeList {
         self.find(&LocalName::from(name))
     }
 
+    pub fn find_by_str_as_tendril(&self, name: &str) -> Option<StrTendril> {
+        self.map.get(&LocalName::from(name)).cloned()
+    }
+
     /// <https://dom.spec.whatwg.org/#concept-element-attributes-get-value>
     pub fn get(&self, name: &LocalName) -> &str {
         self.find(name).unwrap_or("")
