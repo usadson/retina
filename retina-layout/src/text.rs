@@ -44,7 +44,7 @@ pub fn collapse_white_space<'str>(
 ///   doesn't work.
 pub fn is_emoji(value: &str) -> bool {
     use unicode_properties::UnicodeEmoji;
-    value.chars().any(|c| c.is_emoji_char_or_emoji_component())
+    value.chars().all(|c| c.is_emoji_char_or_emoji_component())
 }
 
 pub fn transform<'str>(
@@ -101,7 +101,22 @@ mod tests {
     #[case("👩🏼‍💻", true)] // U+1F469 U+1F3FC U+200D U+1F4BB
     #[case("Hello, world!", false)]
     #[case("اَلْعَرَبِيَّةُ", false)]
+    #[case("4.0", false)]
+    #[case("Hello, world!", false)]
     fn test_is_emoji(#[case] input: &str, #[case] should_be: bool) {
-        assert_eq!(super::is_emoji(input), should_be);
+        if super::is_emoji(input) == should_be {
+            return;
+        }
+
+        println!("Test failed for: {input}, which result should've been: {should_be}");
+
+        use unicode_properties::{UnicodeEmoji, UnicodeGeneralCategory};
+
+        let breakdown: Vec<_> = input.chars().map(|c| {
+            (c, c as u32, c.emoji_status(), c.general_category(), c.general_category())
+        }).collect();
+
+        println!("Breakdown of code points: {breakdown:#?}");
+        panic!("Test failed for {input}, should_be={should_be}")
     }
 }
