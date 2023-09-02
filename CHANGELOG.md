@@ -30,6 +30,7 @@
 21. [`white-space: pre`](https://drafts.csswg.org/css-text/#valdef-white-space-pre) will now correctly honor forced line breaks (e.g. with the use of the `U+000A LINE FEED '\n'` character).
 22. Fix: emoji will no longer [break lines unnecessarily](https://github.com/usadson/retina/issues/30).
 23. Implemented styles for `<input type="text">`, `<input type="checkbox">`, `<input type="radio">` and buttons.
+24. Support pseudo class [`:checked`](https://drafts.csswg.org/selectors/#checked)
 
 ### Performance improvements
 1. `ColorMaterialRenderer` and `TextureMaterialRenderer` are now globally shared instead of per `Artwork`, which previously made the creation time of tiles significantly slower.

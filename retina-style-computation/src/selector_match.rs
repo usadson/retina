@@ -138,6 +138,23 @@ fn matches_pseudo_class_selector(
             name == "a" || name == "area"
         }
 
+        // <https://drafts.csswg.org/selectors/#checked>
+        PseudoClassSelectorKind::Checked => {
+            if !element.qualified_name().local.eq_str_ignore_ascii_case("input") {
+                return false;
+            }
+
+            let Some(ty) = element.attributes().find_by_str("type") else {
+                return false;
+            };
+
+            if !ty.eq_ignore_ascii_case("checkbox") && !ty.eq_ignore_ascii_case("radio") {
+                return false;
+            }
+
+            element.attributes().find_by_str("checked").is_some()
+        }
+
         // Matches if the element has no children, or all children are text with
         // only whitespace.
         PseudoClassSelectorKind::Empty => {

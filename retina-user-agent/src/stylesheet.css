@@ -196,8 +196,8 @@ input[type=checkbox] {
   height: .8em;
 }
 
-input[type=radio][checked],
-input[type=radio][checked] {
+input[type=radio]:checked,
+input[type=radio]:checked {
   background-color: black;
 }
 
