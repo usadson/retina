@@ -187,7 +187,11 @@ button {
 }
 
 input[type=text] {
-  width: 6em;
+  width: 12em;
+}
+
+input[type=text]:placeholder-shown {
+  color: gray;
 }
 
 input[type=radio],

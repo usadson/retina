@@ -33,6 +33,7 @@
 24. Support pseudo class [`:checked`](https://drafts.csswg.org/selectors/#checked)
 25. Support pseudo class [`:placeholder-shown`](https://drafts.csswg.org/selectors/#placeholder-shown)
 26. Display placeholder if `value` is empty
+27. Add UA style for greying out the placeholder text color
 
 ### Performance improvements
 1. `ColorMaterialRenderer` and `TextureMaterialRenderer` are now globally shared instead of per `Artwork`, which previously made the creation time of tiles significantly slower.
