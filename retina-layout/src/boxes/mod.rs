@@ -171,15 +171,15 @@ impl LayoutBox {
             text = Cow::Owned(text.replace('\t', "    "));
         }
 
-        let mut parent_node = None;
-        let element = self.node.as_html_element_kind()
-            .unwrap_or_else(|| {
-                parent_node = Some(self.node.as_node().parent().unwrap().upgrade().unwrap());
-                parent_node.as_ref().unwrap().as_html_element_kind().unwrap()
-            });
+        let parent_node;
+        let mut element = self.node.as_html_element_kind();
+        if element.is_none() {
+            parent_node = self.node.as_node().parent().and_then(|x| x.upgrade());
+            element = parent_node.as_ref().and_then(|x| x.as_html_element_kind());
+        }
 
 
-        let language = element.as_html_element().language();
+        let language = element.and_then(|e| e.as_html_element().language());
 
         text = crate::text::transform(text, self.computed_style.text_transform.unwrap_or_default(), language);
 
