@@ -164,6 +164,28 @@ fn matches_pseudo_class_selector(
                 .all(|node| node.is_text_with_only_whitespace())
         }
 
+        // <https://drafts.csswg.org/selectors/#checked>
+        PseudoClassSelectorKind::PlaceholderShown => {
+            if !element.qualified_name().local.eq_str_ignore_ascii_case("input") {
+                return false;
+            }
+
+            let Some(ty) = element.attributes().find_by_str("type") else {
+                return false;
+            };
+
+            if !ty.eq_ignore_ascii_case("text") {
+                return false;
+            }
+
+            let value = element.attributes().find_by_str("value");
+            if value.is_some_and(|value| !value.is_empty()) {
+                return false;
+            }
+
+            element.attributes().find_by_str("placeholder").is_some()
+        }
+
         PseudoClassSelectorKind::Visited => {
             // TODO distinguish from :link and :visited, which requires a
             //      browser history
