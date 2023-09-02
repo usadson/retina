@@ -97,8 +97,9 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
             &root.as_parent_node()
                 .expect("root DOM node not the Document")
                 .children()
-                .first()
-                .expect("DOM Document should have 1 child, the HTMLHtmlElement")
+                .iter()
+                .find(|node| node.tag_name() == Some("html"))
+                .expect("DOM Document should have an HTMLHtmlElement")
         );
 
         let mut initial_containing_block = instance.generate_initial_containing_block(root);

@@ -34,6 +34,7 @@
 25. Support pseudo class [`:placeholder-shown`](https://drafts.csswg.org/selectors/#placeholder-shown)
 26. Display placeholder if `value` is empty
 27. Add UA style for greying out the placeholder text color
+28. Fixed incorrect assumption that the first node of a document is the `<html>` node (it can also be a `<!-- comment -->`)
 
 ### Performance improvements
 1. `ColorMaterialRenderer` and `TextureMaterialRenderer` are now globally shared instead of per `Artwork`, which previously made the creation time of tiles significantly slower.
