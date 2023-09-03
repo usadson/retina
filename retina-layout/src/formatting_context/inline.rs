@@ -49,16 +49,24 @@ impl<'bx> InlineFormattingContext<'bx> {
         self.base.layout_box
     }
 
+    fn create_new_line_box(&mut self) -> &mut LineBox {
+        self.state.content_position_origin.y += self.state.line_boxes.last().unwrap().height;
+        self.state.line_boxes.push(LineBox::new());
+        self.state.x_offset = 0.0;
+        self.state.line_boxes.last_mut().unwrap()
+    }
+
+    fn must_create_new_line_box(&self) -> bool {
+        let max_width = self.base.layout_box.dimensions().width().value();
+        max_width != 0.0 && self.state.x_offset > max_width
+    }
+
     fn perform_inner(&mut self) {
         let mut children = std::mem::replace(&mut self.layout_box().children, Vec::new());
 
-        let max_width = self.layout_box().dimensions().width().value();
-
         for child in &mut children {
-            if max_width != 0.0 && self.state.x_offset > max_width {
-                self.state.content_position_origin.y += self.state.line_boxes.last().unwrap().height;
-                self.state.line_boxes.push(LineBox::new());
-                self.state.x_offset = 0.0;
+            if self.must_create_new_line_box() {
+                self.create_new_line_box();
             }
             self.layout_child(child);
         }
@@ -82,6 +90,8 @@ impl<'bx> InlineFormattingContext<'bx> {
         &mut self,
         child: &mut LayoutBox,
     ) {
+        let is_new_line_box = self.state.x_offset == 0.0;
+
         child.dimensions = child.actual_value_map.dimensions;
         child.dimensions.set_margin_position(Point2D::new(
             self.state.content_position_origin.x + self.state.x_offset,
@@ -96,6 +106,12 @@ impl<'bx> InlineFormattingContext<'bx> {
             self.state.x_offset = last_fragment.position.x - self.state.content_position_origin.x + last_fragment.size.width;
         } else {
             self.state.x_offset += child_size.width;
+        }
+
+        if !is_new_line_box && self.must_create_new_line_box() {
+            self.create_new_line_box();
+            self.layout_child(child);
+            return;
         }
 
         let line_box = self.state.line_boxes.last_mut().unwrap();
