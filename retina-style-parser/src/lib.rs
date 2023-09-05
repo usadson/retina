@@ -30,6 +30,7 @@ use cssparser::{
     StyleSheetParser,
 };
 
+use log::error;
 use retina_style::{
     CascadeOrigin,
     CssColor,
@@ -87,7 +88,7 @@ pub(crate) fn parse_stylesheet_contents(cascade_origin: CascadeOrigin, parser: &
                 if let Rule::Style(style_rule) = &rule {
                     if style_rule.declarations.is_empty() {
                         if cascade_origin == CascadeOrigin::UserAgent {
-                            panic!("[CssParser] Declaration is empty: {:#?}", style_rule);
+                            error!("[CssParser] Declaration is empty: {:#?}", style_rule);
                         }
 
                         continue;

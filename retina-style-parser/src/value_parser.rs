@@ -694,6 +694,10 @@ fn parse_specific_value<'i, 't>(
 }
 
 pub(crate) fn parse_value<'i, 't>(input: &mut Parser<'i, 't>, property: Property) -> Result<Value, ParseError<'i>> {
+    if property == Property::Invalid {
+        return Err(input.new_error_for_next_token());
+    }
+
     if let Some(result) = parse_wide_keywords(input) {
         return result;
     }
