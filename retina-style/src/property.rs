@@ -13,6 +13,7 @@ pub enum Property {
 
     BackgroundColor,
     BackgroundImage,
+    BackgroundRepeat,
 
     Border,
     BorderColor,

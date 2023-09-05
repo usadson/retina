@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+pub mod background;
 pub mod color;
 pub mod cursor;
 pub mod display;
@@ -17,6 +18,7 @@ pub mod white_space;
 pub type CssDecimal = f64;
 
 pub use self::{
+    background::{CssBackgroundRepeat, CssBackgroundRepeatStyle},
     color::{CssColor, CssNamedColor},
     cursor::CssCursor,
     display::{CssDisplay, CssDisplayBox, CssDisplayInside, CssDisplayInternal, CssDisplayOutside},
@@ -57,6 +59,7 @@ pub struct CssBorderLonghand {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
+    BackgroundRepeat(CssBackgroundRepeat),
     BorderLonghand(CssBorderLonghand),
     Cursor(CssCursor),
     Color(CssColor),

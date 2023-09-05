@@ -49,6 +49,56 @@ mod util {
     }
 }
 
+pub(crate) fn parse_background_repeat<'i, 't>(
+    input: &mut Parser<'i, 't>
+) -> Result<CssBackgroundRepeat, ParseError<'i>> {
+    let first = input.expect_ident_cloned()?;
+    let Some(second) = input.expect_ident_cloned().ok() else {
+        return match first.as_ref() {
+            "repeat-x" => Ok(CssBackgroundRepeat {
+                horizontal: CssBackgroundRepeatStyle::Repeat,
+                vertical: CssBackgroundRepeatStyle::NoRepeat,
+            }),
+            "repeat-y" => Ok(CssBackgroundRepeat {
+                horizontal: CssBackgroundRepeatStyle::NoRepeat,
+                vertical: CssBackgroundRepeatStyle::Repeat,
+            }),
+            "repeat" => Ok(CssBackgroundRepeat {
+                horizontal: CssBackgroundRepeatStyle::Repeat,
+                vertical: CssBackgroundRepeatStyle::Repeat,
+            }),
+            "space" => Ok(CssBackgroundRepeat {
+                horizontal: CssBackgroundRepeatStyle::Space,
+                vertical: CssBackgroundRepeatStyle::Space,
+            }),
+            "round" => Ok(CssBackgroundRepeat {
+                horizontal: CssBackgroundRepeatStyle::Round,
+                vertical: CssBackgroundRepeatStyle::Round,
+            }),
+            "no-repeat" => Ok(CssBackgroundRepeat {
+                horizontal: CssBackgroundRepeatStyle::NoRepeat,
+                vertical: CssBackgroundRepeatStyle::NoRepeat,
+            }),
+            _ => return Err(input.new_error_for_next_token()),
+        };
+    };
+
+    let first = CssBackgroundRepeatStyle::iter()
+        .find(|style| style.as_ref().eq_ignore_ascii_case(first.as_ref()));
+    let second = CssBackgroundRepeatStyle::iter()
+        .find(|style| style.as_ref().eq_ignore_ascii_case(second.as_ref()));
+
+    let Some(first) = first else {
+        return Err(input.new_error_for_next_token());
+    };
+
+    let Some(second) = second else {
+        return Err(input.new_error_for_next_token());
+    };
+
+    Ok(CssBackgroundRepeat { horizontal: first, vertical: second })
+}
+
 pub(crate) fn parse_color<'i, 't>(
     input: &mut Parser<'i, 't>
 ) -> Result<CssColor, ParseError<'i>> {
@@ -672,6 +722,7 @@ fn parse_specific_value<'i, 't>(
     property: Property,
 ) -> Option<Result<Value, ParseError<'i>>> {
     match property {
+        Property::BackgroundRepeat => Some(parse_background_repeat(input).map(|value| Value::BackgroundRepeat(value))),
         Property::Cursor => Some(util::parse_enum(input).map(|value| Value::Cursor(value))),
         Property::Float => Some(parse_float(input).map(|float| Value::Float(float))),
         Property::Font => Some(parse_font_shorthand(input).map(|shorthand| Value::FontShorthand(shorthand))),
@@ -850,6 +901,20 @@ mod tests {
     use retina_style::{CssColor, CssNamedColor};
 
     use super::*;
+
+    #[rstest]
+    #[case("repeat", CssBackgroundRepeat {
+        horizontal: CssBackgroundRepeatStyle::Repeat,
+        vertical: CssBackgroundRepeatStyle::Repeat,
+    })]
+    fn value_background_repeat(#[case] input: &str, #[case] background_repeat: CssBackgroundRepeat) {
+        let mut input = cssparser::ParserInput::new(input);
+        let input = &mut cssparser::Parser::new(&mut input);
+
+        let result = parse_value(input, Property::BackgroundRepeat);
+        let expected = Ok(Value::BackgroundRepeat(background_repeat));
+        assert_eq!(result, expected);
+    }
 
     #[rstest]
     #[case("red", CssNamedColor::RED)]
