@@ -25,7 +25,9 @@ impl<'i> cssparser::DeclarationParser<'i> for DeclarationParser {
         name: cssparser::CowRcStr<'i>,
         input: &mut Parser<'i, 't>,
     ) -> Result<Self::Declaration, cssparser::ParseError<'i, Self::Error>> {
-        let property = Property::parse(name.as_ref()).unwrap_or(Property::Invalid);
+        let Some(property) = Property::parse(name.as_ref()) else {
+            return Err(input.new_custom_error(RetinaStyleParseError::UnknownProperty(name)));
+        };
 
         parse_value(input, property).map(|value| Declaration::new(property, value))
     }
