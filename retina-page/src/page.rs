@@ -527,7 +527,7 @@ impl Page {
 
                     Some(element.href().to_string())
                 })
-                .chain(["favicon.ico".to_string()].into_iter())
+                .chain(["/favicon.ico".to_string()].into_iter())
                 .collect();
 
             let favicon_image_data = ImageData::new();
