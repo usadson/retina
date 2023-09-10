@@ -3666,7 +3666,6 @@ dependencies = [
  "retina-style",
  "retina-style-computation",
  "rstest",
- "tokio",
  "unicode-properties",
  "unicode-segmentation",
 ]
