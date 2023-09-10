@@ -22,7 +22,7 @@ retina-style-parser = { path = "../retina-style-parser" }
 retina-user-agent = { path = "../retina-user-agent" }
 
 log = "*"
-tokio = { version = "*", features = ["full"] }
+tokio = { version = "*", features = ["macros"] }
 url = "*"
 wgpu = { version = "*", features = ["trace"] }
 
