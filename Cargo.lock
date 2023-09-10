@@ -3540,7 +3540,6 @@ dependencies = [
  "retina-media-type",
  "strum",
  "tendril",
- "tokio",
 ]
 
 [[package]]
