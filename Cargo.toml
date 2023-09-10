@@ -1,6 +1,5 @@
 [workspace]
 default-members = [
-    "third-party/font-kit",
     "retina",
     "retina-common",
     "retina-compositor",
@@ -27,7 +26,6 @@ default-members = [
 ]
 
 members = [
-    "third-party/font-kit",
     "retina",
     "retina-common",
     "retina-compositor",

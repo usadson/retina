@@ -13,7 +13,7 @@ retina-gfx-font-renderer = { path = "../retina-gfx-font-renderer" }
 bytemuck = "*"
 dashmap = { version = "*", features = ["rayon"] }
 euclid = "*"
-font-kit = { path = "../third-party/font-kit" }
+font-kit = "*"
 harfbuzz_rs = "*"
 log = "*"
 ouroboros = "*"
@@ -21,6 +21,3 @@ pathfinder_geometry = "*"
 rayon = "*"
 tracing = "*"
 wgpu = { version = "*", features = ["trace"] }
-
-[target.'cfg(windows)'.dependencies]
-retina-gfx-font-backend-dwrite = { path = "../retina-gfx-font-backend-dwrite" }
