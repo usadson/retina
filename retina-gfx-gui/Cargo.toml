@@ -5,22 +5,12 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-retina-common = { path = "../retina-common" }
-retina-gfx = { path = "../retina-gfx" }
-
 euclid = "*"
-log = "*"
-winit = "0.28.6"
 thiserror = "*"
-tracing = "*"
 raw-window-handle = "*"
-wgpu = { version = "*", features = ["trace"] }
 
 [target.'cfg(windows)'.dependencies]
 winsafe = { version = "*", features = [
     "gui"
-] }
-windows = { version = "*", features = [
-    "Win32_UI_WindowsAndMessaging",
 ] }
 muda = "*"

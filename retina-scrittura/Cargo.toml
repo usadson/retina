@@ -12,7 +12,6 @@ retina-platform-object = { path = "../retina-platform-object" }
 log = "*"
 boa_engine = { version = "*", features = ["intl"] }
 boa_gc = "*"
-boa_runtime = "*"
 
 [dev-dependencies]
 env_logger = "*"
