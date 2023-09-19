@@ -68,7 +68,7 @@ impl<'painter> SvgRenderer<'painter> {
 
         self.painter.draw_rect(
             Box2D::new(min, max),
-            Material::Color(Color::RED),
+            Material::Color(element.property_fill()),
         );
     }
 }
