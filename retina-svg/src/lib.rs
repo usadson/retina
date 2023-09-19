@@ -7,6 +7,7 @@
 //! * [Scalable Vector Graphics (SVG) 1.1 Specification](https://www.w3.org/TR/SVG11/)
 //! * [Scalable Vector Graphics (SVG) 1.1 Specification (Single Page)](https://www.w3.org/TR/SVG11/single-page.html)
 
+#[cfg(windows)]
 pub mod direct2d;
 mod painter;
 mod tesselator;

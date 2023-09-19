@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+#[cfg(windows)]
 use retina_svg::direct2d::DirectContext;
 use winit::{
     event::{Event, WindowEvent},
@@ -17,6 +18,7 @@ fn main() {
         .build(&event_loop)
         .unwrap();
 
+    #[cfg(windows)]
     let mut context = DirectContext::new(&window);
 
     let data = std::fs::read_to_string("test/html/svg/rect-filled/index.html")
@@ -32,6 +34,7 @@ fn main() {
                 control_flow.set_exit();
             },
 
+            #[cfg(windows)]
             Event::RedrawRequested(_) => {
                 context.begin();
 
