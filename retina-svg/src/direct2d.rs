@@ -12,7 +12,7 @@ use windows::{Win32::Graphics::Direct2D::{
     ID2D1HwndRenderTarget,
 }, Foundation::Numerics::Matrix3x2};
 
-use windows::core::Interface;
+use windows::core::ComInterface;
 
 use crate::{Material, Painter};
 use self::factory::DirectFactory;
