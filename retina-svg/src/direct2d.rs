@@ -41,7 +41,7 @@ impl DirectContext {
             self.render_target.BeginDraw();
             self.render_target.SetTransform(&Matrix3x2::identity());
             self.render_target.Clear(Some(&D2D1_COLOR_F {
-                r: 0.0,
+                r: 1.0,
                 g: 1.0,
                 b: 1.0,
                 a: 1.0,
