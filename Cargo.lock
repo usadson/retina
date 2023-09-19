@@ -3756,19 +3756,19 @@ name = "retina-svg"
 version = "0.3.0"
 dependencies = [
  "bytemuck",
+ "env_logger",
  "euclid",
  "log",
  "lyon",
- "pretty_assertions",
+ "raw-window-handle",
  "retina-common",
  "retina-dom",
- "retina-gfx",
  "retina-style",
  "retina-style-parser",
- "rstest",
  "strum",
  "tendril",
- "wgpu",
+ "windows 0.44.0",
+ "winit",
 ]
 
 [[package]]

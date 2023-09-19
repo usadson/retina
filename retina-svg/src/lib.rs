@@ -7,40 +7,31 @@
 //! * [Scalable Vector Graphics (SVG) 1.1 Specification](https://www.w3.org/TR/SVG11/)
 //! * [Scalable Vector Graphics (SVG) 1.1 Specification (Single Page)](https://www.w3.org/TR/SVG11/single-page.html)
 
+pub mod direct2d;
 mod painter;
+mod tesselator;
 
+pub use self::painter::{
+    Material,
+    Painter,
+};
+
+use euclid::default::Box2D;
 use log::warn;
-use lyon::lyon_tessellation::geometry_builder::simple_builder;
-use lyon::math::{Point, point, Box2D};
-use lyon::path::{Path, Winding};
-use lyon::tessellation::*;
 
+use lyon::geom::point;
 use retina_common::Color;
 use retina_dom::{
     Element,
     Node,
 };
-use retina_gfx::Painter;
-use retina_gfx::{
-    Context,
-    canvas::CanvasPaintingContext,
-    euclid::Size2D,
-};
 use retina_style::{CssColor, CssLength};
 
-pub fn render(node: &Node, context: Context) {
-    let size = Size2D::new(300, 200);
-
-    let mut rendering_context = CanvasPaintingContext::new(context, "SvgRenderer", size);
-    let mut painter = rendering_context.begin(Color::TRANSPARENT, Default::default());
-
-    render_inner(node, &mut painter);
-
-    painter.submit_sync();
-    // TODO return the texture
+pub fn render(node: &Node, painter: &mut dyn Painter) {
+    render_inner(node, painter);
 }
 
-fn render_inner(node: &Node, painter: &mut Painter<'_>) {
+fn render_inner(node: &Node, painter: &mut dyn Painter) {
     let mut renderer = SvgRenderer {
         root_node: node.clone(),
         painter,
@@ -49,15 +40,17 @@ fn render_inner(node: &Node, painter: &mut Painter<'_>) {
     renderer.render_node(&node);
 }
 
-pub struct SvgRenderer<'painter, 'art> {
+pub struct SvgRenderer<'painter> {
     #[allow(dead_code)]
     root_node: Node,
-    painter: &'painter mut Painter<'art>,
+    painter: &'painter mut dyn Painter,
 }
 
-impl<'painter, 'art> SvgRenderer<'painter, 'art> {
+impl<'painter> SvgRenderer<'painter> {
     fn render_node(&mut self, node: &Node) {
         let Some(element) = node.as_dom_element() else { return };
+        println!("[SvgRenderer] Rendering node: {}", element.qualified_name().local);
+
         match element.qualified_name().local.as_ref() {
             "rect" => self.render_rect(element),
             _ => (),
@@ -69,26 +62,13 @@ impl<'painter, 'art> SvgRenderer<'painter, 'art> {
     }
 
     fn render_rect(&mut self, element: &Element) {
-        let mut geometry: VertexBuffers<Point, u16> = VertexBuffers::new();
-        let mut geometry_builder = simple_builder(&mut geometry);
-        let options = FillOptions::tolerance(0.1);
-        let mut tessellator = FillTessellator::new();
-
-        let mut builder = tessellator.builder(
-            &options,
-            &mut geometry_builder,
-        );
-
         let min = point(element.property_x(), element.property_y());
         let max = point(element.property_width(), element.property_height());
 
-        builder.add_rectangle(
-            &Box2D::new(min, max),
-            Winding::Positive
+        self.painter.draw_rect(
+            Box2D::new(min, max),
+            Material::Color(Color::RED),
         );
-
-        builder.build().expect("failed to build path");
-        // self.painter.paint_rect_textured(rect, texture_view)
     }
 }
 
@@ -109,8 +89,13 @@ impl SvgElementTraits for Element {
         const DEFAULT: f32 = 0.0;
 
         let Some(length) = self.attributes().find_by_str(name) else {
+            println!("[Svg] Attribute \"{name}\" not found on element \"{}\"", self.qualified_name().local);
             return DEFAULT;
         };
+
+        if let Ok(float) = length.parse() {
+            return float;
+        }
 
         match retina_style_parser::parse_value_length(length) {
             Some(CssLength::Pixels(pixels)) => pixels as f32,
