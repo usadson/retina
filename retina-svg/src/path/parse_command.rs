@@ -16,6 +16,7 @@ use super::{
     SvgPathType,
     parse_coordinate::{
         parse_wsp,
+        parse_coordinate_pair_double_sequence,
         parse_coordinate_pair_sequence,
         parse_coordinate_pair_triplet_sequence,
         parse_coordinate_sequence,
@@ -42,6 +43,7 @@ fn parse_draw_to_command(input: &str) -> IResult<&str, SvgPathCommand> {
         parse_horizontal_line_to,
         parse_vertical_line_to,
         parse_curve_to,
+        parse_quadratic_bezier_curve_to,
     ))(input)
 }
 
@@ -100,6 +102,16 @@ fn parse_curve_to(input: &str) -> IResult<&str, SvgPathCommand> {
     ))(input)?;
 
     Ok((input, SvgPathCommand::CurveTo(ty, sequence)))
+}
+
+fn parse_quadratic_bezier_curve_to(input: &str) -> IResult<&str, SvgPathCommand> {
+    let (input, (ty, _, sequence)) = tuple((
+        parse_path_type('Q', 'q'),
+        many0(parse_wsp),
+        parse_coordinate_pair_double_sequence,
+    ))(input)?;
+
+    Ok((input, SvgPathCommand::QuadraticBezierCurveTo(ty, sequence)))
 }
 
 fn parse_path_type(
