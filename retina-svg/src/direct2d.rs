@@ -16,6 +16,7 @@ use windows::{
             D2D1_FIGURE_BEGIN_HOLLOW,
             D2D1_FIGURE_END_CLOSED,
             D2D1_FIGURE_END_OPEN,
+            D2D_SIZE_U,
         },
         D2D1_QUADRATIC_BEZIER_SEGMENT,
         ID2D1Brush,
@@ -106,6 +107,15 @@ impl DirectContext {
             top: rect.max_y(),
             right: rect.max_x(),
             bottom: rect.min_y(),
+        }
+    }
+
+    pub fn resize(&self, width: u32, height: u32) {
+        unsafe {
+            println!("Resizing to {width}x{height}");
+            self.render_target.Resize(&D2D_SIZE_U {
+               width, height,
+            }).unwrap();
         }
     }
 }

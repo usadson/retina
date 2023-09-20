@@ -37,6 +37,10 @@ fn main() {
                 control_flow.set_exit();
             },
 
+            Event::WindowEvent { event: WindowEvent::Resized(size), .. } => {
+                context.resize(size.width, size.height);
+            }
+
             #[cfg(windows)]
             Event::RedrawRequested(_) => {
                 context.begin();
