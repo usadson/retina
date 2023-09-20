@@ -37,6 +37,13 @@
 28. Fixed incorrect assumption that the first node of a document is the `<html>` node (it can also be a `<!-- comment -->`)
 29. Add support for `<input type="hidden">`
 
+### SVG Features
+1. Initial support for [SVG 2][SVG-2] on Windows (using Direct2D)
+2. Support the [`<rect>`](https://svgwg.org/svg2-draft/shapes.html#RectElement) element
+3. Support the [`<path>`](https://svgwg.org/svg2-draft/paths.html#PathElement) element
+4. Basic [`paint`](https://svgwg.org/svg2-draft/painting.html#SpecifyingPaint) support
+5. Shape [stroke](https://svgwg.org/svg2-draft/painting.html#StrokeProperties) support
+
 ### Performance improvements
 1. `ColorMaterialRenderer` and `TextureMaterialRenderer` are now globally shared instead of per `Artwork`, which previously made the creation time of tiles significantly slower.
 2. Replace some `.expect(&format(...))` calls with a conditional `let Ok(..) = .. else { panic!(...) }` calls to avoid String allocations in normal cases.
@@ -487,3 +494,5 @@ Version 0.1.0 was before the project was restructured to which it is today. In t
 - After this version, the project was completely restructured
 - Simply CI created
 - Initial creation
+
+[SVG-2]: https://svgwg.org/svg2-draft/Overview.html
