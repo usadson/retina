@@ -76,7 +76,13 @@ impl<'painter> SvgRenderer<'painter> {
         };
 
         info!("Raw path data: \"{path_data}\"");
-        let material = element.property_fill();
+        let fill = element.property_fill();
+        let stroke = element.property_stroke();
+        let stroke_width = element.property_stroke_width();
+        if fill.is_transparent() && stroke.is_transparent() && stroke_width <= 0.0 {
+            info!("Skipping transparent path!");
+            return;
+        }
 
         let path = match path::parse_path(path_data) {
             Ok((_, path)) => path,
@@ -108,40 +114,64 @@ impl<'painter> SvgRenderer<'painter> {
         }
 
         let geometry = sink.finish();
-        self.painter.draw_geometry(geometry.as_ref(), material);
+        if !fill.is_transparent() {
+            self.painter.draw_geometry(geometry.as_ref(), fill);
+        }
+
+        if !stroke.is_transparent() && stroke_width > 0.0 {
+            self.painter.stroke_geometry(geometry.as_ref(), stroke, stroke_width);
+        }
     }
 
     fn render_rect(&mut self, element: &Element) {
         let min = point(element.property_x(), element.property_y());
         let max = point(element.property_width(), element.property_height());
 
-        self.painter.draw_rect(
-            Box2D::new(min, max),
-            element.property_fill(),
-        );
+        let rect = Box2D::new(min, max);
+
+        let fill = element.property_fill();
+        if !fill.is_transparent() {
+            self.painter.draw_rect(rect, fill);
+        }
+
+        let stroke = element.property_stroke();
+        let stroke_width = element.property_stroke_width();
+        if !stroke.is_transparent() && stroke_width > 0.0 {
+            self.painter.stroke_rect(rect, stroke, stroke_width);
+        }
     }
 }
 
 trait SvgElementTraits {
-    fn length_property(&self, name: &str) -> f32;
-    fn paint_property(&self, name: &str) -> Material;
+    fn length_property_ext(&self, name: &str, default: f32) -> f32;
+    fn paint_property_ext(&self, name: &str, default: Material) -> Material;
+
+    #[inline]
+    fn length_property(&self, name: &str) -> f32 {
+        self.length_property_ext(name, 0.0)
+    }
+
+    #[inline]
+    fn paint_property(&self, name: &str) -> Material {
+        self.paint_property_ext(name, Material::Color(Color::BLACK))
+    }
 
     /// <https://www.w3.org/TR/SVG11/single-page.html#painting-FillProperty>
-    fn property_fill(&self) -> Material;
+    fn property_fill(&self) -> Material { self.paint_property("fill") }
+    fn property_stroke(&self) -> Material { self.paint_property_ext("stroke", Material::Color(Color::TRANSPARENT)) }
 
     fn property_x(&self) -> f32 { self.length_property("x") }
     fn property_y(&self) -> f32 { self.length_property("y") }
     fn property_width(&self) -> f32 { self.length_property("width") }
     fn property_height(&self) -> f32 { self.length_property("height") }
+    fn property_stroke_width(&self) -> f32 { self.length_property_ext("stroke-width", 1.0) }
 }
 
 impl SvgElementTraits for Element {
-    fn length_property(&self, name: &str) -> f32 {
-        const DEFAULT: f32 = 0.0;
-
+    fn length_property_ext(&self, name: &str, default: f32) -> f32 {
         let Some(length) = self.attributes().find_by_str(name) else {
             println!("[Svg] Attribute \"{name}\" not found on element \"{}\"", self.qualified_name().local);
-            return DEFAULT;
+            return default;
         };
 
         if let Ok(float) = length.parse() {
@@ -153,16 +183,14 @@ impl SvgElementTraits for Element {
 
             unsupported => {
                 warn!("Unsupported length type: {unsupported:?} for property \"{name}\"");
-                DEFAULT
+                default
             }
         }
     }
 
-    fn paint_property(&self, name: &str) -> Material {
-        const DEFAULT: Material = Material::Color(Color::BLACK);
-
+    fn paint_property_ext(&self, name: &str, default: Material) -> Material {
         let Some(color) = self.attributes().find_by_str(name) else {
-            return DEFAULT;
+            return default;
         };
 
         if color.eq_ignore_ascii_case("none") {
@@ -171,12 +199,7 @@ impl SvgElementTraits for Element {
 
         match retina_style_parser::parse_value_color(color) {
             Some(CssColor::Color(color)) => Material::Color(color),
-            _ => DEFAULT,
+            _ => default,
         }
-    }
-
-    #[inline]
-    fn property_fill(&self) -> Material {
-        self.paint_property("fill")
     }
 }

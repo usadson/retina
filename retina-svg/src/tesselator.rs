@@ -50,4 +50,18 @@ impl Painter for Tesselator {
         _ = material;
         todo!();
     }
+
+    fn stroke_geometry(&mut self, geometry: &dyn Geometry, material: Material, width: f32) {
+        _ = geometry;
+        _ = material;
+        _ = width;
+        todo!();
+    }
+
+    fn stroke_rect(&mut self, rect: Box2D<f32>, material: Material, width: f32) {
+        _ = rect;
+        _ = material;
+        _ = width;
+        todo!();
+    }
 }

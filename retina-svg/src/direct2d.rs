@@ -3,6 +3,7 @@
 
 mod factory;
 
+use euclid::default::Box2D;
 use windows::{
     Foundation::Numerics::Matrix3x2,
     Win32::Graphics::Direct2D::{
@@ -92,6 +93,16 @@ impl DirectContext {
             }
         }
     }
+
+    fn rect(&self, rect: Box2D<f32>) -> D2D_RECT_F {
+        let rect = rect.to_rect();
+        D2D_RECT_F {
+            left: rect.min_x(),
+            top: rect.max_y(),
+            right: rect.max_x(),
+            bottom: rect.min_y(),
+        }
+    }
 }
 
 impl Painter for DirectContext {
@@ -123,20 +134,36 @@ impl Painter for DirectContext {
     }
 
     fn draw_rect(&mut self, rect: euclid::default::Box2D<f32>, material: Material) {
-        let rect = rect.to_rect();
-        let rect = D2D_RECT_F {
-            left: rect.min_x(),
-            top: rect.max_y(),
-            right: rect.max_x(),
-            bottom: rect.min_y(),
-        };
-
-        println!("Rendering rect: {rect:#?}");
-
         let material = self.create_material(material);
 
         unsafe {
-            self.render_target.FillRectangle(&rect, &material);
+            self.render_target.FillRectangle(&self.rect(rect), &material);
+        }
+    }
+
+    fn stroke_geometry(&mut self, geometry: &dyn Geometry, material: Material, width: f32) {
+        let geo = geometry.as_any()
+            .downcast_ref::<DirectGeometry>()
+            .unwrap();
+
+        unsafe {
+            self.render_target.DrawGeometry(
+                &geo.geometry,
+                &self.create_material(material),
+                width,
+                None,
+            )
+        }
+    }
+
+    fn stroke_rect(&mut self, rect: Box2D<f32>, material: Material, width: f32) {
+        unsafe {
+            self.render_target.DrawRectangle(
+                &self.rect(rect),
+                & self.create_material(material),
+                width,
+                None,
+            );
         }
     }
 }

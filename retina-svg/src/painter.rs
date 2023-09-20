@@ -12,11 +12,22 @@ pub enum Material {
     Color(Color),
 }
 
+impl Material {
+    pub fn is_transparent(&self) -> bool {
+        match self {
+            Self::Color(color) => color.alpha() <= 0.0,
+        }
+    }
+}
+
 pub trait Painter {
     fn create_geometry(&self, fill_type: GeometrySinkFillType) -> Box<dyn GeometrySink>;
 
-    fn draw_rect(&mut self, rect: Box2D<f32>, material: Material);
     fn draw_geometry(&mut self, geometry: &dyn Geometry, material: Material);
+    fn draw_rect(&mut self, rect: Box2D<f32>, material: Material);
+
+    fn stroke_geometry(&mut self, geometry: &dyn Geometry, material: Material, width: f32);
+    fn stroke_rect(&mut self, rect: Box2D<f32>, material: Material, width: f32);
 }
 
 pub trait Geometry {
