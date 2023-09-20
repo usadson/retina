@@ -24,6 +24,7 @@ pub enum SvgPathCommand {
     VerticalLineTo(SvgPathType, SvgPathCoordinateSequence),
     CurveTo(SvgPathType, SvgPathCoordinatePairTripletSequence),
     QuadraticBezierCurveTo(SvgPathType, SvgPathCoordinatePairDoubleSequence),
+    SmoothQuadraticBezierCurveTo(SvgPathType, SvgPathCoordinatePairSequence),
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
