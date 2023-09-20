@@ -108,6 +108,8 @@ impl<'painter> SvgRenderer<'painter> {
                         sink.line_to(ty, coords);
                     }
                 }
+                SvgPathCommand::HorizontalLineTo(ty, lines) => sink.horizontal_lines_to(ty, lines),
+                SvgPathCommand::VerticalLineTo(ty, lines) => sink.vertical_lines_to(ty, lines),
                 SvgPathCommand::QuadraticBezierCurveTo(ty, sequence) => {
                     sink.quadratic_beziers_curve_to(ty, sequence)
                 }

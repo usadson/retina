@@ -9,6 +9,7 @@ use retina_common::Color;
 use crate::path::{
     SvgPathCoordinatePair,
     SvgPathCoordinatePairDoubleSequence,
+    SvgPathCoordinateSequence,
     SvgPathType,
 };
 
@@ -41,7 +42,11 @@ pub trait Geometry {
 pub trait GeometrySink {
     fn close_path(&mut self);
     fn line_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair);
+    fn horizontal_lines_to(&mut self, ty: SvgPathType, lines: SvgPathCoordinateSequence);
+    fn vertical_lines_to(&mut self, ty: SvgPathType, lines: SvgPathCoordinateSequence);
+
     fn move_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair);
+
     fn quadratic_beziers_curve_to(&mut self, ty: SvgPathType, sequence: SvgPathCoordinatePairDoubleSequence);
     fn smooth_quadratic_bezier_curve_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair);
 

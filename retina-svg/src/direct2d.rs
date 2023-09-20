@@ -13,7 +13,9 @@ use windows::{
             D2D_POINT_2F,
             D2D1_FIGURE_BEGIN,
             D2D1_FIGURE_BEGIN_FILLED,
-            D2D1_FIGURE_BEGIN_HOLLOW, D2D1_FIGURE_END_CLOSED,
+            D2D1_FIGURE_BEGIN_HOLLOW,
+            D2D1_FIGURE_END_CLOSED,
+            D2D1_FIGURE_END_OPEN,
         },
         D2D1_QUADRATIC_BEZIER_SEGMENT,
         ID2D1Brush,
@@ -34,6 +36,7 @@ use crate::{
     path::{
         SvgPathCoordinatePair,
         SvgPathCoordinatePairDoubleSequence,
+        SvgPathCoordinateSequence,
         SvgPathType,
     },
 };
@@ -209,13 +212,13 @@ impl GeometrySink for DirectGeometrySink {
     fn close_path(&mut self) {
         log::info!("Closing path...");
         if self.state != DirectGeometrySinkState::Opened {
-            log::info!("Not closing because it isn't opened: {:?}", self.state);
+            log::info!("  Not closing because it isn't opened: {:?}", self.state);
             return;
         }
 
         unsafe {
-            // TODO should we use this or D2D1_FIGURE_END_OPEN instead?
-            self.sink.EndFigure(D2D1_FIGURE_END_CLOSED)
+            // TODO should we use this or D2D1_FIGURE_END_CLOSED instead?
+            self.sink.EndFigure(D2D1_FIGURE_END_OPEN)
         }
 
         self.previous_quadratic_control_point = None;
@@ -223,6 +226,7 @@ impl GeometrySink for DirectGeometrySink {
     }
 
     fn line_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair) {
+        debug_assert_eq!(self.state, DirectGeometrySinkState::Opened);
         unsafe {
             log::info!("Line {ty:?} to {coords:?}");
             self.sink.AddLine(self.point(ty, coords));
@@ -230,32 +234,50 @@ impl GeometrySink for DirectGeometrySink {
         self.previous_quadratic_control_point = None;
     }
 
+    fn horizontal_lines_to(&mut self, ty: SvgPathType, lines: SvgPathCoordinateSequence) {
+        for x in lines.0 {
+            let point = self.point(ty, SvgPathCoordinatePair { x, y: 0.0 });
+            self.line_to(SvgPathType::Absolute, SvgPathCoordinatePair { x: point.x as _, y: self.current.y as _ });
+        }
+    }
+
+    fn vertical_lines_to(&mut self, ty: SvgPathType, lines: SvgPathCoordinateSequence) {
+        for y in lines.0 {
+            let point = self.point(ty, SvgPathCoordinatePair { x: 0.0, y });
+            self.line_to(SvgPathType::Absolute, SvgPathCoordinatePair { x: self.current.x as _, y: point.y as _ });
+        }
+    }
+
     fn move_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair) {
-        let state = std::mem::replace(&mut self.state, DirectGeometrySinkState::Opened);
+        let state = self.state;
         log::info!("Move {ty:?} to {coords:?} while {state:?}");
 
         if state == DirectGeometrySinkState::Initial {
-            log::info!("Absolute initial");
+            log::info!("  Absolute initial");
             unsafe {
                 self.sink.BeginFigure(point(coords), self.begin_type);
             }
 
             self.current = point(coords);
+            self.state = DirectGeometrySinkState::Opened;
             return;
         }
 
         self.close_path();
+
         let coords = self.point(ty, coords);
         self.current = coords;
         self.previous_quadratic_control_point = None;
+        self.state = DirectGeometrySinkState::Opened;
 
         unsafe {
-            log::info!("Beginning figure");
+            log::info!("  Beginning figure");
             self.sink.BeginFigure(coords, self.begin_type);
         }
     }
 
     fn quadratic_beziers_curve_to(&mut self, ty: SvgPathType, sequence: SvgPathCoordinatePairDoubleSequence) {
+        debug_assert_eq!(self.state, DirectGeometrySinkState::Opened);
         let beziers: Vec<_> = sequence.0.iter().map(|x| D2D1_QUADRATIC_BEZIER_SEGMENT {
             // Control
             point1: self.point(ty, x.b),
@@ -270,6 +292,7 @@ impl GeometrySink for DirectGeometrySink {
     }
 
     fn smooth_quadratic_bezier_curve_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair) {
+        debug_assert_eq!(self.state, DirectGeometrySinkState::Opened);
         let current_point = self.point(ty, coords);
 
         let control_point = match self.previous_quadratic_control_point {
