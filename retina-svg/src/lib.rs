@@ -10,15 +10,21 @@
 #[cfg(windows)]
 pub mod direct2d;
 mod painter;
+mod path;
 mod tesselator;
 
+use crate::path::SvgPathCommand;
+
 pub use self::painter::{
+    Geometry,
+    GeometrySink,
+    GeometrySinkFillType,
     Material,
     Painter,
 };
 
 use euclid::default::Box2D;
-use log::warn;
+use log::{error, warn, info};
 
 use lyon::geom::point;
 use retina_common::Color;
@@ -54,12 +60,55 @@ impl<'painter> SvgRenderer<'painter> {
 
         match element.qualified_name().local.as_ref() {
             "rect" => self.render_rect(element),
+            "path" => self.render_path(element),
             _ => (),
         }
 
         for child in element.as_parent_node().children().iter() {
             self.render_node(child);
         }
+    }
+
+    fn render_path(&mut self, element: &Element) {
+        let Some(path_data) = element.attributes().find_by_str("d") else {
+            error!("<path> has no \"d\" path data attribute!");
+            return;
+        };
+
+        info!("Raw path data: \"{path_data}\"");
+        let material = Material::Color(element.property_fill());
+
+        let path = match path::parse_path(path_data) {
+            Ok((_, path)) => path,
+            Err(e) => {
+                error!("Failed to parse path: {e}");
+                return;
+            }
+        };
+
+        info!("Parsed path data: {path:#?}");
+
+        let mut sink = self.painter.create_geometry(GeometrySinkFillType::Filled);
+
+        for command in path.commands {
+            match command {
+                SvgPathCommand::MoveTo(ty, coords_sequence) => {
+                    for coords in coords_sequence.0 {
+                        sink.move_to(ty, coords);
+                    }
+                }
+                SvgPathCommand::LineTo(ty, coords_sequence) => {
+                    for coords in coords_sequence.0 {
+                        sink.line_to(ty, coords);
+                    }
+                }
+                SvgPathCommand::ClosePath => sink.close_path(),
+                _command => info!("Todo: {_command:#?}"),
+            }
+        }
+
+        let geometry = sink.finish();
+        self.painter.draw_geometry(geometry.as_ref(), material);
     }
 
     fn render_rect(&mut self, element: &Element) {

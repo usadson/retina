@@ -14,6 +14,7 @@ bytemuck = "*"
 euclid = "*"
 log = "*"
 lyon = "*"
+nom = "*"
 strum = { version = "*", features = ["derive"] }
 tendril = "*"
 winit = "*"
@@ -30,3 +31,5 @@ windows = { version = "*", features = [
 
 [dev-dependencies]
 env_logger = "*"
+pretty_assertions = "*"
+rstest = "*"

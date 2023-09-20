@@ -6,12 +6,20 @@ use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 use windows::Win32::{
     Foundation::HWND,
     Graphics::Direct2D::{
+        Common::D2D_SIZE_U,
+
         ID2D1Factory,
-        D2D1_FACTORY_TYPE_SINGLE_THREADED,
-        D2D1CreateFactory,
+        ID2D1PathGeometry,
         ID2D1HwndRenderTarget,
+
+        D2D1CreateFactory,
+
         D2D1_RENDER_TARGET_PROPERTIES,
-        D2D1_HWND_RENDER_TARGET_PROPERTIES, D2D1_FACTORY_OPTIONS, D2D1_DEBUG_LEVEL_INFORMATION, Common::D2D_SIZE_U,
+        D2D1_HWND_RENDER_TARGET_PROPERTIES,
+        D2D1_FACTORY_OPTIONS,
+
+        D2D1_DEBUG_LEVEL_INFORMATION,
+        D2D1_FACTORY_TYPE_SINGLE_THREADED,
     },
 };
 
@@ -55,6 +63,12 @@ impl DirectFactory {
                 &render_target_properties,
                 &hwnd_render_target_properties,
             ).unwrap()
+        }
+    }
+
+    pub fn create_geometry(&self) -> ID2D1PathGeometry {
+        unsafe {
+            self.factory.CreatePathGeometry().unwrap()
         }
     }
 }

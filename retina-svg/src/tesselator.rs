@@ -1,7 +1,13 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use crate::painter::{Material, Painter};
+use crate::{
+    Geometry,
+    GeometrySink,
+    GeometrySinkFillType,
+    Material,
+    Painter,
+};
 use euclid::default::Box2D;
 
 use lyon::lyon_tessellation::geometry_builder::simple_builder;
@@ -12,6 +18,17 @@ use lyon::tessellation::*;
 pub struct Tesselator;
 
 impl Painter for Tesselator {
+    fn create_geometry(&self, ty: GeometrySinkFillType) -> Box<dyn GeometrySink> {
+        _ = ty;
+        todo!()
+    }
+
+    fn draw_geometry(&mut self, geometry: &dyn Geometry, material: Material) {
+        _ = geometry;
+        _ = material;
+        todo!()
+    }
+
     fn draw_rect(&mut self, rect: Box2D<f32>, material: Material) {
         let mut geometry: VertexBuffers<Point, u16> = VertexBuffers::new();
         let mut geometry_builder = simple_builder(&mut geometry);
