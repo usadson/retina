@@ -37,7 +37,7 @@ pub fn parse_coordinate(input: &str) -> IResult<&str, SvgNumber> {
 pub fn parse_coordinate_pair(input: &str) -> IResult<&str, SvgPathCoordinatePair> {
     let (input, (x, _, y)) = tuple((
         parse_coordinate,
-        parse_comma_wsp,
+        opt(parse_comma_wsp),
         parse_coordinate
     ))(input)?;
 
@@ -103,4 +103,17 @@ pub fn parse_comma_wsp(input: &str) -> IResult<&str, ()> {
 /// ```
 pub fn parse_wsp(input: &str) -> IResult<&str, char> {
     one_of("\t \n\u{000C}\r")(input)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rstest::rstest;
+    use pretty_assertions::assert_eq;
+
+    #[rstest]
+    #[case("480-120", Ok(("", SvgPathCoordinatePair { x: 480.0, y: -120.0 })))]
+    fn coordinate_pair(#[case] input: &str, #[case] expected: IResult<&str, SvgPathCoordinatePair>) {
+        assert_eq!(parse_coordinate_pair(input), expected);
+    }
 }
