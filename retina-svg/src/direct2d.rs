@@ -3,7 +3,7 @@
 
 mod factory;
 
-use euclid::default::Box2D;
+use euclid::default::{Box2D, Rect};
 use windows::{
     Foundation::Numerics::Matrix3x2,
     Win32::Graphics::Direct2D::{
@@ -170,6 +170,16 @@ impl Painter for DirectContext {
                 width,
                 None,
             );
+        }
+    }
+
+    fn push_view_box(&self, view_box: Rect<f32>) {
+        unsafe {
+            let mut transform = Matrix3x2::default();
+            self.render_target.GetTransform(&mut transform);
+
+            transform = transform * Matrix3x2::translation(view_box.origin.x, -view_box.origin.y);
+            self.render_target.SetTransform(&transform);
         }
     }
 }

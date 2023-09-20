@@ -23,7 +23,7 @@ pub use self::painter::{
     Painter,
 };
 
-use euclid::default::Box2D;
+use euclid::{default::{Box2D, Rect, Size2D}, Point2D};
 use log::{error, warn, info};
 
 use lyon::geom::point;
@@ -59,6 +59,7 @@ impl<'painter> SvgRenderer<'painter> {
         println!("[SvgRenderer] Rendering node: {}", element.qualified_name().local);
 
         match element.qualified_name().local.as_ref() {
+            "svg" => self.render_svg(element),
             "rect" => self.render_rect(element),
             "path" => self.render_path(element),
             _ => (),
@@ -66,6 +67,13 @@ impl<'painter> SvgRenderer<'painter> {
 
         for child in element.as_parent_node().children().iter() {
             self.render_node(child);
+        }
+    }
+
+    fn render_svg(&mut self, element: &Element) {
+        if let Some(view_box) = element.property_view_box() {
+            info!("SVG ViewBox: {view_box:#?}");
+            self.painter.push_view_box(view_box);
         }
     }
 
@@ -175,6 +183,8 @@ trait SvgElementTraits {
     fn property_width(&self) -> f32 { self.length_property("width") }
     fn property_height(&self) -> f32 { self.length_property("height") }
     fn property_stroke_width(&self) -> f32 { self.length_property_ext("stroke-width", 1.0) }
+
+    fn property_view_box(&self) -> Option<Rect<f32>>;
 }
 
 impl SvgElementTraits for Element {
@@ -211,5 +221,32 @@ impl SvgElementTraits for Element {
             Some(CssColor::Color(color)) => Material::Color(color),
             _ => default,
         }
+    }
+
+    fn property_view_box(&self) -> Option<Rect<f32>> {
+        let value = self.attributes().find_by_str("viewBox")?;
+
+        info!("ViewBox: \"{value}\"");
+
+        let values: Vec<f32> = value.split(|c| c == ' ' || c == ',')
+            .filter_map(|x| {
+                if x.is_empty() {
+                    return None;
+                }
+
+                x.parse::<f32>().ok()
+            })
+            .collect();
+        info!("  Values: {values:?}");
+
+        Some(match values[..] {
+            // TODO
+            [height] => Rect::new(Point2D::default(), Size2D::new(height, height)),
+            [width, height] => Rect::new(Point2D::default(), Size2D::new(width, height)),
+            [y, width, height] => Rect::new(Point2D::new(0.0, y), Size2D::new(width, height)),
+            [x, y, width, height] => Rect::new(Point2D::new(x, y), Size2D::new(width, height)),
+
+            _ => return None,
+        })
     }
 }
