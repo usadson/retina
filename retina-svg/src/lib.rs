@@ -76,7 +76,7 @@ impl<'painter> SvgRenderer<'painter> {
         };
 
         info!("Raw path data: \"{path_data}\"");
-        let material = Material::Color(element.property_fill());
+        let material = element.property_fill();
 
         let path = match path::parse_path(path_data) {
             Ok((_, path)) => path,
@@ -117,16 +117,17 @@ impl<'painter> SvgRenderer<'painter> {
 
         self.painter.draw_rect(
             Box2D::new(min, max),
-            Material::Color(element.property_fill()),
+            element.property_fill(),
         );
     }
 }
 
 trait SvgElementTraits {
     fn length_property(&self, name: &str) -> f32;
+    fn paint_property(&self, name: &str) -> Material;
 
     /// <https://www.w3.org/TR/SVG11/single-page.html#painting-FillProperty>
-    fn property_fill(&self) -> Color;
+    fn property_fill(&self) -> Material;
 
     fn property_x(&self) -> f32 { self.length_property("x") }
     fn property_y(&self) -> f32 { self.length_property("y") }
@@ -157,16 +158,25 @@ impl SvgElementTraits for Element {
         }
     }
 
-    fn property_fill(&self) -> Color {
-        const DEFAULT: Color = Color::BLACK;
+    fn paint_property(&self, name: &str) -> Material {
+        const DEFAULT: Material = Material::Color(Color::BLACK);
 
-        let Some(color) = self.attributes().find_by_str("fill") else {
+        let Some(color) = self.attributes().find_by_str(name) else {
             return DEFAULT;
         };
 
+        if color.eq_ignore_ascii_case("none") {
+            return Material::Color(Color::TRANSPARENT);
+        }
+
         match retina_style_parser::parse_value_color(color) {
-            Some(CssColor::Color(color)) => color,
+            Some(CssColor::Color(color)) => Material::Color(color),
             _ => DEFAULT,
         }
+    }
+
+    #[inline]
+    fn property_fill(&self) -> Material {
+        self.paint_property("fill")
     }
 }
