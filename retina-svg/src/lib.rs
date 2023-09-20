@@ -108,6 +108,14 @@ impl<'painter> SvgRenderer<'painter> {
                         sink.line_to(ty, coords);
                     }
                 }
+                SvgPathCommand::QuadraticBezierCurveTo(ty, sequence) => {
+                    sink.quadratic_beziers_curve_to(ty, sequence)
+                }
+                SvgPathCommand::SmoothQuadraticBezierCurveTo(ty, sequence) => {
+                    for pair in sequence.0 {
+                        sink.smooth_quadratic_bezier_curve_to(ty, pair)
+                    }
+                }
                 SvgPathCommand::ClosePath => sink.close_path(),
                 _command => info!("Todo: {_command:#?}"),
             }

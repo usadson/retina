@@ -6,7 +6,11 @@ use std::any::Any;
 use euclid::default::Box2D;
 use retina_common::Color;
 
-use crate::path::{SvgPathCoordinatePair, SvgPathType};
+use crate::path::{
+    SvgPathCoordinatePair,
+    SvgPathCoordinatePairDoubleSequence,
+    SvgPathType,
+};
 
 pub enum Material {
     Color(Color),
@@ -38,6 +42,8 @@ pub trait GeometrySink {
     fn close_path(&mut self);
     fn line_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair);
     fn move_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair);
+    fn quadratic_beziers_curve_to(&mut self, ty: SvgPathType, sequence: SvgPathCoordinatePairDoubleSequence);
+    fn smooth_quadratic_bezier_curve_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair);
 
     fn finish(&mut self) -> Box<dyn Geometry>;
 }

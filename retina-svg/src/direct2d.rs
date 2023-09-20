@@ -15,6 +15,7 @@ use windows::{
             D2D1_FIGURE_BEGIN_FILLED,
             D2D1_FIGURE_BEGIN_HOLLOW, D2D1_FIGURE_END_CLOSED,
         },
+        D2D1_QUADRATIC_BEZIER_SEGMENT,
         ID2D1Brush,
         ID2D1GeometrySink,
         ID2D1HwndRenderTarget,
@@ -32,6 +33,7 @@ use crate::{
     Painter,
     path::{
         SvgPathCoordinatePair,
+        SvgPathCoordinatePairDoubleSequence,
         SvgPathType,
     },
 };
@@ -119,6 +121,7 @@ impl Painter for DirectContext {
             },
             state: DirectGeometrySinkState::Initial,
             current: Default::default(),
+            previous_quadratic_control_point: None,
         })
     }
 
@@ -185,6 +188,7 @@ struct DirectGeometrySink {
 
     state: DirectGeometrySinkState,
     current: D2D_POINT_2F,
+    previous_quadratic_control_point: Option<D2D_POINT_2F>,
 }
 
 impl DirectGeometrySink {
@@ -214,6 +218,7 @@ impl GeometrySink for DirectGeometrySink {
             self.sink.EndFigure(D2D1_FIGURE_END_CLOSED)
         }
 
+        self.previous_quadratic_control_point = None;
         self.state = DirectGeometrySinkState::Closed;
     }
 
@@ -222,6 +227,7 @@ impl GeometrySink for DirectGeometrySink {
             log::info!("Line {ty:?} to {coords:?}");
             self.sink.AddLine(self.point(ty, coords));
         }
+        self.previous_quadratic_control_point = None;
     }
 
     fn move_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair) {
@@ -241,11 +247,50 @@ impl GeometrySink for DirectGeometrySink {
         self.close_path();
         let coords = self.point(ty, coords);
         self.current = coords;
+        self.previous_quadratic_control_point = None;
 
         unsafe {
             log::info!("Beginning figure");
             self.sink.BeginFigure(coords, self.begin_type);
         }
+    }
+
+    fn quadratic_beziers_curve_to(&mut self, ty: SvgPathType, sequence: SvgPathCoordinatePairDoubleSequence) {
+        let beziers: Vec<_> = sequence.0.iter().map(|x| D2D1_QUADRATIC_BEZIER_SEGMENT {
+            // Control
+            point1: self.point(ty, x.b),
+            // Point to
+            point2: self.point(ty, x.a),
+        }).collect();
+
+        unsafe {
+            self.sink.AddQuadraticBeziers(&beziers);
+        }
+        self.previous_quadratic_control_point = Some(self.point(ty, sequence.0.last().unwrap().b));
+    }
+
+    fn smooth_quadratic_bezier_curve_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair) {
+        let current_point = self.point(ty, coords);
+
+        let control_point = match self.previous_quadratic_control_point {
+            // The control point is assumed to be the reflection of the control
+            // point on the previous command relative to the current point.
+            Some(previous_control_point) => reflect_point(previous_control_point, current_point),
+
+            // (If there is no previous command or if the previous command was
+            // not a Q, q, T or t, assume the control point is coincident with
+            // the current point.)
+            None => current_point,
+        };
+
+        unsafe {
+            self.sink.AddQuadraticBezier(&D2D1_QUADRATIC_BEZIER_SEGMENT {
+                point1: control_point,
+                point2: current_point,
+            });
+        }
+
+        self.previous_quadratic_control_point = Some(control_point);
     }
 
     fn finish(&mut self) -> Box<dyn Geometry> {
@@ -265,6 +310,14 @@ const fn point(value: SvgPathCoordinatePair) -> D2D_POINT_2F {
     D2D_POINT_2F {
         x: value.x as _,
         y: value.y as _,
+    }
+}
+
+#[inline]
+fn reflect_point(point: D2D_POINT_2F, relative_to: D2D_POINT_2F) -> D2D_POINT_2F {
+    D2D_POINT_2F {
+        x: 2.0 * point.x - relative_to.x,
+        y: 2.0 * point.y - relative_to.y,
     }
 }
 
