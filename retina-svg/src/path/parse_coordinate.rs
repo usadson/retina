@@ -71,9 +71,11 @@ pub fn parse_coordinate_pair_sequence(input: &str) -> IResult<&str, SvgPathCoord
 }
 
 pub fn parse_coordinate_pair_triplet(input: &str) -> IResult<&str, SvgPathCoordinatePairTriplet> {
-    let (input, (a, b, c)) = tuple((
+    let (input, (a, _, b, _, c)) = tuple((
         parse_coordinate_pair,
+        opt(parse_comma_wsp),
         parse_coordinate_pair,
+        opt(parse_comma_wsp),
         parse_coordinate_pair,
     ))(input)?;
 
@@ -92,10 +94,11 @@ pub fn parse_coordinate_pair_triplet_sequence(input: &str) -> IResult<&str, SvgP
 }
 
 pub fn parse_coordinate_pair_double(input: &str) -> IResult<&str, SvgPathCoordinatePairDouble> {
-    let (input, (a, b)) = pair(
+    let (input, (a, _, b)) = tuple((
         parse_coordinate_pair,
+        opt(parse_comma_wsp),
         parse_coordinate_pair,
-    )(input)?;
+    ))(input)?;
 
     Ok((input, SvgPathCoordinatePairDouble { a, b  }))
 }

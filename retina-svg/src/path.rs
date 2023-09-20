@@ -15,7 +15,7 @@ pub struct SvgPath {
     pub commands: Vec<SvgPathCommand>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum SvgPathCommand {
     MoveTo(SvgPathType, SvgPathCoordinatePairSequence),
     ClosePath,

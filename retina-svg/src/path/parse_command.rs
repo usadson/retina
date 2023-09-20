@@ -134,3 +134,37 @@ fn parse_path_type(
         value(SvgPathType::Relative, char(relative)),
     ))(input)
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::path::{
+        SvgPathCoordinatePair,
+        SvgPathCoordinatePairDouble,
+        SvgPathCoordinatePairDoubleSequence,
+    };
+
+    use super::*;
+    use rstest::rstest;
+    use pretty_assertions::assert_eq;
+
+    #[rstest]
+    #[case(
+        "Q111-500 95.5-544",
+        Ok((
+            "",
+            SvgPathCommand::QuadraticBezierCurveTo(
+                SvgPathType::Absolute,
+                SvgPathCoordinatePairDoubleSequence(vec![
+                    SvgPathCoordinatePairDouble {
+                        a: SvgPathCoordinatePair { x: 111.0, y: -500.0 },
+                        b: SvgPathCoordinatePair { x: 95.5, y: -544.0 },
+                    },
+                ])
+            )
+        ))
+    )]
+    fn quadratic_bezier_curve_to(#[case] input: &str, #[case] expected: IResult<&str, SvgPathCommand>) {
+        assert_eq!(parse_quadratic_bezier_curve_to(input), expected);
+    }
+
+}
