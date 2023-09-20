@@ -14,6 +14,8 @@ use super::{
     SvgNumber,
     SvgPathCoordinatePair,
     SvgPathCoordinatePairSequence,
+    SvgPathCoordinatePairTriplet,
+    SvgPathCoordinatePairTripletSequence,
     SvgPathCoordinateSequence,
     parse_literal::parse_number,
 };
@@ -64,6 +66,27 @@ pub fn parse_coordinate_pair_sequence(input: &str) -> IResult<&str, SvgPathCoord
     )(input)?;
 
     Ok((input, SvgPathCoordinatePairSequence(vec)))
+}
+
+pub fn parse_coordinate_pair_triplet(input: &str) -> IResult<&str, SvgPathCoordinatePairTriplet> {
+    let (input, (a, b, c)) = tuple((
+        parse_coordinate_pair,
+        parse_coordinate_pair,
+        parse_coordinate_pair,
+    ))(input)?;
+
+    Ok((input, SvgPathCoordinatePairTriplet { a, b, c  }))
+}
+
+pub fn parse_coordinate_pair_triplet_sequence(input: &str) -> IResult<&str, SvgPathCoordinatePairTripletSequence> {
+    let (input, vec) = many1(
+        terminated(
+            parse_coordinate_pair_triplet,
+            many0(parse_comma_wsp)
+        )
+    )(input)?;
+
+    Ok((input, SvgPathCoordinatePairTripletSequence(vec)))
 }
 
 /// Parse a comma or whitespace separator. There must be:

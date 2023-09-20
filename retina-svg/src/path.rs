@@ -22,6 +22,7 @@ pub enum SvgPathCommand {
     LineTo(SvgPathType, SvgPathCoordinatePairSequence),
     HorizontalLineTo(SvgPathType, SvgPathCoordinateSequence),
     VerticalLineTo(SvgPathType, SvgPathCoordinateSequence),
+    CurveTo(SvgPathType, SvgPathCoordinatePairTripletSequence)
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -36,8 +37,18 @@ pub struct SvgPathCoordinateSequence(pub Vec<SvgNumber>);
 #[derive(Clone, Debug, PartialEq)]
 pub struct SvgPathCoordinatePairSequence(pub Vec<SvgPathCoordinatePair>);
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct SvgPathCoordinatePairTripletSequence(pub Vec<SvgPathCoordinatePairTriplet>);
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct SvgPathCoordinatePair {
     pub x: SvgNumber,
     pub y: SvgNumber,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct SvgPathCoordinatePairTriplet {
+    pub a: SvgPathCoordinatePair,
+    pub b: SvgPathCoordinatePair,
+    pub c: SvgPathCoordinatePair,
 }

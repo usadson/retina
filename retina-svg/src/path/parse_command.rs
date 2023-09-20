@@ -16,7 +16,9 @@ use super::{
     SvgPathType,
     parse_coordinate::{
         parse_wsp,
-        parse_coordinate_pair_sequence, parse_coordinate_sequence,
+        parse_coordinate_pair_sequence,
+        parse_coordinate_pair_triplet_sequence,
+        parse_coordinate_sequence,
     },
 };
 
@@ -39,6 +41,7 @@ fn parse_draw_to_command(input: &str) -> IResult<&str, SvgPathCommand> {
         parse_line_to,
         parse_horizontal_line_to,
         parse_vertical_line_to,
+        parse_curve_to,
     ))(input)
 }
 
@@ -87,6 +90,16 @@ fn parse_vertical_line_to(input: &str) -> IResult<&str, SvgPathCommand> {
     ))(input)?;
 
     Ok((input, SvgPathCommand::VerticalLineTo(ty, sequence)))
+}
+
+fn parse_curve_to(input: &str) -> IResult<&str, SvgPathCommand> {
+    let (input, (ty, _, sequence)) = tuple((
+        parse_path_type('C', 'c'),
+        many0(parse_wsp),
+        parse_coordinate_pair_triplet_sequence,
+    ))(input)?;
+
+    Ok((input, SvgPathCommand::CurveTo(ty, sequence)))
 }
 
 fn parse_path_type(
