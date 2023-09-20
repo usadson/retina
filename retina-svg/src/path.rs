@@ -30,10 +30,10 @@ pub enum SvgPathType {
     Absolute,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct SvgPathCoordinateSequence(pub Vec<SvgNumber>);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct SvgPathCoordinatePairSequence(pub Vec<SvgPathCoordinatePair>);
 
 #[derive(Copy, Clone, Debug, PartialEq)]

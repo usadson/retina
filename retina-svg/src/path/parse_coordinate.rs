@@ -6,8 +6,8 @@ use nom::{
     branch::alt,
     combinator::{opt, value},
     character::complete::{char, one_of},
-    multi::{many1, many0, separated_list1},
-    sequence::{tuple, pair},
+    multi::{many0, many1},
+    sequence::{tuple, pair, terminated},
 };
 
 use super::{
@@ -45,24 +45,22 @@ pub fn parse_coordinate_pair(input: &str) -> IResult<&str, SvgPathCoordinatePair
 }
 
 pub fn parse_coordinate_sequence(input: &str) -> IResult<&str, SvgPathCoordinateSequence> {
-    let (input, (vec, _)) = pair(
-        separated_list1(
-            parse_comma_wsp,
+    let (input, vec) = many1(
+        terminated(
             parse_coordinate,
-        ),
-        many0(parse_wsp),
+            many0(parse_comma_wsp)
+        )
     )(input)?;
 
     Ok((input, SvgPathCoordinateSequence(vec)))
 }
 
 pub fn parse_coordinate_pair_sequence(input: &str) -> IResult<&str, SvgPathCoordinatePairSequence> {
-    let (input, (vec, _)) = pair(
-        separated_list1(
-            parse_comma_wsp,
+    let (input, vec) = many1(
+        terminated(
             parse_coordinate_pair,
-        ),
-        many0(parse_wsp),
+            many0(parse_comma_wsp)
+        )
     )(input)?;
 
     Ok((input, SvgPathCoordinatePairSequence(vec)))
@@ -115,5 +113,14 @@ mod tests {
     #[case("480-120", Ok(("", SvgPathCoordinatePair { x: 480.0, y: -120.0 })))]
     fn coordinate_pair(#[case] input: &str, #[case] expected: IResult<&str, SvgPathCoordinatePair>) {
         assert_eq!(parse_coordinate_pair(input), expected);
+    }
+
+    #[rstest]
+    #[case("480-120-58-52", Ok(("", SvgPathCoordinatePairSequence(vec![
+        SvgPathCoordinatePair { x: 480.0, y: -120.0 },
+        SvgPathCoordinatePair { x: -58.0, y: -52.0 }
+    ]))))]
+    fn coordinate_pair_sequence(#[case] input: &str, #[case] expected: IResult<&str, SvgPathCoordinatePairSequence>) {
+        assert_eq!(parse_coordinate_pair_sequence(input), expected);
     }
 }
