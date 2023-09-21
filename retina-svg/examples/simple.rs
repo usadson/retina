@@ -37,6 +37,7 @@ fn main() {
                 control_flow.set_exit();
             },
 
+            #[cfg(windows)]
             Event::WindowEvent { event: WindowEvent::Resized(size), .. } => {
                 context.resize(size.width, size.height);
             }
