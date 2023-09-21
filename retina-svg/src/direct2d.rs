@@ -8,13 +8,13 @@ use windows::{
     Foundation::Numerics::Matrix3x2,
     Win32::Graphics::Direct2D::{
         Common::{
-            D2D1_COLOR_F,
             D2D_RECT_F,
             D2D_POINT_2F,
+            D2D1_COLOR_F,
+            D2D1_BEZIER_SEGMENT,
             D2D1_FIGURE_BEGIN,
             D2D1_FIGURE_BEGIN_FILLED,
             D2D1_FIGURE_BEGIN_HOLLOW,
-            D2D1_FIGURE_END_CLOSED,
             D2D1_FIGURE_END_OPEN,
             D2D_SIZE_U,
         },
@@ -37,6 +37,7 @@ use crate::{
     path::{
         SvgPathCoordinatePair,
         SvgPathCoordinatePairDoubleSequence,
+        SvgPathCoordinatePairTripletSequence,
         SvgPathCoordinateSequence,
         SvgPathType,
     },
@@ -293,6 +294,25 @@ impl GeometrySink for DirectGeometrySink {
         unsafe {
             log::info!("  Beginning figure");
             self.sink.BeginFigure(coords, self.begin_type);
+        }
+    }
+
+    fn curve_to(&mut self, ty: SvgPathType, sequence: SvgPathCoordinatePairTripletSequence) {
+        debug_assert_eq!(self.state, DirectGeometrySinkState::Opened);
+
+        let beziers: Vec<_> = sequence.0.iter().map(|x| D2D1_BEZIER_SEGMENT {
+            // First Control
+            point1: self.point(ty, x.a),
+            // Second Control
+            point2: self.point(ty, x.b),
+            // Point to
+            point3: self.point(ty, x.c),
+        }).collect();
+
+        println!("Curving to: {beziers:#?}");
+
+        unsafe {
+            self.sink.AddBeziers(&beziers);
         }
     }
 

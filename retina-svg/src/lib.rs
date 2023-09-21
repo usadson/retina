@@ -118,6 +118,7 @@ impl<'painter> SvgRenderer<'painter> {
                 }
                 SvgPathCommand::HorizontalLineTo(ty, lines) => sink.horizontal_lines_to(ty, lines),
                 SvgPathCommand::VerticalLineTo(ty, lines) => sink.vertical_lines_to(ty, lines),
+                SvgPathCommand::CurveTo(ty, sequence) => sink.curve_to(ty, sequence),
                 SvgPathCommand::QuadraticBezierCurveTo(ty, sequence) => {
                     sink.quadratic_beziers_curve_to(ty, sequence)
                 }
@@ -127,7 +128,6 @@ impl<'painter> SvgRenderer<'painter> {
                     }
                 }
                 SvgPathCommand::ClosePath => sink.close_path(),
-                _command => info!("Todo: {_command:#?}"),
             }
         }
 
