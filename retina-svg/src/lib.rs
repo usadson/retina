@@ -16,11 +16,14 @@ mod tesselator;
 use crate::path::SvgPathCommand;
 
 pub use self::painter::{
+    CapStyle,
     Geometry,
     GeometrySink,
     GeometrySinkFillType,
     Material,
     Painter,
+    StrokeStyle,
+    StrokeStyleProperties,
 };
 
 use euclid::{default::{Box2D, Rect, Size2D}, Point2D};
@@ -155,7 +158,8 @@ impl<'painter> SvgRenderer<'painter> {
         }
 
         if !stroke.is_transparent() && stroke_width > 0.0 {
-            self.painter.stroke_geometry(geometry.as_ref(), stroke, stroke_width);
+            let stroke_style = element.stroke_style(self.painter);
+            self.painter.stroke_geometry(geometry.as_ref(), stroke, stroke_width, stroke_style.as_deref());
         }
     }
 
@@ -173,7 +177,8 @@ impl<'painter> SvgRenderer<'painter> {
         let stroke = element.property_stroke();
         let stroke_width = element.property_stroke_width();
         if !stroke.is_transparent() && stroke_width > 0.0 {
-            self.painter.stroke_rect(rect, stroke, stroke_width);
+            let stroke_style = element.stroke_style(self.painter);
+            self.painter.stroke_rect(rect, stroke, stroke_width, stroke_style.as_deref());
         }
     }
 }
@@ -203,6 +208,7 @@ trait SvgElementTraits {
     fn property_stroke_width(&self) -> f32 { self.length_property_ext("stroke-width", 1.0) }
 
     fn property_view_box(&self) -> Option<Rect<f32>>;
+    fn stroke_style(&self, painter: &dyn Painter) -> Option<Box<dyn StrokeStyle>>;
 }
 
 impl SvgElementTraits for Element {
@@ -265,5 +271,19 @@ impl SvgElementTraits for Element {
 
             _ => return None,
         })
+    }
+
+    fn stroke_style(&self, painter: &dyn Painter) -> Option<Box<dyn StrokeStyle>> {
+        let value = self.attributes().find_by_str("stroke-linecap")?;
+        let cap_style = match value {
+            "butt" => CapStyle::Butt,
+            "round" => CapStyle::Round,
+            "square" => CapStyle::Square,
+            _ => return None,
+        };
+
+        Some(painter.create_stroke_style(StrokeStyleProperties {
+            cap_style,
+        }))
     }
 }

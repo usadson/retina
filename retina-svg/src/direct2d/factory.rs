@@ -11,16 +11,27 @@ use windows::Win32::{
         ID2D1Factory,
         ID2D1PathGeometry,
         ID2D1HwndRenderTarget,
+        ID2D1StrokeStyle,
 
         D2D1CreateFactory,
 
         D2D1_RENDER_TARGET_PROPERTIES,
         D2D1_HWND_RENDER_TARGET_PROPERTIES,
         D2D1_FACTORY_OPTIONS,
+        D2D1_STROKE_STYLE_PROPERTIES,
 
         D2D1_DEBUG_LEVEL_INFORMATION,
         D2D1_FACTORY_TYPE_SINGLE_THREADED,
+        D2D1_CAP_STYLE_FLAT,
+        D2D1_CAP_STYLE_ROUND,
+        D2D1_CAP_STYLE_SQUARE,
     },
+};
+
+use crate::{
+    CapStyle,
+    StrokeStyle,
+    StrokeStyleProperties,
 };
 
 pub struct DirectFactory {
@@ -66,9 +77,36 @@ impl DirectFactory {
         }
     }
 
+    pub fn create_stroke_style(&self, properties: StrokeStyleProperties) -> Box<dyn StrokeStyle> {
+        let cap_style = match properties.cap_style {
+            CapStyle::Butt => D2D1_CAP_STYLE_FLAT,
+            CapStyle::Round => D2D1_CAP_STYLE_ROUND,
+            CapStyle::Square => D2D1_CAP_STYLE_SQUARE,
+        };
+        unsafe {
+            let style = self.factory.CreateStrokeStyle(&D2D1_STROKE_STYLE_PROPERTIES {
+                dashCap: cap_style,
+                endCap: cap_style,
+                startCap: cap_style,
+                ..Default::default()
+            }, None).unwrap();
+            Box::new(DirectStrokeStyle { style })
+        }
+    }
+
     pub fn create_geometry(&self) -> ID2D1PathGeometry {
         unsafe {
             self.factory.CreatePathGeometry().unwrap()
         }
+    }
+}
+
+pub struct DirectStrokeStyle {
+    pub style: ID2D1StrokeStyle,
+}
+
+impl StrokeStyle for DirectStrokeStyle {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
     }
 }

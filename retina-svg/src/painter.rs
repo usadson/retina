@@ -30,14 +30,30 @@ impl Material {
 pub trait Painter {
     fn set_size(&self, size: Size2D<f32>);
     fn create_geometry(&self, fill_type: GeometrySinkFillType) -> Box<dyn GeometrySink>;
+    fn create_stroke_style(&self, properties: StrokeStyleProperties) -> Box<dyn StrokeStyle>;
 
     fn push_view_box(&self, view_box: Rect<f32>);
 
     fn draw_geometry(&mut self, geometry: &dyn Geometry, material: Material);
     fn draw_rect(&mut self, rect: Box2D<f32>, material: Material);
 
-    fn stroke_geometry(&mut self, geometry: &dyn Geometry, material: Material, width: f32);
-    fn stroke_rect(&mut self, rect: Box2D<f32>, material: Material, width: f32);
+    fn stroke_geometry(&mut self, geometry: &dyn Geometry, material: Material, width: f32, stroke_style: Option<&dyn StrokeStyle>);
+    fn stroke_rect(&mut self, rect: Box2D<f32>, material: Material, width: f32, stroke_style: Option<&dyn StrokeStyle>);
+}
+
+pub trait StrokeStyle {
+    fn as_any(&self) -> &dyn Any;
+}
+
+pub struct StrokeStyleProperties {
+    pub cap_style: CapStyle,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CapStyle {
+    Butt,
+    Square,
+    Round,
 }
 
 pub trait Geometry {

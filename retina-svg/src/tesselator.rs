@@ -7,6 +7,8 @@ use crate::{
     GeometrySinkFillType,
     Material,
     Painter,
+    StrokeStyle,
+    StrokeStyleProperties,
 };
 use euclid::default::{Box2D, Rect, Size2D};
 
@@ -21,6 +23,11 @@ impl Painter for Tesselator {
     fn create_geometry(&self, ty: GeometrySinkFillType) -> Box<dyn GeometrySink> {
         _ = ty;
         todo!()
+    }
+
+    fn create_stroke_style(&self, properties: StrokeStyleProperties) -> Box<dyn StrokeStyle> {
+        _ = properties;
+        todo!();
     }
 
     fn draw_geometry(&mut self, geometry: &dyn Geometry, material: Material) {
@@ -51,17 +58,19 @@ impl Painter for Tesselator {
         todo!();
     }
 
-    fn stroke_geometry(&mut self, geometry: &dyn Geometry, material: Material, width: f32) {
+    fn stroke_geometry(&mut self, geometry: &dyn Geometry, material: Material, width: f32, stroke_style: Option<&dyn StrokeStyle>) {
         _ = geometry;
         _ = material;
         _ = width;
+        _ = stroke_style;
         todo!();
     }
 
-    fn stroke_rect(&mut self, rect: Box2D<f32>, material: Material, width: f32) {
+    fn stroke_rect(&mut self, rect: Box2D<f32>, material: Material, width: f32, stroke_style: Option<&dyn StrokeStyle>) {
         _ = rect;
         _ = material;
         _ = width;
+        _ = stroke_style;
         todo!();
     }
 

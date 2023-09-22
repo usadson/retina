@@ -49,8 +49,10 @@ use crate::{
         SvgPathCoordinateSequence,
         SvgPathType,
     },
+    StrokeStyle,
+    StrokeStyleProperties,
 };
-use self::factory::DirectFactory;
+use self::factory::{DirectFactory, DirectStrokeStyle};
 
 pub struct DirectContext {
     #[allow(dead_code)]
@@ -147,6 +149,10 @@ impl Painter for DirectContext {
         })
     }
 
+    fn create_stroke_style(&self, properties: StrokeStyleProperties) -> Box<dyn StrokeStyle> {
+        self.factory.create_stroke_style(properties)
+    }
+
     fn draw_geometry(&mut self, geometry: &dyn Geometry, material: Material) {
         let geo = geometry.as_any()
             .downcast_ref::<DirectGeometry>()
@@ -166,28 +172,46 @@ impl Painter for DirectContext {
         }
     }
 
-    fn stroke_geometry(&mut self, geometry: &dyn Geometry, material: Material, width: f32) {
+    fn stroke_geometry(
+        &mut self,
+        geometry: &dyn Geometry,
+        material: Material,
+        width: f32,
+        stroke_style: Option<&dyn StrokeStyle>,
+    ) {
         let geo = geometry.as_any()
             .downcast_ref::<DirectGeometry>()
             .unwrap();
+        let style = stroke_style
+            .and_then(|x| x.as_any().downcast_ref::<DirectStrokeStyle>())
+            .map(|x| &x.style);
 
         unsafe {
             self.render_target.DrawGeometry(
                 &geo.geometry,
                 &self.create_material(material),
                 width,
-                None,
+                style,
             )
         }
     }
 
-    fn stroke_rect(&mut self, rect: Box2D<f32>, material: Material, width: f32) {
+    fn stroke_rect(
+        &mut self,
+        rect: Box2D<f32>,
+        material: Material,
+        width: f32,
+        stroke_style: Option<&dyn StrokeStyle>,
+    ) {
+        let style = stroke_style
+            .and_then(|x| x.as_any().downcast_ref::<DirectStrokeStyle>())
+            .map(|x| &x.style);
         unsafe {
             self.render_target.DrawRectangle(
                 &self.rect(rect),
-                & self.create_material(material),
+                &self.create_material(material),
                 width,
-                None,
+                style,
             );
         }
     }
