@@ -8,7 +8,7 @@ use crate::{
     Material,
     Painter,
 };
-use euclid::default::{Box2D, Rect};
+use euclid::default::{Box2D, Rect, Size2D};
 
 use lyon::lyon_tessellation::geometry_builder::simple_builder;
 use lyon::math::Point;
@@ -67,6 +67,11 @@ impl Painter for Tesselator {
 
     fn push_view_box(&self, view_box: Rect<f32>) {
         _ = view_box;
+        todo!();
+    }
+
+    fn set_size(&self, size: Size2D<f32>) {
+        _ = size;
         todo!();
     }
 }

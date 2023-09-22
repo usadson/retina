@@ -3,7 +3,7 @@
 
 mod factory;
 
-use euclid::default::{Box2D, Rect};
+use euclid::default::{Box2D, Rect, Size2D};
 use windows::{
     Foundation::Numerics::Matrix3x2,
     Win32::Graphics::Direct2D::{
@@ -197,6 +197,16 @@ impl Painter for DirectContext {
             self.render_target.GetTransform(&mut transform);
 
             transform = transform * Matrix3x2::translation(view_box.origin.x, -view_box.origin.y);
+            self.render_target.SetTransform(&transform);
+        }
+    }
+
+    fn set_size(&self, size: Size2D<f32>) {
+        unsafe {
+            let mut transform = Matrix3x2::default();
+            self.render_target.GetTransform(&mut transform);
+
+            transform = transform * Matrix3x2::scale(size.width, size.height);
             self.render_target.SetTransform(&transform);
         }
     }
@@ -432,4 +442,18 @@ enum DirectGeometrySinkState {
     Initial,
     Closed,
     Opened,
+}
+
+trait MatrixExtensions<T> {
+    fn scale(width: T, height: T) -> Self;
+}
+
+impl MatrixExtensions<f32> for Matrix3x2 {
+    fn scale(width: f32, height: f32) -> Self {
+        Self {
+            M11: width, M12: 0.0,
+            M21: 0.0,   M22: height,
+            M31: 0.0,   M32: 0.0,
+        }
+    }
 }

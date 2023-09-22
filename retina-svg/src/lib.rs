@@ -71,9 +71,22 @@ impl<'painter> SvgRenderer<'painter> {
     }
 
     fn render_svg(&mut self, element: &Element) {
+        let width = element.property_width();
+        let height = element.property_height();
+
         if let Some(view_box) = element.property_view_box() {
+            println!("Width: {width}, height: {height}");
+            if width > 0.0 && height > 0.0 {
+                self.painter.set_size(Size2D::new(
+                    width / view_box.width(),
+                    height / view_box.height(),
+                ));
+            }
+
             info!("SVG ViewBox: {view_box:#?}");
             self.painter.push_view_box(view_box);
+        } else if width > 0.0 && height > 0.0 {
+            self.painter.set_size(Size2D::new(width, height));
         }
     }
 
@@ -242,7 +255,6 @@ impl SvgElementTraits for Element {
                 x.parse::<f32>().ok()
             })
             .collect();
-        info!("  Values: {values:?}");
 
         Some(match values[..] {
             // TODO

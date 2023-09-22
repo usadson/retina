@@ -3,7 +3,7 @@
 
 use std::any::Any;
 
-use euclid::default::{Box2D, Rect};
+use euclid::default::{Box2D, Rect, Size2D};
 use retina_common::Color;
 
 use crate::path::{
@@ -28,6 +28,7 @@ impl Material {
 }
 
 pub trait Painter {
+    fn set_size(&self, size: Size2D<f32>);
     fn create_geometry(&self, fill_type: GeometrySinkFillType) -> Box<dyn GeometrySink>;
 
     fn push_view_box(&self, view_box: Rect<f32>);
