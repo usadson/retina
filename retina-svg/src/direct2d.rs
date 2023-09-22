@@ -15,6 +15,7 @@ use windows::{
             D2D1_FIGURE_BEGIN,
             D2D1_FIGURE_BEGIN_FILLED,
             D2D1_FIGURE_BEGIN_HOLLOW,
+            D2D1_FIGURE_END_CLOSED,
             D2D1_FIGURE_END_OPEN,
             D2D_SIZE_U,
             D2D_SIZE_F,
@@ -255,8 +256,9 @@ impl GeometrySink for DirectGeometrySink {
         }
 
         unsafe {
-            // TODO should we use this or D2D1_FIGURE_END_CLOSED instead?
-            self.sink.EndFigure(D2D1_FIGURE_END_OPEN)
+            // The D2D1_FIGURE_END_CLOSED means a line is drawn from the initial
+            // point to the end point.
+            self.sink.EndFigure(D2D1_FIGURE_END_CLOSED)
         }
 
         self.previous_quadratic_control_point = None;
@@ -419,7 +421,17 @@ impl GeometrySink for DirectGeometrySink {
 
     fn finish(&mut self) -> Box<dyn Geometry> {
         log::info!("Finishing...");
-        self.close_path();
+
+        if self.state != DirectGeometrySinkState::Closed {
+            // The “closepath” command (Z/z) will close it differently than
+            // this implicit one, since it will connect the initial point to
+            // the last point, whilst this implicit one doesn't.
+            unsafe {
+                // The D2D1_FIGURE_END_OPEN means a line won't be drawn from the
+                // initial point to the end point.
+                self.sink.EndFigure(D2D1_FIGURE_END_OPEN)
+            }
+        }
 
         unsafe {
             self.sink.Close()
