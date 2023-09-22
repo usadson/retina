@@ -3,7 +3,7 @@
 
 mod factory;
 
-use euclid::default::{Box2D, Rect, Size2D};
+use euclid::default::{Box2D, Point2D, Rect, Size2D};
 use windows::{
     Foundation::Numerics::Matrix3x2,
     Win32::Graphics::Direct2D::{
@@ -24,6 +24,7 @@ use windows::{
         D2D1_ARC_SIZE_LARGE,
         D2D1_ARC_SIZE_SMALL,
         D2D1_QUADRATIC_BEZIER_SEGMENT,
+        D2D1_ROUNDED_RECT,
         D2D1_SWEEP_DIRECTION_CLOCKWISE,
         D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE,
 
@@ -164,11 +165,18 @@ impl Painter for DirectContext {
         }
     }
 
-    fn draw_rect(&mut self, rect: euclid::default::Box2D<f32>, material: Material) {
+    fn draw_rect(&mut self, rect: euclid::default::Box2D<f32>, material: Material, radius: Point2D<f32>) {
         let material = self.create_material(material);
 
         unsafe {
-            self.render_target.FillRectangle(&self.rect(rect), &material);
+            self.render_target.FillRoundedRectangle(
+                &D2D1_ROUNDED_RECT {
+                    rect: self.rect(rect),
+                    radiusX: radius.x,
+                    radiusY: radius.y,
+                },
+                &material,
+            );
         }
     }
 
@@ -200,6 +208,7 @@ impl Painter for DirectContext {
         &mut self,
         rect: Box2D<f32>,
         material: Material,
+        radius: Point2D<f32>,
         width: f32,
         stroke_style: Option<&dyn StrokeStyle>,
     ) {
@@ -207,8 +216,12 @@ impl Painter for DirectContext {
             .and_then(|x| x.as_any().downcast_ref::<DirectStrokeStyle>())
             .map(|x| &x.style);
         unsafe {
-            self.render_target.DrawRectangle(
-                &self.rect(rect),
+            self.render_target.DrawRoundedRectangle(
+                &D2D1_ROUNDED_RECT {
+                    rect: self.rect(rect),
+                    radiusX: radius.x,
+                    radiusY: radius.y,
+                },
                 &self.create_material(material),
                 width,
                 style,

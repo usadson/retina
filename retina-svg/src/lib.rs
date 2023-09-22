@@ -11,7 +11,7 @@
 pub mod direct2d;
 mod painter;
 mod path;
-mod tesselator;
+// mod tesselator;
 
 use crate::path::SvgPathCommand;
 
@@ -168,17 +168,18 @@ impl<'painter> SvgRenderer<'painter> {
         let max = point(element.property_width(), element.property_height());
 
         let rect = Box2D::new(min, max);
+        let radius = element.properties_radii();
 
         let fill = element.property_fill();
         if !fill.is_transparent() {
-            self.painter.draw_rect(rect, fill);
+            self.painter.draw_rect(rect, fill, radius);
         }
 
         let stroke = element.property_stroke();
         let stroke_width = element.property_stroke_width();
         if !stroke.is_transparent() && stroke_width > 0.0 {
             let stroke_style = element.stroke_style(self.painter);
-            self.painter.stroke_rect(rect, stroke, stroke_width, stroke_style.as_deref());
+            self.painter.stroke_rect(rect, stroke, radius, stroke_width, stroke_style.as_deref());
         }
     }
 }
@@ -209,6 +210,12 @@ trait SvgElementTraits {
 
     fn property_view_box(&self) -> Option<Rect<f32>>;
     fn stroke_style(&self, painter: &dyn Painter) -> Option<Box<dyn StrokeStyle>>;
+    fn properties_radii(&self) -> euclid::default::Point2D<f32> {
+        Point2D::new(
+            self.length_property("rx"),
+            self.length_property("rx"),
+        )
+    }
 }
 
 impl SvgElementTraits for Element {
