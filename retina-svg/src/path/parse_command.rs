@@ -2,7 +2,6 @@
 // All Rights Reserved.
 
 use nom::{
-    IResult,
     branch::alt,
     character::complete::char,
     combinator::{eof, value},
@@ -11,6 +10,7 @@ use nom::{
 };
 
 use super::{
+    IResult,
     SvgPath,
     SvgPathCommand,
     SvgPathType,

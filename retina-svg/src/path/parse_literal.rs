@@ -2,14 +2,16 @@
 // All Rights Reserved.
 
 use nom::{
-    IResult,
     branch::alt,
     character::complete::{digit0, char, one_of},
     combinator::{map, map_res, opt},
     sequence::{tuple, pair},
 };
 
-use super::SvgNumber;
+use super::{
+    IResult,
+    SvgNumber,
+};
 
 /// Parse a number without a sign, possible fractional and/or exponential.
 pub fn parse_number(input: &str) -> IResult<&str, SvgNumber> {

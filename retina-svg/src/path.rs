@@ -1,11 +1,14 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
+mod error;
 mod parse_command;
 mod parse_coordinate;
+mod parse_elliptic;
 mod parse_literal;
 
 pub use parse_command::parse_path;
+pub use error::{IResult, PathError};
 
 /// The type of number in our representation.
 pub type SvgNumber = f64;
