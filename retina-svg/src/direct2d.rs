@@ -248,10 +248,12 @@ impl GeometrySink for DirectGeometrySink {
 
     fn line_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair) {
         debug_assert_eq!(self.state, DirectGeometrySinkState::Opened);
+        let point = self.point(ty, coords);
         unsafe {
             log::info!("Line {ty:?} to {coords:?}");
-            self.sink.AddLine(self.point(ty, coords));
+            self.sink.AddLine(point);
         }
+        self.current = point;
         self.previous_quadratic_control_point = None;
     }
 
@@ -314,42 +316,44 @@ impl GeometrySink for DirectGeometrySink {
         unsafe {
             self.sink.AddBeziers(&beziers);
         }
+        self.current = beziers.last().unwrap().point3;
     }
 
     fn quadratic_beziers_curve_to(&mut self, ty: SvgPathType, sequence: SvgPathCoordinatePairDoubleSequence) {
         debug_assert_eq!(self.state, DirectGeometrySinkState::Opened);
         let beziers: Vec<_> = sequence.0.iter().map(|x| D2D1_QUADRATIC_BEZIER_SEGMENT {
             // Control
-            point1: self.point(ty, x.b),
+            point1: self.point(ty, x.a),
             // Point to
-            point2: self.point(ty, x.a),
+            point2: self.point(ty, x.b),
         }).collect();
 
         unsafe {
             self.sink.AddQuadraticBeziers(&beziers);
         }
-        self.previous_quadratic_control_point = Some(self.point(ty, sequence.0.last().unwrap().b));
+        self.previous_quadratic_control_point = Some(beziers.last().unwrap().point1);
+        self.current = beziers.last().unwrap().point2;
     }
 
     fn smooth_quadratic_bezier_curve_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair) {
         debug_assert_eq!(self.state, DirectGeometrySinkState::Opened);
-        let current_point = self.point(ty, coords);
+        let next_point = self.point(ty, coords);
 
         let control_point = match self.previous_quadratic_control_point {
             // The control point is assumed to be the reflection of the control
             // point on the previous command relative to the current point.
-            Some(previous_control_point) => reflect_point(previous_control_point, current_point),
+            Some(previous_control_point) => reflect_point(self.current, previous_control_point),
 
             // (If there is no previous command or if the previous command was
             // not a Q, q, T or t, assume the control point is coincident with
             // the current point.)
-            None => current_point,
+            None => self.current,
         };
 
         unsafe {
             self.sink.AddQuadraticBezier(&D2D1_QUADRATIC_BEZIER_SEGMENT {
                 point1: control_point,
-                point2: current_point,
+                point2: next_point,
             });
         }
 
