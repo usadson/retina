@@ -341,18 +341,23 @@ impl GeometrySink for DirectGeometrySink {
 
     fn quadratic_beziers_curve_to(&mut self, ty: SvgPathType, sequence: SvgPathCoordinatePairDoubleSequence) {
         debug_assert_eq!(self.state, DirectGeometrySinkState::Opened);
-        let beziers: Vec<_> = sequence.0.iter().map(|x| D2D1_QUADRATIC_BEZIER_SEGMENT {
-            // Control
-            point1: self.point(ty, x.a),
-            // Point to
-            point2: self.point(ty, x.b),
-        }).collect();
+        let mut beziers = Vec::with_capacity(sequence.0.len());
+        for double in sequence.0 {
+            let bezier = D2D1_QUADRATIC_BEZIER_SEGMENT {
+                // Control
+                point1: self.point(ty, double.a),
+                // Point to
+                point2: self.point(ty, double.b),
+            };
+            beziers.push(bezier);
+
+            self.current = bezier.point2;
+            self.previous_quadratic_control_point = Some(bezier.point2);
+        }
 
         unsafe {
             self.sink.AddQuadraticBeziers(&beziers);
         }
-        self.previous_quadratic_control_point = Some(beziers.last().unwrap().point1);
-        self.current = beziers.last().unwrap().point2;
     }
 
     fn smooth_quadratic_bezier_curve_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair) {
