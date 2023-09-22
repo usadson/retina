@@ -17,8 +17,15 @@ use windows::{
             D2D1_FIGURE_BEGIN_HOLLOW,
             D2D1_FIGURE_END_OPEN,
             D2D_SIZE_U,
+            D2D_SIZE_F,
         },
+        D2D1_ARC_SEGMENT,
+        D2D1_ARC_SIZE_LARGE,
+        D2D1_ARC_SIZE_SMALL,
         D2D1_QUADRATIC_BEZIER_SEGMENT,
+        D2D1_SWEEP_DIRECTION_CLOCKWISE,
+        D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE,
+
         ID2D1Brush,
         ID2D1GeometrySink,
         ID2D1HwndRenderTarget,
@@ -359,6 +366,37 @@ impl GeometrySink for DirectGeometrySink {
 
         self.previous_quadratic_control_point = Some(control_point);
         self.current = next_point;
+    }
+
+    fn elliptic_arc(&mut self, ty: SvgPathType, argument: crate::path::SvgPathEllipticArcArgument) {
+        let end_point = self.point(ty, argument.coords);
+        let arc = &D2D1_ARC_SEGMENT {
+            point: end_point,
+            rotationAngle: argument.x_axis_rotation as _,
+
+            size: D2D_SIZE_F {
+                width: argument.rx as _,
+                height: argument.ry as _,
+            },
+
+            arcSize: if argument.large_arc_flag {
+                D2D1_ARC_SIZE_LARGE
+            } else {
+                D2D1_ARC_SIZE_SMALL
+            },
+
+            sweepDirection: if argument.sweep_flag {
+                D2D1_SWEEP_DIRECTION_CLOCKWISE
+            } else {
+                D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE
+            },
+
+        };
+        unsafe {
+            self.sink.AddArc(arc);
+        }
+
+        self.current = end_point;
     }
 
     fn finish(&mut self) -> Box<dyn Geometry> {

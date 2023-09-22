@@ -28,6 +28,7 @@ pub enum SvgPathCommand {
     CurveTo(SvgPathType, SvgPathCoordinatePairTripletSequence),
     QuadraticBezierCurveTo(SvgPathType, SvgPathCoordinatePairDoubleSequence),
     SmoothQuadraticBezierCurveTo(SvgPathType, SvgPathCoordinatePairSequence),
+    EllipticArc(SvgPathType, SvgPathEllipticArcArgumentSequence),
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -48,6 +49,9 @@ pub struct SvgPathCoordinatePairDoubleSequence(pub Vec<SvgPathCoordinatePairDoub
 #[derive(Clone, Debug, PartialEq)]
 pub struct SvgPathCoordinatePairTripletSequence(pub Vec<SvgPathCoordinatePairTriplet>);
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct SvgPathEllipticArcArgumentSequence(pub Vec<SvgPathEllipticArcArgument>);
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct SvgPathCoordinatePair {
     pub x: SvgNumber,
@@ -65,4 +69,14 @@ pub struct SvgPathCoordinatePairTriplet {
     pub a: SvgPathCoordinatePair,
     pub b: SvgPathCoordinatePair,
     pub c: SvgPathCoordinatePair,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct SvgPathEllipticArcArgument {
+    pub rx: SvgNumber,
+    pub ry: SvgNumber,
+    pub x_axis_rotation: SvgNumber,
+    pub large_arc_flag: bool,
+    pub sweep_flag: bool,
+    pub coords: SvgPathCoordinatePair,
 }

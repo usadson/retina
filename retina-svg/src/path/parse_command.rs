@@ -21,6 +21,7 @@ use super::{
         parse_coordinate_pair_triplet_sequence,
         parse_coordinate_sequence,
     },
+    parse_elliptic::parse_elliptic_arc_argument_sequence,
 };
 
 pub fn parse_path(input: &str) -> IResult<&str, SvgPath> {
@@ -45,6 +46,7 @@ fn parse_draw_to_command(input: &str) -> IResult<&str, SvgPathCommand> {
         parse_curve_to,
         parse_quadratic_bezier_curve_to,
         parse_smooth_quadratic_bezier_curve_to,
+        parse_elliptic_arc,
     ))(input)
 }
 
@@ -125,6 +127,16 @@ fn parse_smooth_quadratic_bezier_curve_to(input: &str) -> IResult<&str, SvgPathC
     Ok((input, SvgPathCommand::SmoothQuadraticBezierCurveTo(ty, sequence)))
 }
 
+fn parse_elliptic_arc(input: &str) -> IResult<&str, SvgPathCommand> {
+    let (input, (ty, _, sequence)) = tuple((
+        parse_path_type('A', 'a'),
+        many0(parse_wsp),
+        parse_elliptic_arc_argument_sequence,
+    ))(input)?;
+
+    Ok((input, SvgPathCommand::EllipticArc(ty, sequence)))
+}
+
 fn parse_path_type(
     absolute: char,
     relative: char
@@ -146,6 +158,25 @@ mod tests {
     use super::*;
     use rstest::rstest;
     use pretty_assertions::assert_eq;
+
+    #[rstest]
+    #[case('A', 'a', "A", Ok(("", SvgPathType::Absolute)))]
+    #[case('A', 'a', "a", Ok(("", SvgPathType::Relative)))]
+    #[case('T', 't', "t", Ok(("", SvgPathType::Relative)))]
+    #[case('T', 't', "T", Ok(("", SvgPathType::Absolute)))]
+    #[case('S', 's', "s", Ok(("", SvgPathType::Relative)))]
+    #[case('S', 's', "S", Ok(("", SvgPathType::Absolute)))]
+    #[case('?', '.', "?", Ok(("", SvgPathType::Absolute)))]
+    #[case('?', '.', ".", Ok(("", SvgPathType::Relative)))]
+    fn path_type(
+        #[case] absolute: char,
+        #[case] relative: char,
+        #[case] input: &str,
+        #[case] expected: IResult<&str, SvgPathType>,
+    ) {
+        assert_eq!(parse_path_type(absolute, relative)(input), expected);
+    }
+
 
     #[rstest]
     #[case(

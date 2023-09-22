@@ -127,6 +127,11 @@ impl<'painter> SvgRenderer<'painter> {
                         sink.smooth_quadratic_bezier_curve_to(ty, pair)
                     }
                 }
+                SvgPathCommand::EllipticArc(ty, sequence) => {
+                    for argument in sequence.0 {
+                        sink.elliptic_arc(ty, argument);
+                    }
+                }
                 SvgPathCommand::ClosePath => sink.close_path(),
             }
         }

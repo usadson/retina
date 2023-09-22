@@ -11,6 +11,7 @@ use crate::path::{
     SvgPathCoordinatePairDoubleSequence,
     SvgPathCoordinatePairTripletSequence,
     SvgPathCoordinateSequence,
+    SvgPathEllipticArcArgument,
     SvgPathType,
 };
 
@@ -54,6 +55,7 @@ pub trait GeometrySink {
 
     fn quadratic_beziers_curve_to(&mut self, ty: SvgPathType, sequence: SvgPathCoordinatePairDoubleSequence);
     fn smooth_quadratic_bezier_curve_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair);
+    fn elliptic_arc(&mut self, ty: SvgPathType, argument: SvgPathEllipticArcArgument);
 
     fn finish(&mut self) -> Box<dyn Geometry>;
 }
