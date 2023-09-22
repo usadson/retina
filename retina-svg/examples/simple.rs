@@ -24,7 +24,10 @@ fn main() {
     #[cfg(windows)]
     let mut context = DirectContext::new(&window);
 
-    let data = std::fs::read_to_string("test/html/svg/material-icons/index.html")
+    let path = std::env::var("RETINA_URL")
+        .unwrap_or_else(|_| "test/html/svg/material-icons/index.html".to_string());
+
+    let data = std::fs::read_to_string(path)
         .unwrap();
     let mut document = retina_dom::Parser::parse(&data);
     drop(data);
