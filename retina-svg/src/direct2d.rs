@@ -358,6 +358,7 @@ impl GeometrySink for DirectGeometrySink {
         }
 
         self.previous_quadratic_control_point = Some(control_point);
+        self.current = next_point;
     }
 
     fn finish(&mut self) -> Box<dyn Geometry> {
