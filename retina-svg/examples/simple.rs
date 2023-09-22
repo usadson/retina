@@ -4,7 +4,7 @@
 #[cfg(windows)]
 use retina_svg::direct2d::DirectContext;
 use winit::{
-    event::{Event, WindowEvent},
+    event::{Event, WindowEvent, KeyboardInput, VirtualKeyCode},
     event_loop::EventLoop,
     window::WindowBuilder,
 };
@@ -26,7 +26,8 @@ fn main() {
 
     let data = std::fs::read_to_string("test/html/svg/material-icons/index.html")
         .unwrap();
-    let document = retina_dom::Parser::parse(&data);
+    let mut document = retina_dom::Parser::parse(&data);
+    drop(data);
 
     event_loop.run(move |event, _, control_flow| {
         control_flow.set_poll();
@@ -40,6 +41,22 @@ fn main() {
             #[cfg(windows)]
             Event::WindowEvent { event: WindowEvent::Resized(size), .. } => {
                 context.resize(size.width, size.height);
+            }
+
+            Event::WindowEvent {
+                event: WindowEvent::KeyboardInput {
+                    input: KeyboardInput {
+                        virtual_keycode: Some(VirtualKeyCode::F5),
+                        ..
+                    },
+                    ..
+                },
+                ..
+            } => {
+                let data = std::fs::read_to_string("test/html/svg/material-icons/index.html")
+                    .unwrap();
+                document = retina_dom::Parser::parse(&data);
+                window.request_redraw();
             }
 
             #[cfg(windows)]
