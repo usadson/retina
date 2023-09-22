@@ -352,7 +352,7 @@ impl GeometrySink for DirectGeometrySink {
             beziers.push(bezier);
 
             self.current = bezier.point2;
-            self.previous_quadratic_control_point = Some(bezier.point2);
+            self.previous_quadratic_control_point = Some(bezier.point1);
         }
 
         unsafe {
