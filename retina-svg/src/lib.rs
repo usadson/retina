@@ -213,7 +213,7 @@ trait SvgElementTraits {
     fn properties_radii(&self) -> euclid::default::Point2D<f32> {
         Point2D::new(
             self.length_property("rx"),
-            self.length_property("rx"),
+            self.length_property("ry"),
         )
     }
 }
