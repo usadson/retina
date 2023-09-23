@@ -32,6 +32,7 @@ use euclid::{default::{Box2D, Rect, Size2D}, Point2D, UnknownUnit};
 use log::{error, warn, info};
 
 use lyon::geom::point;
+use path::{SvgPathType, SvgPathCoordinatePair};
 use retina_common::Color;
 use retina_dom::{
     Element,
@@ -68,6 +69,7 @@ impl<'painter> SvgRenderer<'painter> {
             "ellipse" => self.render_ellipse(element),
             "line" => self.render_line(element),
             "path" => self.render_path(element),
+            "polygon" => self.render_polygon(element),
             "polyline" => self.render_poly_line(element),
             "rect" => self.render_rect(element),
             "svg" => self.render_svg(element),
@@ -216,57 +218,22 @@ impl<'painter> SvgRenderer<'painter> {
         }
     }
 
-    fn render_poly_line(&mut self, element: &Element) {
-        let stroke = element.property_stroke();
-        let stroke_width = element.property_stroke_width();
-        if stroke.is_transparent() || stroke_width <= 0.0 {
-            return;
-        }
-
+    fn render_polygon(&mut self, element: &Element) {
         // If an odd number of coordinates is provided, then the element is in
         // error, with the same user agent behavior as occurs with an
         // incorrectly specified ‘path’ element. In such error cases the user
         // agent will drop the last, odd coordinate and otherwise render the
         // shape.
-        let points = element.property_points();
-        let Some(mut previous_point) = points.first().cloned() else {
-            return;
-        };
+        self.sub_render_lines(element, element.property_points(), true);
+    }
 
-        let line_cap = element.cap_style_property("stroke-linecap");
-
-        for idx in 1..points.len() {
-            let start = previous_point;
-            let end = points[idx];
-            previous_point = end;
-
-            let stroke_properties = if idx == 1 {
-                StrokeStyleProperties {
-                    cap_style_start: line_cap,
-                    cap_style_end: CapStyle::Square,
-                    ..Default::default()
-                }
-            } else if idx == points.len() - 1 {
-                StrokeStyleProperties {
-                    cap_style_end: line_cap,
-                    cap_style_start: CapStyle::Square,
-                    cap_style_dash: line_cap,
-                    ..Default::default()
-                }
-            } else {
-                StrokeStyleProperties {
-                    cap_style_start: CapStyle::Square,
-                    cap_style_end: CapStyle::Square,
-                    cap_style_dash: line_cap,
-                    ..Default::default()
-                }
-            };
-
-            let stroke_style = Some(self.painter.create_stroke_style(stroke_properties));
-
-
-            self.painter.stroke_line(start, end, stroke.clone(), stroke_width, stroke_style.as_deref());
-        }
+    fn render_poly_line(&mut self, element: &Element) {
+        // If an odd number of coordinates is provided, then the element is in
+        // error, with the same user agent behavior as occurs with an
+        // incorrectly specified ‘path’ element. In such error cases the user
+        // agent will drop the last, odd coordinate and otherwise render the
+        // shape.
+        self.sub_render_lines(element, element.property_points(), false);
     }
 
     fn render_rect(&mut self, element: &Element) {
@@ -306,6 +273,55 @@ impl<'painter> SvgRenderer<'painter> {
             self.painter.push_view_box(view_box);
         } else if width > 0.0 && height > 0.0 {
             self.painter.set_size(Size2D::new(width, height));
+        }
+    }
+
+    fn sub_render_lines(&mut self, element: &Element, points: Vec<Point2D<f32, UnknownUnit>>, close: bool) {
+        if points.len() < 2 {
+            return;
+        }
+
+
+        let fill = element.property_fill();
+        let stroke = element.property_stroke();
+        let stroke_width = element.property_stroke_width();
+
+        let should_fill = !fill.is_transparent();
+        let should_stroke = !stroke.is_transparent() && stroke_width > 0.0;
+        if !should_fill && !should_stroke {
+            return;
+        }
+
+        let Some(first_point) = points.first().cloned() else {
+            return;
+        };
+
+        let mut geometry = self.painter.create_geometry(GeometrySinkFillType::Filled);
+        geometry.move_to(SvgPathType::Absolute, SvgPathCoordinatePair {
+            x: first_point.x as _,
+            y: first_point.y as _,
+        });
+
+        for point in points {
+            geometry.line_to(SvgPathType::Absolute, SvgPathCoordinatePair {
+                x: point.x as _,
+                y: point.y as _,
+            });
+        }
+
+        if close {
+            geometry.close_path();
+        }
+
+        let geometry = geometry.finish();
+        let stroke_style = element.stroke_style(self.painter);
+
+        if should_fill {
+            self.painter.draw_geometry(geometry.as_ref(), fill);
+        }
+
+        if should_stroke {
+            self.painter.stroke_geometry(geometry.as_ref(), stroke, stroke_width, stroke_style.as_deref());
         }
     }
 }

@@ -54,6 +54,7 @@
 8. Support the [`ellipse`](https://svgwg.org/svg2-draft/shapes.html#EllipseElement) element
 9. Support the [`line`](https://svgwg.org/svg2-draft/shapes.html#LineElement) element
 10. Support the [`polyline`](https://svgwg.org/svg2-draft/shapes.html#PolylineElement) element
+11. Support the [`polygon`](https://svgwg.org/svg2-draft/shapes.html#PolygonElement) element
 
 ### Performance improvements
 1. `ColorMaterialRenderer` and `TextureMaterialRenderer` are now globally shared instead of per `Artwork`, which previously made the creation time of tiles significantly slower.
