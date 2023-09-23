@@ -64,34 +64,14 @@ impl<'painter> SvgRenderer<'painter> {
         println!("[SvgRenderer] Rendering node: {}", element.qualified_name().local);
 
         match element.qualified_name().local.as_ref() {
-            "svg" => self.render_svg(element),
-            "rect" => self.render_rect(element),
             "path" => self.render_path(element),
+            "rect" => self.render_rect(element),
+            "svg" => self.render_svg(element),
             _ => (),
         }
 
         for child in element.as_parent_node().children().iter() {
             self.render_node(child);
-        }
-    }
-
-    fn render_svg(&mut self, element: &Element) {
-        let width = element.property_width();
-        let height = element.property_height();
-
-        if let Some(view_box) = element.property_view_box() {
-            println!("Width: {width}, height: {height}");
-            if width > 0.0 && height > 0.0 {
-                self.painter.set_size(Size2D::new(
-                    width / view_box.width(),
-                    height / view_box.height(),
-                ));
-            }
-
-            info!("SVG ViewBox: {view_box:#?}");
-            self.painter.push_view_box(view_box);
-        } else if width > 0.0 && height > 0.0 {
-            self.painter.set_size(Size2D::new(width, height));
         }
     }
 
@@ -182,6 +162,26 @@ impl<'painter> SvgRenderer<'painter> {
         if !stroke.is_transparent() && stroke_width > 0.0 {
             let stroke_style = element.stroke_style(self.painter);
             self.painter.stroke_rect(rect, stroke, radius, stroke_width, stroke_style.as_deref());
+        }
+    }
+
+    fn render_svg(&mut self, element: &Element) {
+        let width = element.property_width();
+        let height = element.property_height();
+
+        if let Some(view_box) = element.property_view_box() {
+            println!("Width: {width}, height: {height}");
+            if width > 0.0 && height > 0.0 {
+                self.painter.set_size(Size2D::new(
+                    width / view_box.width(),
+                    height / view_box.height(),
+                ));
+            }
+
+            info!("SVG ViewBox: {view_box:#?}");
+            self.painter.push_view_box(view_box);
+        } else if width > 0.0 && height > 0.0 {
+            self.painter.set_size(Size2D::new(width, height));
         }
     }
 }
