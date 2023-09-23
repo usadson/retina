@@ -13,6 +13,8 @@ mod painter;
 mod path;
 // mod tesselator;
 
+use std::sync::Weak;
+
 use crate::path::SvgPathCommand;
 
 pub use self::painter::{
@@ -241,6 +243,18 @@ impl SvgElementTraits for Element {
 
     fn paint_property_ext(&self, name: &str, default: Material) -> Material {
         let Some(color) = self.attributes().find_by_str(name) else {
+            // Don't go above the <svg> element, because that is outside the SVG
+            // figure.
+            if self.qualified_name().local.eq_str_ignore_ascii_case("svg") {
+                return default;
+            }
+
+            if let Some(parent) = self.as_node().parent().as_ref().and_then(Weak::upgrade) {
+                if let Some(element) = parent.as_dom_element() {
+                    return element.paint_property_ext(name, default);
+                }
+            }
+
             return default;
         };
 
