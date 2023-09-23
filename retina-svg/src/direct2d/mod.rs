@@ -147,6 +147,7 @@ impl Painter for DirectContext {
                 GeometrySinkFillType::Hollow => D2D1_FIGURE_BEGIN_HOLLOW,
             },
             state: DirectGeometrySinkState::Initial,
+            initial_point: Default::default(),
             current: Default::default(),
             previous_quadratic_control_point: None,
             previous_cubic_control_point: None,
@@ -319,6 +320,7 @@ struct DirectGeometrySink {
     begin_type: D2D1_FIGURE_BEGIN,
 
     state: DirectGeometrySinkState,
+    initial_point: D2D_POINT_2F,
     current: D2D_POINT_2F,
     previous_quadratic_control_point: Option<D2D_POINT_2F>,
     previous_cubic_control_point: Option<D2D_POINT_2F>,
@@ -352,6 +354,7 @@ impl GeometrySink for DirectGeometrySink {
             self.sink.EndFigure(D2D1_FIGURE_END_CLOSED)
         }
 
+        self.current = self.initial_point;
         self.previous_quadratic_control_point = None;
         self.previous_cubic_control_point = None;
         self.state = DirectGeometrySinkState::Closed;
@@ -394,6 +397,7 @@ impl GeometrySink for DirectGeometrySink {
             }
 
             self.current = point(coords);
+            self.initial_point = self.current;
             self.state = DirectGeometrySinkState::Opened;
             return;
         }
@@ -402,6 +406,7 @@ impl GeometrySink for DirectGeometrySink {
 
         let coords = self.point(ty, coords);
         self.current = coords;
+        self.initial_point = self.current;
         self.previous_quadratic_control_point = None;
         self.previous_cubic_control_point = None;
         self.state = DirectGeometrySinkState::Opened;
