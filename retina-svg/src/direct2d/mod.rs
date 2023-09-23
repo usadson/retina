@@ -46,6 +46,7 @@ use crate::{
     Painter,
     path::{
         SvgPathCoordinatePair,
+        SvgPathCoordinatePairDouble,
         SvgPathCoordinatePairDoubleSequence,
         SvgPathCoordinatePairTripletSequence,
         SvgPathCoordinateSequence,
@@ -148,6 +149,7 @@ impl Painter for DirectContext {
             state: DirectGeometrySinkState::Initial,
             current: Default::default(),
             previous_quadratic_control_point: None,
+            previous_cubic_control_point: None,
         })
     }
 
@@ -319,6 +321,7 @@ struct DirectGeometrySink {
     state: DirectGeometrySinkState,
     current: D2D_POINT_2F,
     previous_quadratic_control_point: Option<D2D_POINT_2F>,
+    previous_cubic_control_point: Option<D2D_POINT_2F>,
 }
 
 impl DirectGeometrySink {
@@ -350,6 +353,7 @@ impl GeometrySink for DirectGeometrySink {
         }
 
         self.previous_quadratic_control_point = None;
+        self.previous_cubic_control_point = None;
         self.state = DirectGeometrySinkState::Closed;
     }
 
@@ -362,6 +366,7 @@ impl GeometrySink for DirectGeometrySink {
         }
         self.current = point;
         self.previous_quadratic_control_point = None;
+        self.previous_cubic_control_point = None;
     }
 
     fn horizontal_lines_to(&mut self, ty: SvgPathType, lines: SvgPathCoordinateSequence) {
@@ -398,6 +403,7 @@ impl GeometrySink for DirectGeometrySink {
         let coords = self.point(ty, coords);
         self.current = coords;
         self.previous_quadratic_control_point = None;
+        self.previous_cubic_control_point = None;
         self.state = DirectGeometrySinkState::Opened;
 
         unsafe {
@@ -421,12 +427,45 @@ impl GeometrySink for DirectGeometrySink {
             };
 
             beziers.push(bezier);
-            self.current = bezier.point3
+            self.current = bezier.point3;
+            self.previous_cubic_control_point = Some(bezier.point2);
         }
 
         unsafe {
             self.sink.AddBeziers(&beziers);
         }
+    }
+
+    fn smooth_curve_to(&mut self, ty: SvgPathType, double: SvgPathCoordinatePairDouble) {
+        debug_assert_eq!(self.state, DirectGeometrySinkState::Opened);
+        let next_point = self.point(ty, double.b);
+        let second_control_point = self.point(ty, double.a);
+
+        let first_control_point = match self.previous_cubic_control_point {
+            // The first control point is assumed to be the reflection of the
+            // second control point on the previous command relative to the
+            // current point.
+            Some(previous_control_point) => reflect_point(self.current, previous_control_point),
+
+            // If there is no previous command or if the previous command was
+            // not an C, c, S or s, assume the first control point is coincident
+            // with the current point.
+            None => self.current,
+        };
+
+        unsafe {
+            self.sink.AddBezier(&D2D1_BEZIER_SEGMENT {
+                // First Control
+                point1: first_control_point,
+                // Second Control
+                point2: second_control_point,
+                // Point to
+                point3: next_point,
+            });
+        }
+
+        self.previous_cubic_control_point = Some(second_control_point);
+        self.current = next_point;
     }
 
     fn quadratic_beziers_curve_to(&mut self, ty: SvgPathType, sequence: SvgPathCoordinatePairDoubleSequence) {
@@ -505,6 +544,8 @@ impl GeometrySink for DirectGeometrySink {
         }
 
         self.current = end_point;
+        self.previous_quadratic_control_point = None;
+        self.previous_cubic_control_point = None;
     }
 
     fn finish(&mut self) -> Box<dyn Geometry> {

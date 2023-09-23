@@ -47,6 +47,7 @@ fn parse_draw_to_command(input: &str) -> IResult<&str, SvgPathCommand> {
         parse_quadratic_bezier_curve_to,
         parse_smooth_quadratic_bezier_curve_to,
         parse_elliptic_arc,
+        parse_smooth_curve_to,
     ))(input)
 }
 
@@ -105,6 +106,16 @@ fn parse_curve_to(input: &str) -> IResult<&str, SvgPathCommand> {
     ))(input)?;
 
     Ok((input, SvgPathCommand::CurveTo(ty, sequence)))
+}
+
+fn parse_smooth_curve_to(input: &str) -> IResult<&str, SvgPathCommand> {
+    let (input, (ty, _, sequence)) = tuple((
+        parse_path_type('S', 's'),
+        many0(parse_wsp),
+        parse_coordinate_pair_double_sequence,
+    ))(input)?;
+
+    Ok((input, SvgPathCommand::SmoothCurveTo(ty, sequence)))
 }
 
 fn parse_quadratic_bezier_curve_to(input: &str) -> IResult<&str, SvgPathCommand> {
@@ -177,7 +188,6 @@ mod tests {
         assert_eq!(parse_path_type(absolute, relative)(input), expected);
     }
 
-
     #[rstest]
     #[case(
         "Q111-500 95.5-544",
@@ -194,8 +204,26 @@ mod tests {
             )
         ))
     )]
-    fn quadratic_bezier_curve_to(#[case] input: &str, #[case] expected: IResult<&str, SvgPathCommand>) {
-        assert_eq!(parse_quadratic_bezier_curve_to(input), expected);
+    #[case("s-22.25-9.41-22.25-22.18", Ok((
+        "",
+        SvgPathCommand::SmoothCurveTo(
+            SvgPathType::Relative,
+            SvgPathCoordinatePairDoubleSequence(vec![
+                SvgPathCoordinatePairDouble {
+                    a: SvgPathCoordinatePair {
+                        x: -22.25,
+                        y: -9.41,
+                    },
+                    b: SvgPathCoordinatePair {
+                        x: -22.25,
+                        y: -22.18,
+                    },
+                },
+            ])
+        ),
+    )))]
+    fn draw_to_command(#[case] input: &str, #[case] expected: IResult<&str, SvgPathCommand>) {
+        assert_eq!(parse_draw_to_command(input), expected);
     }
 
 }

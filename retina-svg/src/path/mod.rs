@@ -26,6 +26,7 @@ pub enum SvgPathCommand {
     HorizontalLineTo(SvgPathType, SvgPathCoordinateSequence),
     VerticalLineTo(SvgPathType, SvgPathCoordinateSequence),
     CurveTo(SvgPathType, SvgPathCoordinatePairTripletSequence),
+    SmoothCurveTo(SvgPathType, SvgPathCoordinatePairDoubleSequence),
     QuadraticBezierCurveTo(SvgPathType, SvgPathCoordinatePairDoubleSequence),
     SmoothQuadraticBezierCurveTo(SvgPathType, SvgPathCoordinatePairSequence),
     EllipticArc(SvgPathType, SvgPathEllipticArcArgumentSequence),
