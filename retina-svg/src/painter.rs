@@ -34,9 +34,11 @@ pub trait Painter {
 
     fn push_view_box(&self, view_box: Rect<f32>);
 
+    fn draw_ellipse(&mut self, center: Point2D<f32>, radius: Point2D<f32>, material: Material);
     fn draw_geometry(&mut self, geometry: &dyn Geometry, material: Material);
     fn draw_rect(&mut self, rect: Box2D<f32>, material: Material, radius: Point2D<f32>);
 
+    fn stroke_ellipse(&mut self, center: Point2D<f32>, radius: Point2D<f32>, material: Material, width: f32, stroke_style: Option<&dyn StrokeStyle>);
     fn stroke_geometry(&mut self, geometry: &dyn Geometry, material: Material, width: f32, stroke_style: Option<&dyn StrokeStyle>);
     fn stroke_rect(&mut self, rect: Box2D<f32>, material: Material, radius: Point2D<f32>, width: f32, stroke_style: Option<&dyn StrokeStyle>);
 }

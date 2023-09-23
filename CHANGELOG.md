@@ -41,9 +41,16 @@
 1. Initial support for [SVG 2][SVG-2] on Windows (using Direct2D)
 2. Support the [`<rect>`](https://svgwg.org/svg2-draft/shapes.html#RectElement) element
 3. Support the [`<path>`](https://svgwg.org/svg2-draft/paths.html#PathElement) element
+   1. MoveTo (`M`/`m`)
+   2. ClosePath (`Z`/`z`)
+   3. LineTo (`L`/`l`, `H`/`h` and `V`/`v`)
+   4. CurveTo (`C`/`c` and `T`/`t`)
+   5. Quadratic Bezier CurveTo (`Q`/`q` and `S`/`s`)
+   6. Elliptic Arc (`A`/`a`)
 4. Basic [`paint`](https://svgwg.org/svg2-draft/painting.html#SpecifyingPaint) support
 5. Shape [stroke](https://svgwg.org/svg2-draft/painting.html#StrokeProperties) support
 6. [`viewBox`](https://svgwg.org/svg2-draft/coords.html#ViewBoxAttribute) support on the [`<svg>`](https://svgwg.org/svg2-draft/struct.html#SVGElement) element
+7. Support the [`circle`](https://svgwg.org/svg2-draft/shapes.html#CircleElement) element
 
 ### Performance improvements
 1. `ColorMaterialRenderer` and `TextureMaterialRenderer` are now globally shared instead of per `Artwork`, which previously made the creation time of tiles significantly slower.

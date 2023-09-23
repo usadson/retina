@@ -64,6 +64,7 @@ impl<'painter> SvgRenderer<'painter> {
         println!("[SvgRenderer] Rendering node: {}", element.qualified_name().local);
 
         match element.qualified_name().local.as_ref() {
+            "circle" => self.render_circle(element),
             "path" => self.render_path(element),
             "rect" => self.render_rect(element),
             "svg" => self.render_svg(element),
@@ -72,6 +73,31 @@ impl<'painter> SvgRenderer<'painter> {
 
         for child in element.as_parent_node().children().iter() {
             self.render_node(child);
+        }
+    }
+
+    fn render_circle(&mut self, element: &Element) {
+        let center = element.properties_circle_center();
+
+        // The r attribute defines the radius of the circle. A negative value
+        // is invalid and must be ignored. A computed value of zero disables
+        // rendering of the element.
+        let radius = element.property_r();
+        if radius < 0.0 {
+            return;
+        }
+        let radius = Point2D::new(radius, radius);
+
+        let fill = element.property_fill();
+        if !fill.is_transparent() {
+            self.painter.draw_ellipse(center, radius, fill);
+        }
+
+        let stroke = element.property_stroke();
+        let stroke_width = element.property_stroke_width();
+        if !stroke.is_transparent() && stroke_width > 0.0 {
+            let stroke_style = element.stroke_style(self.painter);
+            self.painter.stroke_ellipse(center, radius, stroke, stroke_width, stroke_style.as_deref());
         }
     }
 
@@ -204,6 +230,8 @@ trait SvgElementTraits {
     fn property_fill(&self) -> Material { self.paint_property("fill") }
     fn property_stroke(&self) -> Material { self.paint_property_ext("stroke", Material::Color(Color::TRANSPARENT)) }
 
+    /// Radius of a circle
+    fn property_r(&self) -> f32 { self.length_property("r") }
     fn property_x(&self) -> f32 { self.length_property("x") }
     fn property_y(&self) -> f32 { self.length_property("y") }
     fn property_width(&self) -> f32 { self.length_property("width") }
@@ -212,10 +240,18 @@ trait SvgElementTraits {
 
     fn property_view_box(&self) -> Option<Rect<f32>>;
     fn stroke_style(&self, painter: &dyn Painter) -> Option<Box<dyn StrokeStyle>>;
+
     fn properties_radii(&self) -> euclid::default::Point2D<f32> {
         Point2D::new(
             self.length_property("rx"),
             self.length_property("ry"),
+        )
+    }
+
+    fn properties_circle_center(&self) -> euclid::default::Point2D<f32> {
+        Point2D::new(
+            self.length_property("cx"),
+            self.length_property("cy"),
         )
     }
 }

@@ -23,6 +23,7 @@ use windows::{
         D2D1_ARC_SEGMENT,
         D2D1_ARC_SIZE_LARGE,
         D2D1_ARC_SIZE_SMALL,
+        D2D1_ELLIPSE,
         D2D1_QUADRATIC_BEZIER_SEGMENT,
         D2D1_ROUNDED_RECT,
         D2D1_SWEEP_DIRECTION_CLOCKWISE,
@@ -154,6 +155,21 @@ impl Painter for DirectContext {
         self.factory.create_stroke_style(properties)
     }
 
+    fn draw_ellipse(&mut self, center: Point2D<f32>, radius: Point2D<f32>, material: Material) {
+        unsafe {
+            self.render_target.FillEllipse(&D2D1_ELLIPSE {
+                    point: D2D_POINT_2F {
+                        x: center.x,
+                        y: center.y,
+                    },
+                    radiusX: radius.x,
+                    radiusY: radius.y,
+                },
+                &self.create_material(material),
+            );
+        }
+    }
+
     fn draw_geometry(&mut self, geometry: &dyn Geometry, material: Material) {
         let geo = geometry.as_any()
             .downcast_ref::<DirectGeometry>()
@@ -176,6 +192,26 @@ impl Painter for DirectContext {
                     radiusY: radius.y,
                 },
                 &material,
+            );
+        }
+    }
+
+    fn stroke_ellipse(&mut self, center: Point2D<f32>, radius: Point2D<f32>, material: Material, width: f32, stroke_style: Option<&dyn StrokeStyle>) {
+        let style = stroke_style
+            .and_then(|x| x.as_any().downcast_ref::<DirectStrokeStyle>())
+            .map(|x| &x.style);
+        unsafe {
+            self.render_target.DrawEllipse(&D2D1_ELLIPSE {
+                    point: D2D_POINT_2F {
+                        x: center.x,
+                        y: center.y,
+                    },
+                    radiusX: radius.x,
+                    radiusY: radius.y,
+                },
+                &self.create_material(material),
+                width,
+                style,
             );
         }
     }
