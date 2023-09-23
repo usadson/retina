@@ -240,6 +240,21 @@ impl Painter for DirectContext {
         }
     }
 
+    fn stroke_line(&mut self, start: Point2D<f32>, end: Point2D<f32>, material: Material, width: f32, stroke_style: Option<&dyn StrokeStyle>) {
+        let style = stroke_style
+            .and_then(|x| x.as_any().downcast_ref::<DirectStrokeStyle>())
+            .map(|x| &x.style);
+        unsafe {
+            self.render_target.DrawLine(
+                D2D_POINT_2F { x: start.x, y: start.y },
+                D2D_POINT_2F { x: end.x, y: end.y },
+                &self.create_material(material),
+                width,
+                style,
+        );
+        }
+    }
+
     fn stroke_rect(
         &mut self,
         rect: Box2D<f32>,

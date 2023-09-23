@@ -66,6 +66,7 @@ impl<'painter> SvgRenderer<'painter> {
         match element.qualified_name().local.as_ref() {
             "circle" => self.render_circle(element),
             "ellipse" => self.render_ellipse(element),
+            "line" => self.render_line(element),
             "path" => self.render_path(element),
             "rect" => self.render_rect(element),
             "svg" => self.render_svg(element),
@@ -125,6 +126,22 @@ impl<'painter> SvgRenderer<'painter> {
         if !stroke.is_transparent() && stroke_width > 0.0 {
             let stroke_style = element.stroke_style(self.painter);
             self.painter.stroke_ellipse(center, radius, stroke, stroke_width, stroke_style.as_deref());
+        }
+    }
+
+    fn render_line(&mut self, element: &Element) {
+        let start = element.properties_line_start();
+        let end = element.properties_line_end();
+
+        // Because ‘line’ elements are single lines and thus are geometrically
+        // one-dimensional, they have no interior; thus, ‘line’ elements are
+        // never filled (see the fill property).
+
+        let stroke = element.property_stroke();
+        let stroke_width = element.property_stroke_width();
+        if !stroke.is_transparent() && stroke_width > 0.0 {
+            let stroke_style = element.stroke_style(self.painter);
+            self.painter.stroke_line(start, end, stroke, stroke_width, stroke_style.as_deref());
         }
     }
 
@@ -279,6 +296,20 @@ trait SvgElementTraits {
         Point2D::new(
             self.length_property("cx"),
             self.length_property("cy"),
+        )
+    }
+
+    fn properties_line_start(&self) -> euclid::default::Point2D<f32> {
+        Point2D::new(
+            self.length_property("x1"),
+            self.length_property("y1"),
+        )
+    }
+
+    fn properties_line_end(&self) -> euclid::default::Point2D<f32> {
+        Point2D::new(
+            self.length_property("x2"),
+            self.length_property("y2"),
         )
     }
 }

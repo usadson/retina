@@ -40,6 +40,7 @@ pub trait Painter {
 
     fn stroke_ellipse(&mut self, center: Point2D<f32>, radius: Point2D<f32>, material: Material, width: f32, stroke_style: Option<&dyn StrokeStyle>);
     fn stroke_geometry(&mut self, geometry: &dyn Geometry, material: Material, width: f32, stroke_style: Option<&dyn StrokeStyle>);
+    fn stroke_line(&mut self, start: Point2D<f32>, end: Point2D<f32>, material: Material, width: f32, stroke_style: Option<&dyn StrokeStyle>);
     fn stroke_rect(&mut self, rect: Box2D<f32>, material: Material, radius: Point2D<f32>, width: f32, stroke_style: Option<&dyn StrokeStyle>);
 }
 
