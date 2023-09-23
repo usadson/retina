@@ -36,8 +36,14 @@ pub fn parse_path(input: &str) -> IResult<&str, SvgPath> {
     }))
 }
 
-fn parse_draw_to_command(input: &str) -> IResult<&str, SvgPathCommand> {
-    alt((
+fn parse_draw_to_command(mut input: &str) -> IResult<&str, SvgPathCommand> {
+    let command;
+
+    if let Ok((input_without_leading_white_space, _)) = many0(parse_wsp)(input) {
+        input = input_without_leading_white_space;
+    }
+
+    (input, command) = alt((
         parse_move_to,
         parse_close_path,
         parse_line_to,
@@ -48,7 +54,13 @@ fn parse_draw_to_command(input: &str) -> IResult<&str, SvgPathCommand> {
         parse_smooth_quadratic_bezier_curve_to,
         parse_elliptic_arc,
         parse_smooth_curve_to,
-    ))(input)
+    ))(input)?;
+
+    if let Ok((input_without_trailing_white_space, _)) = many0(parse_wsp)(input) {
+        input = input_without_trailing_white_space;
+    }
+
+    Ok((input, command))
 }
 
 fn parse_move_to(input: &str) -> IResult<&str, SvgPathCommand> {
@@ -164,6 +176,7 @@ mod tests {
         SvgPathCoordinatePair,
         SvgPathCoordinatePairDouble,
         SvgPathCoordinatePairDoubleSequence,
+        SvgPathCoordinatePairSequence,
     };
 
     use super::*;
@@ -218,6 +231,20 @@ mod tests {
                         x: -22.25,
                         y: -22.18,
                     },
+                },
+            ])
+        ),
+    )))]
+    /// Spec says no whitespace is allowed between commands (EBNF), but e.g.
+    /// the Unilever-logo uses it :^(
+    #[case(" M17.45,62.154 ", Ok((
+        "",
+        SvgPathCommand::MoveTo(
+            SvgPathType::Absolute,
+            SvgPathCoordinatePairSequence(vec![
+                SvgPathCoordinatePair {
+                    x: 17.45,
+                    y: 62.154,
                 },
             ])
         ),
