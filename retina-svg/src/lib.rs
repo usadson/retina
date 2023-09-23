@@ -65,6 +65,7 @@ impl<'painter> SvgRenderer<'painter> {
 
         match element.qualified_name().local.as_ref() {
             "circle" => self.render_circle(element),
+            "ellipse" => self.render_ellipse(element),
             "path" => self.render_path(element),
             "rect" => self.render_rect(element),
             "svg" => self.render_svg(element),
@@ -87,6 +88,32 @@ impl<'painter> SvgRenderer<'painter> {
             return;
         }
         let radius = Point2D::new(radius, radius);
+
+        let fill = element.property_fill();
+        if !fill.is_transparent() {
+            self.painter.draw_ellipse(center, radius, fill);
+        }
+
+        let stroke = element.property_stroke();
+        let stroke_width = element.property_stroke_width();
+        if !stroke.is_transparent() && stroke_width > 0.0 {
+            let stroke_style = element.stroke_style(self.painter);
+            self.painter.stroke_ellipse(center, radius, stroke, stroke_width, stroke_style.as_deref());
+        }
+    }
+
+    fn render_ellipse(&mut self, element: &Element) {
+        let center = element.properties_circle_center();
+
+        // The rx and ry properties define the x- and y-axis radii of the
+        // ellipse. A negative value for either property is invalid and must be
+        // ignored. A computed value of zero for either dimension, or a
+        // computed value of auto for both dimensions, disables rendering of the
+        // element.
+        let radius = element.properties_radii();
+        if radius.x <= 0.0 || radius.y <= 0.0 {
+            return;
+        }
 
         let fill = element.property_fill();
         if !fill.is_transparent() {
