@@ -178,8 +178,9 @@ impl<'painter> SvgRenderer<'painter> {
         for command in path.commands {
             match command {
                 SvgPathCommand::MoveTo(ty, coords_sequence) => {
-                    for coords in coords_sequence.0 {
-                        sink.move_to(ty, coords);
+                    sink.move_to(ty, *coords_sequence.0.first().unwrap());
+                    for coords in &coords_sequence.0[1..] {
+                        sink.line_to(ty, *coords);
                     }
                 }
                 SvgPathCommand::LineTo(ty, coords_sequence) => {
