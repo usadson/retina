@@ -78,16 +78,17 @@ impl DirectFactory {
     }
 
     pub fn create_stroke_style(&self, properties: StrokeStyleProperties) -> Box<dyn StrokeStyle> {
-        let cap_style = match properties.cap_style {
+        let cap_style = |style| match style {
             CapStyle::Butt => D2D1_CAP_STYLE_FLAT,
             CapStyle::Round => D2D1_CAP_STYLE_ROUND,
             CapStyle::Square => D2D1_CAP_STYLE_SQUARE,
         };
+
         unsafe {
             let style = self.factory.CreateStrokeStyle(&D2D1_STROKE_STYLE_PROPERTIES {
-                dashCap: cap_style,
-                endCap: cap_style,
-                startCap: cap_style,
+                dashCap: cap_style(properties.cap_style_dash),
+                endCap: cap_style(properties.cap_style_end),
+                startCap: cap_style(properties.cap_style_start),
                 ..Default::default()
             }, None).unwrap();
             Box::new(DirectStrokeStyle { style })

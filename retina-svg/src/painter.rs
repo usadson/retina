@@ -49,12 +49,16 @@ pub trait StrokeStyle {
     fn as_any(&self) -> &dyn Any;
 }
 
+#[derive(Clone, Default)]
 pub struct StrokeStyleProperties {
-    pub cap_style: CapStyle,
+    pub cap_style_dash: CapStyle,
+    pub cap_style_start: CapStyle,
+    pub cap_style_end: CapStyle,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum CapStyle {
+    #[default]
     Butt,
     Square,
     Round,

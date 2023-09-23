@@ -223,8 +223,6 @@ impl<'painter> SvgRenderer<'painter> {
             return;
         }
 
-        let stroke_style = element.stroke_style(self.painter);
-
         // If an odd number of coordinates is provided, then the element is in
         // error, with the same user agent behavior as occurs with an
         // incorrectly specified ‘path’ element. In such error cases the user
@@ -235,10 +233,36 @@ impl<'painter> SvgRenderer<'painter> {
             return;
         };
 
-        for point in &points[1..] {
+        let line_cap = element.cap_style_property("stroke-linecap");
+
+        for idx in 1..points.len() {
             let start = previous_point;
-            let end = *point;
-            previous_point = *point;
+            let end = points[idx];
+            previous_point = end;
+
+            let stroke_properties = if idx == 1 {
+                StrokeStyleProperties {
+                    cap_style_start: line_cap,
+                    cap_style_end: CapStyle::Square,
+                    ..Default::default()
+                }
+            } else if idx == points.len() - 1 {
+                StrokeStyleProperties {
+                    cap_style_end: line_cap,
+                    cap_style_start: CapStyle::Square,
+                    cap_style_dash: line_cap,
+                    ..Default::default()
+                }
+            } else {
+                StrokeStyleProperties {
+                    cap_style_start: CapStyle::Square,
+                    cap_style_end: CapStyle::Square,
+                    cap_style_dash: line_cap,
+                    ..Default::default()
+                }
+            };
+
+            let stroke_style = Some(self.painter.create_stroke_style(stroke_properties));
 
 
             self.painter.stroke_line(start, end, stroke.clone(), stroke_width, stroke_style.as_deref());
@@ -290,6 +314,14 @@ trait SvgElementTraits {
     fn str_property(&self, name: &str) -> &str;
     fn length_property_ext(&self, name: &str, default: f32) -> f32;
     fn paint_property_ext(&self, name: &str, default: Material) -> Material;
+    fn cap_style_property(&self, name: &str) -> CapStyle {
+        match self.str_property(name) {
+            "butt" => CapStyle::Butt,
+            "round" => CapStyle::Round,
+            "square" => CapStyle::Square,
+            _ => return CapStyle::default(),
+        }
+    }
 
     #[inline]
     fn length_property(&self, name: &str) -> f32 {
@@ -447,16 +479,11 @@ impl SvgElementTraits for Element {
     }
 
     fn stroke_style(&self, painter: &dyn Painter) -> Option<Box<dyn StrokeStyle>> {
-        let value = self.attributes().find_by_str("stroke-linecap")?;
-        let cap_style = match value {
-            "butt" => CapStyle::Butt,
-            "round" => CapStyle::Round,
-            "square" => CapStyle::Square,
-            _ => return None,
-        };
-
+        let cap_style = self.cap_style_property("stroke-linecap");
         Some(painter.create_stroke_style(StrokeStyleProperties {
-            cap_style,
+            cap_style_dash: cap_style,
+            cap_style_end: cap_style,
+            cap_style_start: cap_style,
         }))
     }
 }
