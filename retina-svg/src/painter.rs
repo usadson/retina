@@ -15,6 +15,7 @@ use crate::path::{
     SvgPathType,
 };
 
+#[derive(Debug, Clone)]
 pub enum Material {
     Color(Color),
 }

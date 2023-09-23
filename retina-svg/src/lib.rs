@@ -28,7 +28,7 @@ pub use self::painter::{
     StrokeStyleProperties,
 };
 
-use euclid::{default::{Box2D, Rect, Size2D}, Point2D};
+use euclid::{default::{Box2D, Rect, Size2D}, Point2D, UnknownUnit};
 use log::{error, warn, info};
 
 use lyon::geom::point;
@@ -68,6 +68,7 @@ impl<'painter> SvgRenderer<'painter> {
             "ellipse" => self.render_ellipse(element),
             "line" => self.render_line(element),
             "path" => self.render_path(element),
+            "polyline" => self.render_poly_line(element),
             "rect" => self.render_rect(element),
             "svg" => self.render_svg(element),
             _ => (),
@@ -215,6 +216,35 @@ impl<'painter> SvgRenderer<'painter> {
         }
     }
 
+    fn render_poly_line(&mut self, element: &Element) {
+        let stroke = element.property_stroke();
+        let stroke_width = element.property_stroke_width();
+        if stroke.is_transparent() || stroke_width <= 0.0 {
+            return;
+        }
+
+        let stroke_style = element.stroke_style(self.painter);
+
+        // If an odd number of coordinates is provided, then the element is in
+        // error, with the same user agent behavior as occurs with an
+        // incorrectly specified ‘path’ element. In such error cases the user
+        // agent will drop the last, odd coordinate and otherwise render the
+        // shape.
+        let points = element.property_points();
+        let Some(mut previous_point) = points.first().cloned() else {
+            return;
+        };
+
+        for point in &points[1..] {
+            let start = previous_point;
+            let end = *point;
+            previous_point = *point;
+
+
+            self.painter.stroke_line(start, end, stroke.clone(), stroke_width, stroke_style.as_deref());
+        }
+    }
+
     fn render_rect(&mut self, element: &Element) {
         let min = point(element.property_x(), element.property_y());
         let max = point(element.property_width(), element.property_height());
@@ -257,6 +287,7 @@ impl<'painter> SvgRenderer<'painter> {
 }
 
 trait SvgElementTraits {
+    fn str_property(&self, name: &str) -> &str;
     fn length_property_ext(&self, name: &str, default: f32) -> f32;
     fn paint_property_ext(&self, name: &str, default: Material) -> Material;
 
@@ -269,6 +300,7 @@ trait SvgElementTraits {
     fn paint_property(&self, name: &str) -> Material {
         self.paint_property_ext(name, Material::Color(Color::BLACK))
     }
+
 
     /// <https://www.w3.org/TR/SVG11/single-page.html#painting-FillProperty>
     fn property_fill(&self) -> Material { self.paint_property("fill") }
@@ -312,9 +344,35 @@ trait SvgElementTraits {
             self.length_property("y2"),
         )
     }
+
+    /// If an odd number of coordinates is provided, then the element is in
+    /// error, with the same user agent behavior as occurs with an incorrectly
+    /// specified ‘path’ element. In such error cases the user agent will drop
+    /// the last, odd coordinate and otherwise render the shape.
+    fn property_points(&self)  -> Vec<Point2D<f32, UnknownUnit>> {
+        let mut result = Vec::new();
+        let str = self.str_property("points");
+
+        let mut values = str.split(|c: char| c.is_whitespace() || c == ',')
+                .map(|x| x.trim())
+                .filter(|s| !s.is_empty())
+                .filter_map(|x| x.parse().ok());
+
+        loop {
+            let Some(x) = values.next() else { break };
+            let Some(y) = values.next() else { break };
+            result.push(Point2D::new(x, y));
+        }
+
+        result
+    }
 }
 
 impl SvgElementTraits for Element {
+    fn str_property(&self, name: &str) -> &str {
+        self.attributes().find_by_str(name).unwrap_or_default()
+    }
+
     fn length_property_ext(&self, name: &str, default: f32) -> f32 {
         let Some(length) = self.attributes().find_by_str(name) else {
             println!("[Svg] Attribute \"{name}\" not found on element \"{}\"", self.qualified_name().local);
