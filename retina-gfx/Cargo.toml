@@ -15,6 +15,5 @@ log = "*"
 raw-window-handle = "*"
 tracing = "*"
 winit = "0.28.6"
-wgpu = { version = "*", features = ["trace"] }
 
 unicase = "*"

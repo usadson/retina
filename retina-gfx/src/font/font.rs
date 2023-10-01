@@ -18,14 +18,4 @@ pub trait Font {
     fn baseline_offset(&self, point_size: f32) -> f32;
     fn underline_position(&self, point_size: f32) -> f32;
     fn underline_thickness(&self, point_size: f32) -> f32;
-
-    fn paint(
-        &self,
-        text: &str,
-        color: Color,
-        position: Point2D<f32>,
-        font_size: f32,
-        hints: TextHintingOptions,
-        painter: &mut Painter
-    );
 }

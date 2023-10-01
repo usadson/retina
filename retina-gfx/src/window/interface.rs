@@ -45,7 +45,7 @@ pub trait WindowApplication<EventType>
         _ = event;
     }
 
-    fn on_paint(&mut self, render_pass: &mut Painter) {
+    fn on_paint(&mut self, render_pass: &mut dyn Painter) {
         _ = render_pass;
     }
 

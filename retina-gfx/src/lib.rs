@@ -4,12 +4,9 @@
 pub mod canvas;
 pub mod context;
 pub mod font;
-mod future;
 pub mod math;
-pub mod material;
 mod painter;
 mod texture;
-pub mod vertex;
 pub mod window;
 
 pub(crate) type GfxResult<T> = Result<T, Box<dyn std::error::Error>>;
@@ -22,9 +19,8 @@ pub use winit::{
 };
 pub use self::{
     context::Context,
-    future::SubmissionFuture,
     painter::Painter,
-    texture::Texture,
+    texture::{Texture, TextureId, TextureViewId},
     window::{
         event_proxy::WindowEventProxy,
         interface::{
@@ -34,14 +30,6 @@ pub use self::{
         },
         painter::WindowPainter,
         Window,
-    },
-};
-
-pub(crate) use self::{
-    painter::Artwork,
-    material::{
-        ColorMaterialRenderer,
-        TextureMaterialRenderer,
     },
 };
 

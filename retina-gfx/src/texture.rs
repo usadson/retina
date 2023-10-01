@@ -1,90 +1,26 @@
 // Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
-use std::sync::Arc;
-
 use euclid::default::Size2D;
-use image::{DynamicImage, ColorType};
-use wgpu::util::DeviceExt;
-
-use crate::Context;
 
 #[derive(Clone, Debug)]
 pub struct Texture {
     size: Size2D<u32>,
-    internal: Arc<TextureImpl>,
+    id: TextureId,
+    view_id: TextureViewId,
 }
 
 impl Texture {
-    pub fn create_from_image(context: &Context, image: &DynamicImage) -> Self {
-        let width = image.width();
-        let height = image.height();
-
-        let image_buffer;
-        let (image, format) = match image.color() {
-            ColorType::Rgba8 => (image, wgpu::TextureFormat::Rgba8UnormSrgb),
-            ColorType::Rgba16 => (image, wgpu::TextureFormat::Rgba16Snorm),
-            ColorType::Rgba32F => (image, wgpu::TextureFormat::Rgba16Float),
-            _ => {
-                image_buffer = image.to_rgba8().into();
-                (&image_buffer, wgpu::TextureFormat::Rgba8UnormSrgb)
-            }
-        };
-
-        Self::create_from_image_bytes(context, width, height, format, image.as_bytes())
+    pub fn new(size: Size2D<u32>, id: TextureId, view_id: TextureViewId) -> Self {
+        Self { size, id, view_id }
     }
 
-    pub fn create_from_image_bytes(
-        context: &Context,
-        width: u32,
-        height: u32,
-        format: wgpu::TextureFormat,
-        data: &[u8],
-    ) -> Self {
-        let size = wgpu::Extent3d {
-            width,
-            height,
-            depth_or_array_layers: 1,
-        };
-
-        let texture = context.device().create_texture_with_data(
-            context.queue(),
-            &wgpu::TextureDescriptor {
-                dimension: wgpu::TextureDimension::D2,
-
-                size,
-                format,
-                usage: wgpu::TextureUsages::TEXTURE_BINDING,
-
-                label: Some("retina_gfx::Texture"),
-
-                mip_level_count: 1,
-                sample_count: 1,
-
-                view_formats: &[],
-            },
-            data,
-        );
-
-        let texture_view = texture.create_view(&wgpu::TextureViewDescriptor {
-            ..Default::default()
-        });
-
-        Self {
-            size: Size2D::new(width, height),
-            internal: Arc::new(TextureImpl {
-                texture,
-                texture_view,
-            })
-        }
+    pub fn id(&self) -> TextureId {
+        self.id
     }
 
-    pub fn data(&self) -> &wgpu::Texture {
-        &self.internal.texture
-    }
-
-    pub fn view(&self) -> &wgpu::TextureView {
-        &self.internal.texture_view
+    pub fn view(&self) -> TextureViewId {
+        self.view_id
     }
 
     pub fn width(&self) -> u32 {
@@ -100,8 +36,7 @@ impl Texture {
     }
 }
 
-#[derive(Debug)]
-struct TextureImpl {
-    texture: wgpu::Texture,
-    texture_view: wgpu::TextureView,
-}
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct TextureId(pub usize);
+
+pub struct TextureViewId(pub usize);
