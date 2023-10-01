@@ -21,7 +21,7 @@ mod generate;
 pub(crate) mod replaced;
 pub(crate) mod text;
 
-use retina_gfx_font::FontStyle;
+use retina_gfx::font::FontStyle;
 use retina_style::CssFontStyle;
 
 pub use self::{
@@ -37,13 +37,13 @@ pub use self::{
 
 pub(crate) type DomNode = retina_dom::Node;
 
-pub fn convert_font_family(value: &retina_style::CssFontFamilyName) -> retina_gfx_font::FamilyName {
+pub fn convert_font_family(value: &retina_style::CssFontFamilyName) -> retina_gfx::font::FamilyName {
     use retina_style::{
         CssFontFamilyName,
         CssGenericFontFamilyName,
     };
 
-    use retina_gfx_font::FamilyName;
+    use retina_gfx::font::FamilyName;
 
     match value {
         CssFontFamilyName::Name(name) => name.clone().into(),

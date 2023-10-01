@@ -3439,7 +3439,6 @@ dependencies = [
  "retina-common",
  "retina-fetch",
  "retina-gfx",
- "retina-gfx-font",
  "retina-gfx-font-backend-font-kit",
  "retina-gfx-gui",
  "retina-page",
@@ -3463,7 +3462,6 @@ dependencies = [
  "profiling",
  "retina-dom",
  "retina-gfx",
- "retina-gfx-font",
  "retina-layout",
  "retina-style",
  "retina-style-computation",
@@ -3537,18 +3535,9 @@ dependencies = [
  "raw-window-handle",
  "retina-common",
  "tracing",
+ "unicase",
  "wgpu",
  "winit",
-]
-
-[[package]]
-name = "retina-gfx-font"
-version = "0.3.0"
-dependencies = [
- "euclid",
- "retina-common",
- "retina-gfx",
- "unicase",
 ]
 
 [[package]]
@@ -3566,7 +3555,6 @@ dependencies = [
  "rayon",
  "retina-common",
  "retina-gfx",
- "retina-gfx-font",
  "retina-gfx-font-renderer",
  "tracing",
  "wgpu",
@@ -3596,6 +3584,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "retina-gfx-wgpu"
+version = "0.3.0"
+dependencies = [
+ "bytemuck",
+ "euclid",
+ "futures",
+ "image",
+ "log",
+ "raw-window-handle",
+ "retina-common",
+ "retina-gfx",
+ "tracing",
+ "wgpu",
+ "winit",
+]
+
+[[package]]
 name = "retina-i18n"
 version = "0.3.0"
 
@@ -3608,7 +3613,7 @@ dependencies = [
  "retina-common",
  "retina-dom",
  "retina-fetch",
- "retina-gfx-font",
+ "retina-gfx",
  "retina-i18n",
  "retina-style",
  "retina-style-computation",
@@ -3637,7 +3642,6 @@ dependencies = [
  "retina-fetch",
  "retina-file-viewer",
  "retina-gfx",
- "retina-gfx-font",
  "retina-gfx-gui",
  "retina-layout",
  "retina-media-type",

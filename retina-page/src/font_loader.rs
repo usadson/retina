@@ -12,7 +12,7 @@ use retina_fetch::{
     RequestReferrer,
     RequestMode,
 };
-use retina_gfx_font::{
+use retina_gfx::font::{
     FamilyName,
     FontDescriptor,
     FontProvider,

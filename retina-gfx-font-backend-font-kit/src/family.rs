@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use retina_gfx_font::Font;
+use retina_gfx::font::Font;
 
 #[derive(Default)]
 pub(crate) struct FontFamily {

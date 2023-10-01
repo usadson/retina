@@ -20,7 +20,7 @@ use retina_gfx::{
     WindowEventProxy,
     WindowKeyPressEvent,
 };
-use retina_gfx_font::{FontProvider, FontDescriptor, FamilyName, FontWeight};
+use retina_gfx::font::{FontProvider, FontDescriptor, FamilyName, FontWeight};
 use retina_gfx_gui::GuiManager;
 use retina_page::*;
 

@@ -9,7 +9,7 @@ use retina_common::Color;
 use retina_dom::{Node, NodeKind, ImageData, Text};
 use retina_fetch::Url;
 
-use retina_gfx_font::{
+use retina_gfx::font::{
     CapitalLetterMode,
     EastAsianGlyphForm,
     EastAsianGlyphWidth,
@@ -502,13 +502,13 @@ impl<'stylesheets, ImageLoader> LayoutGenerator<'stylesheets, ImageLoader>
         let default_reference_pixels = CssReferencePixels::new(16.0);
 
         let font = self.font_provider.get(&FontDescriptor {
-            name: retina_gfx_font::FamilyName::Serif,
+            name: retina_gfx::font::FamilyName::Serif,
             weight: FontWeight::REGULAR,
             style: Default::default(),
         }).expect("failed to load serif font");
 
         let font_emoji = self.font_provider.get(&FontDescriptor {
-            name: retina_gfx_font::FamilyName::Emoji,
+            name: retina_gfx::font::FamilyName::Emoji,
             weight: FontWeight::REGULAR,
             style: Default::default(),
         });

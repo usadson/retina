@@ -3,9 +3,9 @@
 
 use euclid::default::{Point2D, Size2D};
 use retina_common::Color;
-use retina_gfx::Painter;
+use crate::Painter;
 
-use crate::{
+use super::{
     FontDescriptor,
     features::TextHintingOptions,
 };

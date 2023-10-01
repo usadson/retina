@@ -32,7 +32,7 @@ use retina_dom::{
 
 use retina_fetch::{Fetch, Request, RequestMode, RequestReferrer};
 use retina_gfx::{canvas::CanvasPaintingContext, Context};
-use retina_gfx_font::FontProvider;
+use retina_gfx::font::FontProvider;
 use retina_layout::{
     LayoutBox,
     LayoutBoxKind,

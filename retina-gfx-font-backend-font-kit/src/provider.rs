@@ -21,7 +21,7 @@ use crate::{
     convert_font_kit_weight,
 };
 
-use retina_gfx_font::{
+use retina_gfx::font::{
     descriptor::{
         FamilyName,
         FontDescriptor,
@@ -71,7 +71,7 @@ impl FontProvider {
         }
     }
 
-    fn load_gfx_font(&self, family_name: FamilyName, font: Arc<dyn retina_gfx_font::Font>) {
+    fn load_gfx_font(&self, family_name: FamilyName, font: Arc<dyn retina_gfx::font::Font>) {
         let mut families = self.families.write()
             .expect("FontProvider failed to write to `families`");
 

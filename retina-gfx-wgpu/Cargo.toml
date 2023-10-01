@@ -1,11 +1,12 @@
 [package]
-name = "retina-gfx"
+name = "retina-gfx-wgpu"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 
 [dependencies]
 retina-common = { path = "../retina-common" }
+retina-gfx = { path = "../retina-gfx" }
 
 futures = "*"
 bytemuck = { version = "*", features = ["derive"] }
@@ -16,5 +17,3 @@ raw-window-handle = "*"
 tracing = "*"
 winit = "0.28.6"
 wgpu = { version = "*", features = ["trace"] }
-
-unicase = "*"

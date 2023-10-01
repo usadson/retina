@@ -6,7 +6,7 @@ use retina_gfx::{
     CursorIcon,
     euclid::Size2D,
 };
-use retina_gfx_font::FontDescriptor;
+use retina_gfx::font::FontDescriptor;
 use retina_gfx_gui::ContextMenu;
 
 use retina_style::Stylesheet;

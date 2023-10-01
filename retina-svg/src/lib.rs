@@ -29,7 +29,7 @@ pub use self::painter::{
 };
 
 use euclid::{default::{Box2D, Rect, Size2D}, Point2D, UnknownUnit};
-use log::{error, warn, info};
+use log::{error, warn};
 
 use lyon::geom::point;
 use path::{SvgPathType, SvgPathCoordinatePair};
@@ -154,12 +154,10 @@ impl<'painter> SvgRenderer<'painter> {
             return;
         };
 
-        info!("Raw path data: \"{path_data}\"");
         let fill = element.property_fill();
         let stroke = element.property_stroke();
         let stroke_width = element.property_stroke_width();
         if fill.is_transparent() && stroke.is_transparent() && stroke_width <= 0.0 {
-            info!("Skipping transparent path!");
             return;
         }
 
@@ -170,8 +168,6 @@ impl<'painter> SvgRenderer<'painter> {
                 return;
             }
         };
-
-        info!("Parsed path data: {path:#?}");
 
         let mut sink = self.painter.create_geometry(GeometrySinkFillType::Filled);
 
@@ -267,7 +263,6 @@ impl<'painter> SvgRenderer<'painter> {
         let height = element.property_height();
 
         if let Some(view_box) = element.property_view_box() {
-            println!("Width: {width}, height: {height}");
             if width > 0.0 && height > 0.0 {
                 self.painter.set_size(Size2D::new(
                     width / view_box.width(),
@@ -275,7 +270,6 @@ impl<'painter> SvgRenderer<'painter> {
                 ));
             }
 
-            info!("SVG ViewBox: {view_box:#?}");
             self.painter.push_view_box(view_box);
         } else if width > 0.0 && height > 0.0 {
             self.painter.set_size(Size2D::new(width, height));
@@ -429,7 +423,6 @@ impl SvgElementTraits for Element {
 
     fn length_property_ext(&self, name: &str, default: f32) -> f32 {
         let Some(length) = self.attributes().find_by_str(name) else {
-            println!("[Svg] Attribute \"{name}\" not found on element \"{}\"", self.qualified_name().local);
             return default;
         };
 
@@ -476,8 +469,6 @@ impl SvgElementTraits for Element {
 
     fn property_view_box(&self) -> Option<Rect<f32>> {
         let value = self.attributes().find_by_str("viewBox")?;
-
-        info!("ViewBox: \"{value}\"");
 
         let values: Vec<f32> = value.split(|c| c == ' ' || c == ',')
             .filter_map(|x| {

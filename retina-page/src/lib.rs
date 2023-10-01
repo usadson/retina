@@ -26,7 +26,7 @@ use self::{
 
 use retina_compositor::Compositor;
 use retina_gfx::{canvas::CanvasPaintingContext, euclid::Size2D};
-use retina_gfx_font::FontProvider;
+use retina_gfx::font::FontProvider;
 
 use std::{
     panic::PanicInfo,

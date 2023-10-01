@@ -2,7 +2,7 @@
 // All Rights Reserved.
 
 use retina_common::Color;
-use retina_gfx_font::TextHintingOptions;
+use retina_gfx::font::TextHintingOptions;
 
 use crate::LayoutBoxDimensions;
 

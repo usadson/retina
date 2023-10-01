@@ -32,7 +32,7 @@ use windows::{
         ID2D1Brush,
         ID2D1GeometrySink,
         ID2D1HwndRenderTarget,
-        ID2D1PathGeometry,
+        ID2D1PathGeometry, D2D1_LAYER_PARAMETERS,
     },
 };
 
@@ -342,9 +342,7 @@ impl DirectGeometrySink {
 
 impl GeometrySink for DirectGeometrySink {
     fn close_path(&mut self) {
-        log::info!("Closing path...");
         if self.state != DirectGeometrySinkState::Opened {
-            log::info!("  Not closing because it isn't opened: {:?}", self.state);
             return;
         }
 
@@ -364,7 +362,6 @@ impl GeometrySink for DirectGeometrySink {
         debug_assert_eq!(self.state, DirectGeometrySinkState::Opened);
         let point = self.point(ty, coords);
         unsafe {
-            log::info!("Line {ty:?} to {coords:?}");
             self.sink.AddLine(point);
         }
         self.current = point;
@@ -388,10 +385,8 @@ impl GeometrySink for DirectGeometrySink {
 
     fn move_to(&mut self, ty: SvgPathType, coords: SvgPathCoordinatePair) {
         let state = self.state;
-        log::info!("Move {ty:?} to {coords:?} while {state:?}");
 
         if state == DirectGeometrySinkState::Initial {
-            log::info!("  Absolute initial");
             unsafe {
                 self.sink.BeginFigure(point(coords), self.begin_type);
             }
@@ -412,7 +407,6 @@ impl GeometrySink for DirectGeometrySink {
         self.state = DirectGeometrySinkState::Opened;
 
         unsafe {
-            log::info!("  Beginning figure");
             self.sink.BeginFigure(coords, self.begin_type);
         }
     }
@@ -554,8 +548,6 @@ impl GeometrySink for DirectGeometrySink {
     }
 
     fn finish(&mut self) -> Box<dyn Geometry> {
-        log::info!("Finishing...");
-
         if self.state != DirectGeometrySinkState::Closed {
             // The “closepath” command (Z/z) will close it differently than
             // this implicit one, since it will connect the initial point to

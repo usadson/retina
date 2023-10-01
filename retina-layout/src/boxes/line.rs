@@ -3,7 +3,7 @@
 
 use euclid::default::{Point2D, Size2D};
 use retina_common::{StrTendril, DynamicSizeOf};
-use retina_gfx_font::FontHandle;
+use retina_gfx::font::FontHandle;
 use retina_style::CssDecimal;
 
 /// The rectangular area that contains the boxes that form a line is called a

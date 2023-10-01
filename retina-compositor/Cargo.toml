@@ -7,7 +7,6 @@ license.workspace = true
 [dependencies]
 retina-dom = { path = "../retina-dom" }
 retina-gfx = { path = "../retina-gfx" }
-retina-gfx-font = { path = "../retina-gfx-font" }
 retina-layout = { path = "../retina-layout" }
 retina-style = { path = "../retina-style" }
 retina-style-computation = { path = "../retina-style-computation" }

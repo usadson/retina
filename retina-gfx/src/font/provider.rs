@@ -8,7 +8,7 @@ use std::{
 
 use retina_common::LoadTime;
 
-use crate::{
+use super::{
     FontDescriptor,
     FontHandle,
 };

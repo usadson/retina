@@ -33,7 +33,7 @@ use rayon::prelude::*;
 use retina_common::scale_factor;
 use retina_gfx::Context;
 
-use retina_gfx_font::{
+use retina_gfx::font::{
     CapitalLetterMode,
     EastAsianGlyphForm,
     EastAsianGlyphWidth,
@@ -282,7 +282,7 @@ fn resolve_hints_to_harfbuzz(hints: TextHintingOptions) -> Vec<harfbuzz_rs::Feat
     features
 }
 
-impl retina_gfx_font::Font for FontKitFont {
+impl retina_gfx::font::Font for FontKitFont {
     fn calculate_size(&self, point_size: f32, text: &str, hints: TextHintingOptions) -> Size2D<f32> {
         let point_size = point_size * scale_factor() as f32;
         let typographic_unit_conversion_factor = self.metrics.units_per_em as f32 / point_size;

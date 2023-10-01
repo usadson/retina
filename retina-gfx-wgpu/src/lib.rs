@@ -3,7 +3,6 @@
 
 pub mod canvas;
 pub mod context;
-pub mod font;
 mod future;
 pub mod math;
 pub mod material;

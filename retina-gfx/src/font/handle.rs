@@ -7,7 +7,7 @@ use std::{
     sync::Arc,
 };
 
-use crate::Font;
+use super::Font;
 
 #[derive(Clone)]
 pub struct FontHandle {

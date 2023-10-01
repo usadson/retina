@@ -8,7 +8,7 @@ pub(crate) mod provider;
 
 pub use self::provider::FontProvider;
 
-use retina_gfx_font::{
+use retina_gfx::font::{
     FontStyle,
     FontWeight,
 };

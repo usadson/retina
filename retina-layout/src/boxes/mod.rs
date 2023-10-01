@@ -23,7 +23,7 @@ use retina_common::{
     StrTendril,
 };
 use retina_dom::{ImageData, HtmlElementKind};
-use retina_gfx_font::{FontHandle, TextHintingOptions};
+use retina_gfx::font::{FontHandle, TextHintingOptions};
 use retina_style::{CssDecimal, CssReferencePixels, CssLength, CssWhiteSpace};
 
 use crate::{
